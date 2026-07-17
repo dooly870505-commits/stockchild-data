@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-07-16T20:39:18+09:00",
+  "updatedAt": "2026-07-17T20:39:16+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 144711,
-      "updatedAt": "2026-07-16T20:40:01+09:00",
+      "updatedAt": "2026-07-17T20:39:22+09:00",
       "changed": true,
       "ok": true
     },
@@ -17,7 +17,7 @@
       "file": "data/majorholder.json",
       "count": null,
       "bytes": 1348109,
-      "updatedAt": "2026-07-16T20:42:45+09:00",
+      "updatedAt": "2026-07-17T20:39:39+09:00",
       "changed": true,
       "ok": true
     },
@@ -26,7 +26,7 @@
       "file": "data/transfer.json",
       "count": null,
       "bytes": 231247,
-      "updatedAt": "2026-07-16T20:44:34+09:00",
+      "updatedAt": "2026-07-17T20:39:54+09:00",
       "changed": true,
       "ok": true
     }
