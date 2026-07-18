@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-07-18T18:51:10+09:00",
+  "updatedAt": "2026-07-18T19:12:31+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 144711,
-      "updatedAt": "2026-07-18T18:51:13+09:00",
+      "updatedAt": "2026-07-18T19:12:34+09:00",
       "changed": true,
       "ok": true
     },
@@ -17,7 +17,7 @@
       "file": "data/majorholder.json",
       "count": null,
       "bytes": 1348109,
-      "updatedAt": "2026-07-18T18:51:20+09:00",
+      "updatedAt": "2026-07-18T19:12:42+09:00",
       "changed": true,
       "ok": true
     },
@@ -26,7 +26,7 @@
       "file": "data/transfer.json",
       "count": null,
       "bytes": 231247,
-      "updatedAt": "2026-07-18T18:51:24+09:00",
+      "updatedAt": "2026-07-18T19:12:47+09:00",
       "changed": true,
       "ok": true
     },
@@ -34,8 +34,8 @@
       "label": "무상감자 이력 추적기",
       "file": "data/capcut.json",
       "count": null,
-      "bytes": 143187,
-      "updatedAt": "2026-07-18T18:51:26+09:00",
+      "bytes": 145607,
+      "updatedAt": "2026-07-18T19:12:50+09:00",
       "changed": true,
       "ok": true
     }
