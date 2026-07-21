@@ -56,6 +56,11 @@
     + '.mcs-warn{font-size:12px;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.5}'
     + '.mcs-warn.orange{background:#FBF0E0;border:1px solid #E8C99A;color:#8A5A1E}'
     + '.mcs-warn.red{background:#F9E9E7;border:1px solid #E5B5AE;color:#8A2F26}'
+    + '.mcs-grade{display:inline-block;font-size:14px;font-weight:700;border-radius:20px;padding:6px 14px;margin:2px 0 10px}'
+    + '.mcs-grade.g1{background:#E7F0E9;color:#3A7D44}'
+    + '.mcs-grade.g2{background:#FBF0E0;color:#8A5A1E}'
+    + '.mcs-grade.g3{background:#F6E7DC;color:#9A5A2A}'
+    + '.mcs-grade.g4{background:#F9E9E7;color:#8A2F26}'
     + '.mcs-disc{font-size:12px;color:var(--nct-sub);background:var(--nct-card);border:1px solid var(--nct-line);'
     + 'border-radius:10px;padding:12px;line-height:1.6;margin-top:14px}'
     + '.mcs-footer{font-size:11px;color:var(--nct-sub);text-align:center;margin-top:12px;line-height:1.6}'
@@ -129,6 +134,25 @@
   }
   function pct(x) { return (Math.round(x * 10) / 10).toFixed(1); }
 
+  /* 레버리지 배율 기준 유머 등급. 조롱이 아니라 공감 톤, 위험할수록 주의 환기 포함 */
+  function grade(lev, tab) {
+    var CREDIT = [
+      { max: 1.5,  cls: 'g1', text: '🚗 안전 운전 중' },
+      { max: 2.01, cls: 'g2', text: '🛵 적당히 밟는 중' },
+      { max: 3,    cls: 'g3', text: '🏎️ 과속 구간, 안전벨트 필수' },
+      { max: 1e9,  cls: 'g4', text: '🙏 기도 매매, 우리 같이 존버해요' }
+    ];
+    var MISU = [
+      { max: 1.5,  cls: 'g1', text: '🚗 가벼운 외출' },
+      { max: 2.01, cls: 'g2', text: '🛵 살짝 무리 구간' },
+      { max: 3,    cls: 'g3', text: '🏎️ 심장 쫄깃 구간' },
+      { max: 1e9,  cls: 'g4', text: '🚀 풀악셀, 손 떨리는 중' }
+    ];
+    var table = (tab === 'misu') ? MISU : CREDIT;
+    for (var i = 0; i < table.length; i++) { if (lev < table[i].max) return table[i]; }
+    return table[table.length - 1];
+  }
+
   var activeTab = 'credit';
   var lastResult = null;
 
@@ -168,8 +192,10 @@
         + '<div class="mcs-bigsub">이 비중이면 매수하는 순간부터 담보유지비율(' + ratio + '%)에 미달합니다</div>'
         + '<div class="mcs-warn red">🚨 융자 비중이 너무 높습니다. 통상 이런 주문은 애초에 체결이 제한되지만, 계산상으로는 하락 여유가 전혀 없는 구조입니다.</div>';
     } else {
+      var gC = grade(lev, 'credit');
       html += '<div class="mcs-big">-' + pct(line * 100) + '%</div>'
         + '<div class="mcs-bigsub">매수가 대비 이만큼 하락하면 담보부족(반대매매 위험 구간) 진입</div>'
+        + '<div class="mcs-grade ' + gC.cls + '">' + gC.text + '</div>'
         + '<div class="mcs-row"><span>총 매수금액</span><b>' + fmtMan(T) + '</b></div>'
         + '<div class="mcs-row"><span>레버리지</span><b>' + pct(lev) + '배</b></div>'
         + '<div class="mcs-row"><span>경고선 도달 시 평가손실</span><b>' + fmtMan(lossAtLine) + ' (원금의 ' + pct(lossAtLine / C * 100) + '%)</b></div>'
@@ -201,8 +227,10 @@
       html += '<div class="mcs-big">미수 불가 종목</div>'
         + '<div class="mcs-bigsub">증거금률 100% 종목은 전액 현금 매수만 가능해 미수가 발생하지 않아요</div>';
     } else {
+      var gM = grade(lev, 'misu');
       html += '<div class="mcs-big">-' + pct(m) + '%</div>'
         + '<div class="mcs-bigsub">주가가 이만큼 하락하면 내 증거금 전액 손실 (레버리지 ' + pct(lev) + '배 기준)</div>'
+        + '<div class="mcs-grade ' + gM.cls + '">' + gM.text + '</div>'
         + '<div class="mcs-row"><span>최대 매수 가능액</span><b>' + fmtMan(T) + '</b></div>'
         + '<div class="mcs-row"><span>발생 미수금</span><b>' + fmtMan(misu) + '</b></div>'
         + '<div class="mcs-row"><span>레버리지</span><b>' + pct(lev) + '배</b></div>'
@@ -250,6 +278,11 @@
       x.font = '400 32px ' + FONT; x.fillStyle = '#8A7F6C';
       x.fillText('레버리지 ' + pct(lastResult.lev) + '배 · 총 매수 ' + fmtMan(lastResult.C + lastResult.L), 540, 640);
       x.fillText('추가담보 미납 시 다음 영업일 아침 동시호가 처분', 540, 700);
+      if (lastResult.line > 0) {
+        var gcC = grade(lastResult.lev, 'credit');
+        x.font = '700 44px ' + FONT; x.fillStyle = '#3D3529';
+        x.fillText(gcC.text, 540, 810);
+      }
     } else {
       x.font = '400 34px ' + FONT; x.fillStyle = '#8A7F6C';
       x.fillText('증거금 ' + fmtMan(lastResult.C) + ' · 증거금률 ' + lastResult.m + '% · 미수 ' + fmtMan(lastResult.misu), 540, 220);
@@ -260,6 +293,11 @@
       x.font = '400 32px ' + FONT; x.fillStyle = '#8A7F6C';
       x.fillText('레버리지 ' + pct(lastResult.lev) + '배 · 최대 매수 ' + fmtMan(lastResult.T), 540, 640);
       x.fillText('결제일까지 미납 시 다음 영업일 아침 반대매매', 540, 700);
+      if (lastResult.m < 100) {
+        var gcM = grade(lastResult.lev, 'misu');
+        x.font = '700 44px ' + FONT; x.fillStyle = '#3D3529';
+        x.fillText(gcM.text, 540, 810);
+      }
     }
 
     x.font = '400 26px ' + FONT; x.fillStyle = '#8A7F6C';
