@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-07-20T20:39:17+09:00",
+  "updatedAt": "2026-07-21T12:32:05+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 145020,
-      "updatedAt": "2026-07-20T20:39:30+09:00",
+      "updatedAt": "2026-07-21T12:32:09+09:00",
       "changed": true,
       "ok": true
     },
@@ -17,7 +17,7 @@
       "file": "data/majorholder.json",
       "count": null,
       "bytes": 1348993,
-      "updatedAt": "2026-07-20T20:40:25+09:00",
+      "updatedAt": "2026-07-21T12:32:17+09:00",
       "changed": true,
       "ok": true
     },
@@ -26,7 +26,7 @@
       "file": "data/transfer.json",
       "count": null,
       "bytes": 231784,
-      "updatedAt": "2026-07-20T20:41:11+09:00",
+      "updatedAt": "2026-07-21T12:32:23+09:00",
       "changed": true,
       "ok": true
     },
@@ -35,14 +35,23 @@
       "file": "data/capcut.json",
       "count": null,
       "bytes": 145607,
-      "updatedAt": "2026-07-20T20:41:22+09:00",
+      "updatedAt": "2026-07-21T12:32:26+09:00",
+      "changed": true,
+      "ok": true
+    },
+    "halfyear": {
+      "label": "반기보고서 지연 모니터",
+      "file": "data/halfyear.json",
+      "count": null,
+      "bytes": 211976,
+      "updatedAt": "2026-07-21T12:32:27+09:00",
       "changed": true,
       "ok": true
     }
   },
   "summary": {
-    "total": 4,
-    "ok": 4,
+    "total": 5,
+    "ok": 5,
     "failed": 0
   }
 }
