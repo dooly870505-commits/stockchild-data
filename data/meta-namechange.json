@@ -1,14 +1,14 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-07-22T20:39:16+09:00",
+  "updatedAt": "2026-07-23T20:39:16+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
       "label": "상호변경 이력 조회기",
       "file": "data/namechange.json",
       "count": null,
-      "bytes": 145212,
-      "updatedAt": "2026-07-22T20:39:23+09:00",
+      "bytes": 145106,
+      "updatedAt": "2026-07-23T20:39:22+09:00",
       "changed": true,
       "ok": true
     },
@@ -16,8 +16,8 @@
       "label": "최대주주 변경 추적기",
       "file": "data/majorholder.json",
       "count": null,
-      "bytes": 1349198,
-      "updatedAt": "2026-07-22T20:39:40+09:00",
+      "bytes": 1349692,
+      "updatedAt": "2026-07-23T20:39:33+09:00",
       "changed": true,
       "ok": true
     },
@@ -26,7 +26,7 @@
       "file": "data/transfer.json",
       "count": null,
       "bytes": 231785,
-      "updatedAt": "2026-07-22T20:39:53+09:00",
+      "updatedAt": "2026-07-23T20:39:42+09:00",
       "changed": true,
       "ok": true
     },
@@ -35,7 +35,7 @@
       "file": "data/capcut.json",
       "count": null,
       "bytes": 145607,
-      "updatedAt": "2026-07-22T20:39:58+09:00",
+      "updatedAt": "2026-07-23T20:39:46+09:00",
       "changed": true,
       "ok": true
     },
@@ -44,7 +44,7 @@
       "file": "data/halfyear.json",
       "count": null,
       "bytes": 211976,
-      "updatedAt": "2026-07-22T20:40:01+09:00",
+      "updatedAt": "2026-07-23T20:39:48+09:00",
       "changed": true,
       "ok": true
     }
