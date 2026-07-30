@@ -1,4 +1,4 @@
-/* stock-radar-widget.js  |  내 종목 공시 레이더 v1 */
+/* stock-radar-widget.js  |  내 종목 공시 레이더 v2 */
 (function () {
   'use strict';
 
@@ -6,14 +6,16 @@
   var IDX_URL = BASE + 'stock-radar-idx.json';
   var EVT_URL = BASE + 'stock-radar-evt.json';
   var LS_KEY = 'stockchild_radar_watch';
-
   var MOUNT_ID = 'stock-radar';
+
   var TAG_COLOR = ['#8A7F6C', '#C77B3A', '#5B7DA8', '#B59A3F', '#B24A3A'];
   var TAG_ICON = ['📝', '👤', '🏛️', '🔤', '✂️'];
   var GRADE_COLOR = ['#7A9B6E', '#8A7F6C', '#B59A3F', '#C77B3A', '#B24A3A'];
+  var PREVIEW_N = 3;
 
-  var IDX = null, EVT = null, evtLoading = false;
+  var IDX = null, EVT = null, evtLoading = false, corpMap = {};
   var tab = 'watch', sel = null, mkt = 'KOSDAQ', hideRoutine = true;
+  var openMap = {};
 
   /* ---------- 유틸 ---------- */
   function el(id) { return document.getElementById(id); }
@@ -36,6 +38,14 @@
         d = +String(ymd8).substring(6, 8);
     return Math.floor((Date.now() - new Date(y, m - 1, d).getTime()) / 86400000);
   }
+  function agoTxt(ymd8) {
+    var n = daysAgo(ymd8);
+    if (n <= 0) return '오늘';
+    if (n === 1) return '어제';
+    if (n < 30) return n + '일 전';
+    if (n < 365) return Math.floor(n / 30) + '개월 전';
+    return Math.floor(n / 365) + '년 전';
+  }
   function getWatch() {
     try {
       var v = window.localStorage.getItem(LS_KEY);
@@ -45,13 +55,7 @@
   function setWatch(a) {
     try { window.localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) {}
   }
-  function corpOf(code) {
-    if (!IDX) return null;
-    for (var i = 0; i < IDX.corps.length; i++) {
-      if (IDX.corps[i][0] === code) return IDX.corps[i];
-    }
-    return null;
-  }
+  function corpOf(code) { return corpMap[code] || null; }
   function rowsOf(code) {
     if (!EVT || !EVT.ev[code]) return [];
     return EVT.ev[code].map(function (r) {
@@ -61,6 +65,9 @@
         rt: r.length > 4 ? r[4] : 0
       };
     });
+  }
+  function totalOf(c) {
+    return c[3] + c[4] + c[5] + c[6] + c[7];
   }
 
   /* ---------- 스타일 ---------- */
@@ -88,8 +95,10 @@
   + '.rdr-tabs button{flex:1;padding:10px 4px;font-size:13.5px;font-weight:700;border:1px solid var(--line);'
   + 'border-radius:9px;background:var(--card);color:var(--sub);cursor:pointer;font-family:inherit}'
   + '.rdr-tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}'
-  + '.rdr-card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:9px}'
-  + '.rdr-row{display:flex;justify-content:space-between;align-items:center;gap:10px}'
+  + '.rdr-card{background:var(--card);border:1px solid var(--line);border-radius:11px;'
+  + 'padding:13px 15px;margin-bottom:9px}'
+  + '.rdr-card.sel{border-color:var(--acc);box-shadow:0 0 0 2px rgba(139,111,71,.11)}'
+  + '.rdr-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;cursor:pointer}'
   + '.rdr-nm{font-size:15px;font-weight:700}'
   + '.rdr-cd{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--sub);margin-left:6px}'
   + '.rdr-gr{font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;color:#fff;white-space:nowrap}'
@@ -99,15 +108,25 @@
   + '.rdr-btn{padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:8px;cursor:pointer;'
   + 'border:1px solid var(--acc);background:var(--acc);color:#fff;font-family:inherit;white-space:nowrap}'
   + '.rdr-btn.off{background:var(--card);color:var(--acc)}'
-  + '.rdr-tl{margin-top:13px;border-top:1px solid var(--line);padding-top:11px;max-height:340px;overflow-y:auto}'
-  + '.rdr-ti{display:flex;gap:9px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px}'
-  + '.rdr-ti:last-child{border-bottom:none}'
-  + '.rdr-td{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--sub);flex-shrink:0;width:74px;padding-top:1px}'
-  + '.rdr-tx{flex:1;line-height:1.5}'
-  + '.rdr-tt{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:5px;color:#fff;margin-right:5px;'
-  + 'display:inline-block;vertical-align:1px}'
+  + '.rdr-pv{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}'
+  + '.rdr-pvh{font-size:11px;font-weight:800;color:var(--sub);margin-bottom:7px;letter-spacing:.02em}'
+  + '.rdr-ti{display:flex;gap:9px;padding:6px 0;font-size:12.5px;align-items:flex-start}'
+  + '.rdr-ti+.rdr-ti{border-top:1px dashed var(--line)}'
+  + '.rdr-ti.dim{opacity:.52}'
+  + '.rdr-td{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--sub);'
+  + 'flex-shrink:0;width:74px;padding-top:2px}'
+  + '.rdr-tx{flex:1;line-height:1.55;min-width:0;word-break:break-all}'
+  + '.rdr-tt{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:5px;color:#fff;'
+  + 'margin-right:5px;display:inline-block;vertical-align:1px}'
   + '.rdr-rt{font-size:10px;color:var(--sub);margin-left:4px}'
+  + '.rdr-full{max-height:400px;overflow-y:auto;margin-top:4px;'
+  + '-webkit-overflow-scrolling:touch}'
+  + '.rdr-more{width:100%;margin-top:9px;padding:9px;font-size:12.5px;font-weight:700;'
+  + 'border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--acc);'
+  + 'cursor:pointer;font-family:inherit}'
+  + '.rdr-more:hover{background:#F3EDE0}'
   + '.rdr-empty{text-align:center;padding:34px 16px;color:var(--sub);font-size:13px;line-height:1.8}'
+  + '.rdr-load{padding:12px 0;color:var(--sub);font-size:12px;text-align:center}'
   + '.rdr-fil{display:flex;gap:5px;margin-bottom:11px;flex-wrap:wrap}'
   + '.rdr-fil button{padding:6px 12px;font-size:12px;border:1px solid var(--line);border-radius:16px;'
   + 'background:var(--card);color:var(--sub);cursor:pointer;font-family:inherit}'
@@ -120,34 +139,51 @@
   + '.rdr-fd.dim{opacity:.5}'
   + '.rdr-ft{margin-top:16px;padding-top:11px;border-top:1px solid var(--line);'
   + 'font-size:11px;color:var(--sub);line-height:1.7}'
-  + '.rdr-rk{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:800;color:var(--sub);'
-  + 'width:26px;flex-shrink:0}'
+  + '.rdr-rk{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:800;'
+  + 'color:var(--sub);width:26px;flex-shrink:0;padding-top:2px}'
+  + '.rdr-ar{font-size:11px;color:var(--sub);margin-left:6px}'
   + '@media(max-width:480px){.rdr-w{padding:14px;border-radius:0;border-left:none;border-right:none}'
   + '.rdr-ttl{font-size:17px}.rdr-nm{font-size:14px}.rdr-tabs button{font-size:12.5px;padding:9px 2px}'
-  + '.rdr-td{width:66px;font-size:10.5px}.rdr-ti{font-size:12px}}';
+  + '.rdr-td{width:64px;font-size:10.5px}.rdr-ti{font-size:12px}}';
 
-  /* ---------- 렌더 ---------- */
-  function shell() {
-    return ''
-    + '<div class="rdr-w">'
-    + '<div class="rdr-ttl">📡 내 종목 공시 레이더</div>'
-    + '<div class="rdr-sub" id="rdrSub">불러오는 중...</div>'
-    + '<div class="rdr-srch"><input id="rdrQ" type="text" placeholder="종목명 또는 종목코드 검색" autocomplete="off">'
-    + '<div class="rdr-ac" id="rdrAc"></div></div>'
-    + '<div id="rdrSel"></div>'
-    + '<div class="rdr-note">이벤트 지수는 공시가 얼마나 자주 발생했는지를 집계한 수치입니다. '
-    + '기업의 가치나 부실 여부를 판정하지 않으며, 공시 자체는 호재도 악재도 아닙니다. '
-    + '투자 참고용이며 매수 · 매도 추천이 아닙니다.</div>'
-    + '<div class="rdr-tabs">'
-    + '<button data-tab="watch">⭐ 내 종목</button>'
-    + '<button data-tab="feed">📅 오늘의 공시</button>'
-    + '<button data-tab="rank">🏆 랭킹</button></div>'
-    + '<div id="rdrBody"></div>'
-    + '<div class="rdr-ft" id="rdrFt"></div></div>';
+  /* ---------- 이벤트 목록 ---------- */
+  function evtItem(r) {
+    return '<div class="rdr-ti' + (r.rt ? ' dim' : '') + '">'
+      + '<div class="rdr-td">' + fmtD(r.d) + '</div>'
+      + '<div class="rdr-tx"><span class="rdr-tt" style="background:' + TAG_COLOR[r.t] + '">'
+      + IDX.tags[r.t] + '</span>' + esc(r.x)
+      + (r.n > 1 ? '<span class="rdr-rt">x' + r.n + '</span>' : '')
+      + (r.rt ? '<span class="rdr-rt">(정형)</span>' : '')
+      + '</div></div>';
   }
 
-  function corpCard(c, withBtn, extra) {
-    var w = getWatch(), on = w.indexOf(c[0]) !== -1;
+  function evtBlock(code, expanded) {
+    if (!EVT) return '<div class="rdr-pv"><div class="rdr-load">공시 이력 불러오는 중...</div></div>';
+    var rows = rowsOf(code);
+    if (!rows.length) {
+      return '<div class="rdr-pv"><div class="rdr-load">기록된 공시 이력이 없습니다.</div></div>';
+    }
+    var h = '<div class="rdr-pv"><div class="rdr-pvh">'
+      + (expanded ? '전체 공시 이력 ' + rows.length + '건' : '최근 공시') + '</div>';
+    if (expanded) {
+      h += '<div class="rdr-full">';
+      rows.forEach(function (r) { h += evtItem(r); });
+      h += '</div>';
+      h += '<button class="rdr-more" data-toggle="' + code + '">▲ 접기</button>';
+    } else {
+      rows.slice(0, PREVIEW_N).forEach(function (r) { h += evtItem(r); });
+      if (rows.length > PREVIEW_N) {
+        h += '<button class="rdr-more" data-toggle="' + code + '">'
+          + '▼ 전체 공시 이력 ' + rows.length + '건 보기</button>';
+      }
+    }
+    return h + '</div>';
+  }
+
+  /* ---------- 카드 ---------- */
+  function card(c, opt) {
+    opt = opt || {};
+    var code = c[0], open = !!openMap[code];
     var tags = '';
     for (var i = 0; i < 5; i++) {
       if (c[3 + i] > 0) {
@@ -155,47 +191,37 @@
              + TAG_ICON[i] + ' ' + IDX.tags[i] + ' ' + c[3 + i] + '</span>';
       }
     }
-    var ago = daysAgo(c[8]);
-    return ''
-    + '<div class="rdr-card">'
-    + '<div class="rdr-row"><div><span class="rdr-nm">' + esc(c[1]) + '</span>'
-    + '<span class="rdr-cd">' + c[0] + (c[2] ? ' · ' + c[2] : '') + '</span></div>'
-    + '<span class="rdr-gr" style="background:' + GRADE_COLOR[c[10]] + '">' + IDX.grades[c[10]] + '</span></div>'
-    + '<div class="rdr-tags">' + (tags || '<span class="rdr-tag">기록 없음</span>') + '</div>'
-    + '<div class="rdr-meta">이벤트 지수 ' + c[9] + '점 · 최근 공시 ' + fmtD8(c[8])
-    + ' (' + (ago === 0 ? '오늘' : ago + '일 전') + ')</div>'
-    + (withBtn
-      ? '<div style="margin-top:11px"><button class="rdr-btn' + (on ? ' off' : '')
-        + '" data-watch="' + c[0] + '">' + (on ? '⭐ 관심종목 해제' : '☆ 관심종목 등록') + '</button></div>'
-      : '')
-    + '</div>';
-  }
-
-  function timeline(code) {
-    if (!EVT) {
-      return '<div class="rdr-tl"><div class="rdr-empty">타임라인 불러오는 중...</div></div>';
+    var w = getWatch(), on = w.indexOf(code) !== -1;
+    var h = '<div class="rdr-card' + (open ? ' sel' : '') + '">'
+      + '<div class="rdr-hd" data-toggle="' + code + '">'
+      + '<div style="min-width:0;display:flex;gap:9px;align-items:flex-start">'
+      + (opt.rank ? '<span class="rdr-rk">' + opt.rank + '</span>' : '')
+      + '<div style="min-width:0">'
+      + '<div><span class="rdr-nm">' + esc(c[1]) + '</span>'
+      + '<span class="rdr-cd">' + code + (c[2] ? ' · ' + c[2] : '') + '</span></div>'
+      + '<div class="rdr-meta" style="margin-top:3px">지수 ' + c[9] + '점 · 총 '
+      + totalOf(c) + '건 · 최근 ' + fmtD8(c[8])
+      + '<span class="rdr-ar">' + agoTxt(c[8]) + '</span></div>'
+      + '</div></div>'
+      + '<span class="rdr-gr" style="background:' + GRADE_COLOR[c[10]] + '">'
+      + IDX.grades[c[10]] + '</span></div>'
+      + '<div class="rdr-tags">' + (tags || '<span class="rdr-tag">기록 없음</span>') + '</div>'
+      + evtBlock(code, open);
+    if (opt.watchBtn) {
+      h += '<div style="margin-top:11px"><button class="rdr-btn' + (on ? ' off' : '')
+        + '" data-watch="' + code + '">'
+        + (on ? '⭐ 관심종목 해제' : '☆ 관심종목 등록') + '</button></div>';
     }
-    var rows = rowsOf(code);
-    if (!rows.length) return '<div class="rdr-tl"><div class="rdr-empty">기록된 이벤트가 없습니다.</div></div>';
-    var h = '<div class="rdr-tl">';
-    rows.forEach(function (r) {
-      h += '<div class="rdr-ti"><div class="rdr-td">' + fmtD(r.d) + '</div>'
-        + '<div class="rdr-tx"><span class="rdr-tt" style="background:' + TAG_COLOR[r.t] + '">'
-        + IDX.tags[r.t] + '</span>' + esc(r.x)
-        + (r.n > 1 ? '<span class="rdr-rt">x' + r.n + '</span>' : '')
-        + (r.rt ? '<span class="rdr-rt">(정형 공시)</span>' : '')
-        + '</div></div>';
-    });
     return h + '</div>';
   }
 
+  /* ---------- 탭 ---------- */
   function drawSel() {
     var box = el('rdrSel');
+    if (!box) return;
     if (!sel) { box.innerHTML = ''; return; }
     var c = corpOf(sel);
-    if (!c) { box.innerHTML = ''; return; }
-    box.innerHTML = corpCard(c, true, timeline(sel));
-    if (!EVT && !evtLoading) loadEvt(function () { drawSel(); });
+    box.innerHTML = c ? card(c, { watchBtn: true }) : '';
   }
 
   function drawWatch() {
@@ -207,11 +233,10 @@
     }
     var list = [];
     w.forEach(function (code) { var c = corpOf(code); if (c) list.push(c); });
+    if (!list.length) return '<div class="rdr-empty">등록된 종목을 찾을 수 없습니다.</div>';
     list.sort(function (a, b) { return b[8].localeCompare(a[8]); });
     var h = '';
-    list.forEach(function (c) {
-      h += '<div data-open="' + c[0] + '" style="cursor:pointer">' + corpCard(c, false) + '</div>';
-    });
+    list.forEach(function (c) { h += card(c, { watchBtn: true }); });
     return h;
   }
 
@@ -225,7 +250,7 @@
       if (cnt >= 160) return;
       cnt++;
       if (f[1] !== last) { h += '<div class="rdr-dh">' + fmtD8(f[1]) + '</div>'; last = f[1]; }
-      h += '<div class="rdr-fd' + (f[6] ? ' dim' : '') + '" data-open="' + f[0] + '">'
+      h += '<div class="rdr-fd' + (f[6] ? ' dim' : '') + '" data-jump="' + f[0] + '">'
         + '<span class="rdr-tt" style="background:' + TAG_COLOR[f[2]] + '">' + IDX.tags[f[2]] + '</span>'
         + '<b>' + esc(f[4]) + '</b> ' + esc(f[3])
         + (f[5] > 1 ? '<span class="rdr-rt">x' + f[5] + '</span>' : '') + '</div>';
@@ -243,18 +268,7 @@
     list.sort(function (a, b) { return b[9] - a[9]; });
     list = list.slice(0, 40);
     if (!list.length) return h + '<div class="rdr-empty">해당 시장 데이터가 없습니다.</div>';
-    list.forEach(function (c, i) {
-      h += '<div data-open="' + c[0] + '" style="cursor:pointer">'
-        + '<div class="rdr-card"><div class="rdr-row">'
-        + '<div style="display:flex;align-items:center;gap:9px;min-width:0">'
-        + '<span class="rdr-rk">' + (i + 1) + '</span>'
-        + '<div style="min-width:0"><div class="rdr-nm">' + esc(c[1]) + '</div>'
-        + '<div class="rdr-meta" style="margin-top:2px">' + c[0]
-        + (c[2] ? ' · ' + c[2] : '') + ' · 최근 ' + fmtD8(c[8]) + '</div></div></div>'
-        + '<div style="text-align:right;flex-shrink:0">'
-        + '<span class="rdr-gr" style="background:' + GRADE_COLOR[c[10]] + '">' + c[9] + '점</span>'
-        + '</div></div></div></div>';
-    });
+    list.forEach(function (c, i) { h += card(c, { rank: i + 1, watchBtn: true }); });
     if (mkt === 'KOSPI') {
       h += '<div class="rdr-note" style="margin-top:12px">코스피 대형주는 공시 총량 자체가 많아 '
         + '지수가 높게 나오는 경향이 있습니다. 규모가 비슷한 기업끼리 비교해서 보시는 편이 정확합니다.</div>';
@@ -264,6 +278,7 @@
 
   function draw() {
     var t = el('rdrBody');
+    if (!t || !IDX) return;
     if (tab === 'watch') t.innerHTML = drawWatch();
     else if (tab === 'feed') t.innerHTML = drawFeed();
     else t.innerHTML = drawRank();
@@ -272,6 +287,8 @@
       bs[i].className = bs[i].getAttribute('data-tab') === tab ? 'on' : '';
     }
   }
+
+  function redraw() { drawSel(); draw(); }
 
   /* ---------- 검색 ---------- */
   function search(q) {
@@ -299,42 +316,72 @@
 
   /* ---------- 로딩 ---------- */
   function loadEvt(cb) {
-    if (EVT || evtLoading) { if (cb) cb(); return; }
+    if (EVT) { if (cb) cb(); return; }
+    if (evtLoading) return;
     evtLoading = true;
     fetch(EVT_URL).then(function (r) { return r.json(); }).then(function (j) {
-      EVT = j; evtLoading = false; if (cb) cb();
+      EVT = j; evtLoading = false; redraw(); if (cb) cb();
     }).catch(function () { evtLoading = false; });
+  }
+
+  function shell() {
+    return ''
+    + '<div class="rdr-w">'
+    + '<div class="rdr-ttl">📡 내 종목 공시 레이더</div>'
+    + '<div class="rdr-sub" id="rdrSub">불러오는 중...</div>'
+    + '<div class="rdr-srch"><input id="rdrQ" type="text" placeholder="종목명 또는 종목코드 검색" autocomplete="off">'
+    + '<div class="rdr-ac" id="rdrAc"></div></div>'
+    + '<div id="rdrSel"></div>'
+    + '<div class="rdr-note">이벤트 지수는 공시가 얼마나 자주 발생했는지를 집계한 수치입니다. '
+    + '기업의 가치나 부실 여부를 판정하지 않으며, 공시 자체는 호재도 악재도 아닙니다. '
+    + '투자 참고용이며 매수 · 매도 추천이 아닙니다.</div>'
+    + '<div class="rdr-tabs">'
+    + '<button data-tab="watch">⭐ 내 종목</button>'
+    + '<button data-tab="feed">📅 오늘의 공시</button>'
+    + '<button data-tab="rank">🏆 랭킹</button></div>'
+    + '<div id="rdrBody"></div>'
+    + '<div class="rdr-ft" id="rdrFt"></div></div>';
   }
 
   function boot(root) {
     root.innerHTML = shell();
 
     root.addEventListener('click', function (e) {
-      var t = e.target;
+      var t = e.target, a;
       while (t && t !== root) {
         if (t.getAttribute) {
-          var a;
-          if ((a = t.getAttribute('data-tab'))) { tab = a; draw(); return; }
-          if ((a = t.getAttribute('data-pick'))) {
-            sel = a; el('rdrQ').value = ''; el('rdrAc').style.display = 'none';
-            drawSel();
-            el('rdrSel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          if (t.hasAttribute('data-tab')) { tab = t.getAttribute('data-tab'); draw(); return; }
+          if (t.hasAttribute('data-pick')) {
+            a = t.getAttribute('data-pick');
+            sel = a; openMap[a] = true;
+            el('rdrQ').value = ''; el('rdrAc').style.display = 'none';
+            loadEvt(); drawSel();
+            el('rdrSel').scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
           }
-          if ((a = t.getAttribute('data-watch'))) {
+          if (t.hasAttribute('data-watch')) {
+            a = t.getAttribute('data-watch');
             var w = getWatch(), i = w.indexOf(a);
             if (i === -1) w.push(a); else w.splice(i, 1);
-            setWatch(w); drawSel(); if (tab === 'watch') draw();
+            setWatch(w); redraw();
             return;
           }
-          if ((a = t.getAttribute('data-open'))) {
-            sel = a; drawSel();
-            el('rdrSel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          if (t.hasAttribute('data-toggle')) {
+            a = t.getAttribute('data-toggle');
+            openMap[a] = !openMap[a];
+            loadEvt(); redraw();
             return;
           }
-          if ((a = t.getAttribute('data-mkt'))) { mkt = a; draw(); return; }
-          if ((a = t.getAttribute('data-rt')) !== null && a !== undefined && t.hasAttribute('data-rt')) {
-            hideRoutine = a === '1'; draw(); return;
+          if (t.hasAttribute('data-jump')) {
+            a = t.getAttribute('data-jump');
+            sel = a; openMap[a] = true;
+            loadEvt(); drawSel();
+            el('rdrSel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
+          if (t.hasAttribute('data-mkt')) { mkt = t.getAttribute('data-mkt'); draw(); return; }
+          if (t.hasAttribute('data-rt')) {
+            hideRoutine = t.getAttribute('data-rt') === '1'; draw(); return;
           }
         }
         t = t.parentNode;
@@ -345,12 +392,15 @@
     qi.addEventListener('input', function () { search(qi.value); });
     qi.addEventListener('focus', function () { if (qi.value) search(qi.value); });
     document.addEventListener('click', function (e) {
-      if (!el('rdrAc')) return;
-      if (!e.target.closest || !e.target.closest('.rdr-srch')) el('rdrAc').style.display = 'none';
+      var ac = el('rdrAc');
+      if (!ac) return;
+      if (!e.target.closest || !e.target.closest('.rdr-srch')) ac.style.display = 'none';
     });
 
     fetch(IDX_URL).then(function (r) { return r.json(); }).then(function (j) {
       IDX = j;
+      corpMap = {};
+      j.corps.forEach(function (c) { corpMap[c[0]] = c; });
       el('rdrSub').innerHTML = 'DART 공시 ' + j.meta.total.toLocaleString() + '건 · 종목 '
         + j.meta.corps.toLocaleString() + '개 · ' + fmtD8(j.meta.from) + ' ~ ' + fmtD8(j.meta.to);
       el('rdrFt').innerHTML = '출처: 금융감독원 전자공시시스템(DART)<br>'
