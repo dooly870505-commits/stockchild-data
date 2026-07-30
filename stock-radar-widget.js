@@ -146,7 +146,7 @@
     + '<div class="rdr-ft" id="rdrFt"></div></div>';
   }
 
-  function corpCard(c, withBtn) {
+  function corpCard(c, withBtn, extra) {
     var w = getWatch(), on = w.indexOf(c[0]) !== -1;
     var tags = '';
     for (var i = 0; i < 5; i++) {
@@ -194,7 +194,7 @@
     if (!sel) { box.innerHTML = ''; return; }
     var c = corpOf(sel);
     if (!c) { box.innerHTML = ''; return; }
-    box.innerHTML = corpCard(c, true).replace('</div>', timeline(sel) + '</div>');
+    box.innerHTML = corpCard(c, true, timeline(sel));
     if (!EVT && !evtLoading) loadEvt(function () { drawSel(); });
   }
 
