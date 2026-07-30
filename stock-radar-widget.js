@@ -3,7 +3,7 @@
   'use strict';
 
   /* ===== 여기를 본인 웹 앱 URL로 교체하세요 ===== */
-  var WEBAPP = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbx3rYebPAr6ReE4UoBivkKGRiCZIg_wukexmykPRxpMKriSvYDnYrmJblyvEAZPzZ7I/exec';
+  var WEBAPP = 'https://script.google.com/macros/s/AKfycbx3rYebPAr6ReE4UoBivkKGRiCZIg_wukexmykPRxpMKriSvYDnYrmJblyvEAZPzZ7I/exec';
   /* ============================================ */
 
   var BASE = 'https://dooly870505-commits.github.io/stockchild-data/';
