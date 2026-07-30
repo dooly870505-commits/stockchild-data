@@ -213,7 +213,8 @@
       + (on ? '✓ 지분공시 포함' : '지분공시 포함') + '</span></div>';
 
     if (ffLoading[k] || !ffCache[k]) {
-      return head + '<div class="rdr-load">DART에서 불러오는 중입니다... (5초 정도)</div>';
+      return head + '<div class="rdr-load">DART에서 불러오는 중입니다.<br>'
+        + '<span style="font-size:10.5px">공시가 많은 대형주는 10초 이상 걸릴 수 있습니다</span></div>';
     }
     var j = ffCache[k];
     if (j.error) {
