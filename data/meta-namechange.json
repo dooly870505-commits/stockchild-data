@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-08-01T20:39:16+09:00",
+  "updatedAt": "2026-08-02T20:39:17+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 144810,
-      "updatedAt": "2026-08-01T20:39:19+09:00",
+      "updatedAt": "2026-08-02T20:39:28+09:00",
       "changed": true,
       "ok": true
     },
@@ -17,7 +17,7 @@
       "file": "data/majorholder.json",
       "count": null,
       "bytes": 1353296,
-      "updatedAt": "2026-08-01T20:39:27+09:00",
+      "updatedAt": "2026-08-02T20:39:55+09:00",
       "changed": true,
       "ok": true
     },
@@ -25,8 +25,8 @@
       "label": "최대주주 양수도 계약 진행 현황",
       "file": "data/transfer.json",
       "count": null,
-      "bytes": 232144,
-      "updatedAt": "2026-08-01T20:39:35+09:00",
+      "bytes": 232145,
+      "updatedAt": "2026-08-02T20:40:22+09:00",
       "changed": true,
       "ok": true
     },
@@ -35,7 +35,7 @@
       "file": "data/capcut.json",
       "count": null,
       "bytes": 145748,
-      "updatedAt": "2026-08-01T20:39:37+09:00",
+      "updatedAt": "2026-08-02T20:40:30+09:00",
       "changed": true,
       "ok": true
     },
@@ -44,7 +44,7 @@
       "file": "data/halfyear.json",
       "count": null,
       "bytes": 212000,
-      "updatedAt": "2026-08-01T20:39:39+09:00",
+      "updatedAt": "2026-08-02T20:40:33+09:00",
       "changed": true,
       "ok": true
     }
