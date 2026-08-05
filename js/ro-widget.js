@@ -402,21 +402,37 @@
     renderMoreButton();
   }
 
-  function renderMoreButton() {
+function renderMoreButton() {
     if (!moreWrapEl) return;
     moreWrapEl.innerHTML = '';
     if (visibleCount >= visibleEvents.length) return;
 
     var remain = visibleEvents.length - visibleCount;
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'ro-more-btn';
-    btn.textContent = '더보기 (' + Math.min(PAGE_SIZE, remain) + '개, 총 ' + remain + '개 남음)';
-    btn.addEventListener('click', function () {
+    var isFirstTime = visibleCount === PAGE_SIZE;
+
+    var moreBtn = document.createElement('button');
+    moreBtn.type = 'button';
+    moreBtn.className = 'ro-more-btn';
+    moreBtn.textContent = isFirstTime
+      ? '더보기 (' + Math.min(PAGE_SIZE, remain) + '개, 총 ' + remain + '개 남음)'
+      : '10개 더보기 (총 ' + remain + '개 남음)';
+    moreBtn.addEventListener('click', function () {
       visibleCount += PAGE_SIZE;
       renderList();
     });
-    moreWrapEl.appendChild(btn);
+    moreWrapEl.appendChild(moreBtn);
+
+    if (!isFirstTime) {
+      var allBtn = document.createElement('button');
+      allBtn.type = 'button';
+      allBtn.className = 'ro-more-btn ro-more-btn-all';
+      allBtn.textContent = '전체보기 (' + visibleEvents.length + '개)';
+      allBtn.addEventListener('click', function () {
+        visibleCount = visibleEvents.length;
+        renderList();
+      });
+      moreWrapEl.appendChild(allBtn);
+    }
   }
 
   function filterAndRender() {
