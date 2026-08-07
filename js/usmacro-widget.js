@@ -115,7 +115,7 @@
 
     var html =
       '<div class="nct-um-wrap">' +
-      '<div class="nct-um-title">🇺🇸 미국 경제지표 속보</div>' +
+      '<div class="nct-um-title">📊 미국 경제지표 속보</div>' +
       buildLatestCard(latest) +
       '<div class="nct-um-tabs">' +
       '<button class="nct-um-tab nct-um-tab-active" data-tab="headline">주요지표</button>' +
