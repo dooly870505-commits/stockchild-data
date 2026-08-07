@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var API_URL = 'REPLACE_WITH_WEBAPP_URL?tool=usmacro';
+  var API_URL = 'https://script.google.com/macros/s/AKfycbx3rYebPAr6ReE4UoBivkKGRiCZIg_wukexmykPRxpMKriSvYDnYrmJblyvEAZPzZ7I/exec?tool=usmacro';
   var mountId = 'nct-usmacro-mount';
 
   function fmtNum(v) {
