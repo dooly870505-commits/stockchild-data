@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-08-12T20:39:17+09:00",
+  "updatedAt": "2026-08-13T20:39:17+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 145011,
-      "updatedAt": "2026-08-12T20:39:24+09:00",
+      "updatedAt": "2026-08-13T20:39:26+09:00",
       "changed": true,
       "ok": true
     },
@@ -16,8 +16,8 @@
       "label": "최대주주 변경 추적기",
       "file": "data/majorholder.json",
       "count": null,
-      "bytes": 1356535,
-      "updatedAt": "2026-08-12T20:39:47+09:00",
+      "bytes": 1359136,
+      "updatedAt": "2026-08-13T20:41:16+09:00",
       "changed": true,
       "ok": true
     },
@@ -25,8 +25,8 @@
       "label": "최대주주 양수도 계약 진행 현황",
       "file": "data/transfer.json",
       "count": null,
-      "bytes": 233048,
-      "updatedAt": "2026-08-12T20:40:12+09:00",
+      "bytes": 233580,
+      "updatedAt": "2026-08-13T20:42:06+09:00",
       "changed": true,
       "ok": true
     },
@@ -35,7 +35,7 @@
       "file": "data/capcut.json",
       "count": null,
       "bytes": 145748,
-      "updatedAt": "2026-08-12T20:40:19+09:00",
+      "updatedAt": "2026-08-13T20:42:28+09:00",
       "changed": true,
       "ok": true
     },
@@ -43,8 +43,8 @@
       "label": "반기보고서 지연 모니터",
       "file": "data/halfyear.json",
       "count": null,
-      "bytes": 212601,
-      "updatedAt": "2026-08-12T20:40:22+09:00",
+      "bytes": 224227,
+      "updatedAt": "2026-08-13T20:42:31+09:00",
       "changed": true,
       "ok": true
     },
@@ -52,8 +52,8 @@
       "label": "유상증자 전후 주가 추적기 (목록)",
       "file": "data/rightsoffering-list.json",
       "count": null,
-      "bytes": 174621,
-      "updatedAt": "2026-08-12T20:40:28+09:00",
+      "bytes": 175430,
+      "updatedAt": "2026-08-13T20:42:51+09:00",
       "changed": true,
       "ok": true
     }
