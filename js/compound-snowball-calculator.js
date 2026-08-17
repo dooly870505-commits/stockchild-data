@@ -43,7 +43,12 @@
     return { finalAsset:asset, finalPrincipal:principal, yearData:yearData };
   }
 
+  console.log('[디버그] 페이지에 nctSnowball이 몇 개 있나요:', document.querySelectorAll('#nctSnowball').length);
+  console.log('[디버그] 페이지에 nctResult가 몇 개 있나요:', document.querySelectorAll('#nctResult').length);
+  console.log('[디버그] 페이지에 nctGo 버튼이 몇 개 있나요:', document.querySelectorAll('#nctGo').length);
+
   function render(){
+    console.log('[디버그] render 함수 시작됨');
     var seed = n('nctSeed');
     var monthly = n('nctMonthly');
     var annualRate = parseFloat(($('nctReturn').value||'')) || 0;
@@ -95,6 +100,9 @@
     root.dataset.copytext = '☃️ 복리 눈덩이 계산기\n' + years + '년 후 ' + eok(sim.finalAsset) + ' (연 ' + annualRate + '% 가정)\n원금 ' + eok(sim.finalPrincipal) + ' + 이자 ' + eok(totalInterest) + '\nstockchild.com';
 
     $('nctResult').classList.add('show');
+    console.log('[디버그] 결과창 클래스 상태:', $('nctResult').className);
+    console.log('[디버그] 결과창이 화면에 실제로 보이는지 (offsetParent가 null이면 숨겨진 것):', $('nctResult').offsetParent !== null);
+    console.log('[디버그] render 함수 끝까지 정상 실행됨');
     $('nctCopy').classList.remove('done');
     $('nctCopy').textContent = '📋 결과 복사하기';
   }
