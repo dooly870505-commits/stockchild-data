@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-08-28T20:39:17+09:00",
+  "updatedAt": "2026-08-30T20:39:16+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 145213,
-      "updatedAt": "2026-08-28T20:39:28+09:00",
+      "updatedAt": "2026-08-30T20:39:21+09:00",
       "changed": true,
       "ok": true
     },
@@ -16,8 +16,8 @@
       "label": "최대주주 변경 추적기",
       "file": "data/majorholder.json",
       "count": null,
-      "bytes": 1361938,
-      "updatedAt": "2026-08-28T20:39:54+09:00",
+      "bytes": 1362246,
+      "updatedAt": "2026-08-30T20:39:36+09:00",
       "changed": true,
       "ok": true
     },
@@ -25,8 +25,8 @@
       "label": "최대주주 양수도 계약 진행 현황",
       "file": "data/transfer.json",
       "count": null,
-      "bytes": 233665,
-      "updatedAt": "2026-08-28T20:40:03+09:00",
+      "bytes": 233667,
+      "updatedAt": "2026-08-30T20:39:56+09:00",
       "changed": true,
       "ok": true
     },
@@ -35,7 +35,7 @@
       "file": "data/capcut.json",
       "count": null,
       "bytes": 145634,
-      "updatedAt": "2026-08-28T20:40:09+09:00",
+      "updatedAt": "2026-08-30T20:40:04+09:00",
       "changed": true,
       "ok": true
     },
@@ -44,7 +44,7 @@
       "file": "data/halfyear.json",
       "count": null,
       "bytes": 274650,
-      "updatedAt": "2026-08-28T20:40:12+09:00",
+      "updatedAt": "2026-08-30T20:40:08+09:00",
       "changed": true,
       "ok": true
     },
@@ -52,8 +52,8 @@
       "label": "유상증자 전후 주가 추적기 (목록)",
       "file": "data/rightsoffering-list.json",
       "count": null,
-      "bytes": 180605,
-      "updatedAt": "2026-08-28T20:40:17+09:00",
+      "bytes": 181004,
+      "updatedAt": "2026-08-30T20:40:16+09:00",
       "changed": true,
       "ok": true
     }
