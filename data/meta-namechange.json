@@ -1,6 +1,6 @@
 {
   "project": "namechange",
-  "updatedAt": "2026-09-07T20:39:17+09:00",
+  "updatedAt": "2026-09-08T20:39:17+09:00",
   "source": "Google Apps Script",
   "tools": {
     "default": {
@@ -8,7 +8,7 @@
       "file": "data/namechange.json",
       "count": null,
       "bytes": 145892,
-      "updatedAt": "2026-09-07T20:39:28+09:00",
+      "updatedAt": "2026-09-08T20:39:44+09:00",
       "changed": true,
       "ok": true
     },
@@ -17,7 +17,7 @@
       "file": "data/majorholder.json",
       "count": null,
       "bytes": 1366010,
-      "updatedAt": "2026-09-07T20:39:56+09:00",
+      "updatedAt": "2026-09-08T20:40:53+09:00",
       "changed": true,
       "ok": true
     },
@@ -26,7 +26,7 @@
       "file": "data/transfer.json",
       "count": null,
       "bytes": 233686,
-      "updatedAt": "2026-09-07T20:40:11+09:00",
+      "updatedAt": "2026-09-08T20:42:27+09:00",
       "changed": true,
       "ok": true
     },
@@ -34,8 +34,8 @@
       "label": "무상감자 이력 추적기",
       "file": "data/capcut.json",
       "count": null,
-      "bytes": 145820,
-      "updatedAt": "2026-09-07T20:40:16+09:00",
+      "bytes": 145711,
+      "updatedAt": "2026-09-08T20:43:04+09:00",
       "changed": true,
       "ok": true
     },
@@ -44,7 +44,7 @@
       "file": "data/halfyear.json",
       "count": null,
       "bytes": 274875,
-      "updatedAt": "2026-09-07T20:40:20+09:00",
+      "updatedAt": "2026-09-08T20:43:12+09:00",
       "changed": true,
       "ok": true
     },
@@ -53,7 +53,7 @@
       "file": "data/rightsoffering-list.json",
       "count": null,
       "bytes": 183624,
-      "updatedAt": "2026-09-07T20:40:29+09:00",
+      "updatedAt": "2026-09-08T20:44:25+09:00",
       "changed": true,
       "ok": true
     }
