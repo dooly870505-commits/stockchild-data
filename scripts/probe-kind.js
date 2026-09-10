@@ -1,4 +1,18 @@
 async function main() {
+  const searchPageUrl = 'https://kind.krx.co.kr/disclosure/details.do?method=searchDetailsMain';
+  const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+
+  // 1단계: 검색화면 먼저 열어서 세션 쿠키 확보
+  const pageRes = await fetch(searchPageUrl, {
+    headers: { 'User-Agent': ua }
+  });
+  console.log('1단계 응답 코드:', pageRes.status);
+
+  const rawCookies = pageRes.headers.getSetCookie ? pageRes.headers.getSetCookie() : [];
+  const cookieStr = rawCookies.map(c => c.split(';')[0]).join('; ');
+  console.log('확보한 쿠키:', cookieStr);
+
+  // 2단계: 그 쿠키를 들고 실제 데이터 요청
   const url = 'https://kind.krx.co.kr/disclosure/details.do';
   const body = new URLSearchParams({
     method: 'searchDetailsSub',
@@ -17,15 +31,16 @@ async function main() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      'Referer': 'https://kind.krx.co.kr/disclosure/details.do?method=searchDetailsMain',
-      'X-Requested-With': 'XMLHttpRequest'
+      'User-Agent': ua,
+      'Referer': searchPageUrl,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Cookie': cookieStr
     },
     body
   });
 
   const html = await res.text();
-  console.log('응답 코드:', res.status);
+  console.log('2단계 응답 코드:', res.status);
   console.log('본문 길이:', html.length);
   console.log('공매도 텍스트 포함 여부:', html.includes('공매도'));
   console.log('본문 전체:', html);
