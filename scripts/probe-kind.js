@@ -28,7 +28,7 @@ async function main() {
   console.log('응답 코드:', res.status);
   console.log('본문 길이:', html.length);
   console.log('공매도 텍스트 포함 여부:', html.includes('공매도'));
-  console.log('본문 앞부분:', html.substring(0, 500));
+  console.log('본문 전체:', html);
 }
 
 main();
