@@ -18,14 +18,17 @@ async function main() {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      'Referer': 'https://kind.krx.co.kr/disclosure/details.do?method=searchDetailsMain'
+      'Referer': 'https://kind.krx.co.kr/disclosure/details.do?method=searchDetailsMain',
+      'X-Requested-With': 'XMLHttpRequest'
     },
     body
   });
 
-  console.log('응답 코드:', res.status);
   const html = await res.text();
-  console.log('본문 앞부분:', html.substring(0, 300));
+  console.log('응답 코드:', res.status);
+  console.log('본문 길이:', html.length);
+  console.log('공매도 텍스트 포함 여부:', html.includes('공매도'));
+  console.log('본문 앞부분:', html.substring(0, 500));
 }
 
 main();
