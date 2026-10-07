@@ -1,4 +1,4 @@
-// fscore-widget.js v1.1 (2026-10-07) : 로딩 화면 개선(경과 시간, 안내 문구, 스피너)
+// fscore-widget.js v1.2 (2026-10-07) : 응답 40초 초과 시 중단 + 다시 시도 버튼, 리스트 제목 변경, 외화 표시 대비
 (function () {
   // ===== 설정: 실제 배포 URL로 반드시 교체하세요 =====
   var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx3rYebPAr6ReE4UoBivkKGRiCZIg_wukexmykPRxpMKriSvYDnYrmJblyvEAZPzZ7I/exec';
@@ -17,6 +17,17 @@
   var stockList = [];
   var selectedCode = null;
 
+  // 공용 리스트임을 분명히 하기 위해 제목을 바꿔 표시 (워드프레스 블록은 수정 불필요)
+  var listTitleEl = root.querySelector('.fs-list-title');
+  if (listTitleEl) listTitleEl.textContent = '방문자들이 조회한 종목 (F score 높은 순)';
+
+  // 서버 응답을 기다리는 최대 시간 (이 시간이 지나면 로딩을 멈추고 다시 시도 버튼 표시)
+  var FETCH_TIMEOUT_MS = 40000;
+
+  // 외국 기업처럼 원화가 아닌 통화로 공시하는 경우의 단위 이름
+  var CUR_NAME = { USD: '달러', CNY: '위안', JPY: '엔', EUR: '유로', HKD: '홍콩달러' };
+  var curCode = 'KRW';
+
   function escHtml(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -26,10 +37,25 @@
     if (v === null || v === undefined || isNaN(v)) return '-';
     var a = Math.abs(v);
     var sign = v < 0 ? '-' : '';
-    if (a >= 1e12) return sign + (a / 1e12).toFixed(1) + '조';
-    if (a >= 1e8) return sign + Math.round(a / 1e8).toLocaleString('ko-KR') + '억';
-    if (a >= 1e4) return sign + Math.round(a / 1e4).toLocaleString('ko-KR') + '만';
-    return sign + Math.round(a).toLocaleString('ko-KR');
+    var out;
+    if (a >= 1e12) out = sign + (a / 1e12).toFixed(1) + '조';
+    else if (a >= 1e8) out = sign + Math.round(a / 1e8).toLocaleString('ko-KR') + '억';
+    else if (a >= 1e4) out = sign + Math.round(a / 1e4).toLocaleString('ko-KR') + '만';
+    else out = sign + Math.round(a).toLocaleString('ko-KR');
+    if (curCode && curCode !== 'KRW') out += ' ' + (CUR_NAME[curCode] || curCode);
+    return out;
+  }
+
+  // 응답이 너무 오래 걸리면 중단하는 fetch
+  function fetchJsonWithTimeout(url, ms) {
+    if (typeof AbortController === 'undefined') {
+      return fetch(url).then(function (res) { return res.json(); });
+    }
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, ms);
+    return fetch(url, { signal: ctrl.signal })
+      .then(function (res) { clearTimeout(timer); return res.json(); })
+      .catch(function (err) { clearTimeout(timer); throw err; });
   }
 
   function safeDiv(a, b) {
@@ -140,7 +166,10 @@
       + '#fscore-widget .fs-loading-main{font-size:14px;color:#042C53;font-weight:500;}'
       + '#fscore-widget .fs-loading-sec{font-variant-numeric:tabular-nums;color:#0064FF;}'
       + '#fscore-widget .fs-loading-sub{font-size:12px;color:#5F5E5A;line-height:1.6;}'
-      + '@keyframes fs-spin{to{transform:rotate(360deg);}}';
+      + '@keyframes fs-spin{to{transform:rotate(360deg);}}'
+      + '#fscore-widget .fs-retry{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 8px;text-align:center;}'
+      + '#fscore-widget .fs-retry-msg{font-size:13px;color:#042C53;line-height:1.6;}'
+      + '#fscore-widget .fs-retry-btn{height:38px;padding:0 18px;border:none;border-radius:8px;background:#0064FF;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer;}';
     document.head.appendChild(st);
   })();
 
@@ -168,21 +197,33 @@
     return found ? found.name : '';
   }
 
+  function renderRetry(code, message) {
+    resultEl.innerHTML = '<div class="fs-card"><div class="fs-retry">'
+      + '<div class="fs-retry-msg">' + message + '</div>'
+      + '<button type="button" class="fs-retry-btn">다시 시도</button>'
+      + '</div></div>';
+    var btn = resultEl.querySelector('.fs-retry-btn');
+    if (btn) btn.addEventListener('click', function () { doSearch(code); });
+  }
+
   function doSearch(code) {
     var mySeq = ++searchSeq;
     startLoading(nameForCode(code));
-    fetch(WEBAPP_URL + '?tool=fscore&code=' + encodeURIComponent(code))
-      .then(function (res) { return res.json(); })
+    fetchJsonWithTimeout(WEBAPP_URL + '?tool=fscore&code=' + encodeURIComponent(code), FETCH_TIMEOUT_MS)
       .then(function (result) {
         if (mySeq !== searchSeq) return; // 더 최근 검색이 있으면 무시
         stopLoading();
         renderDetail(result);
         fetchList(); // 방금 조회한 종목이 반영되도록 하단 리스트도 갱신
       })
-      .catch(function () {
+      .catch(function (err) {
         if (mySeq !== searchSeq) return;
         stopLoading();
-        resultEl.innerHTML = '<div class="fs-card"><div class="fs-error">일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</div></div>';
+        if (err && err.name === 'AbortError') {
+          renderRetry(code, '서버 응답이 늦어지고 있어요.<br>계산이 이미 끝났다면 다시 시도했을 때 바로 나올 수 있어요.');
+        } else {
+          renderRetry(code, '일시적인 오류가 발생했어요.<br>잠시 후 다시 시도해주세요.');
+        }
       });
   }
 
@@ -209,6 +250,7 @@
         + escHtml((result && result.error) || '조회에 실패했습니다.') + '</div></div>';
       return;
     }
+    curCode = (result.raw && result.raw.currency) || result.currency || 'KRW';
     var rows = buildDetailRows(result.raw, result.detail);
     var rowsHtml = rows.map(function (r) {
       var cls = r.pass ? 'pass' : 'fail';
@@ -224,7 +266,8 @@
       + '<div class="fs-card-head">'
       + '<div><div class="fs-name">' + escHtml(result.name) + '</div>'
       + '<div class="fs-meta">' + escHtml(result.code) + ' · ' + escHtml(result.bsnsYear) + '년 사업연도 · '
-      + (result.fsDiv === 'CFS' ? '연결재무제표' : '개별재무제표') + '</div></div>'
+      + (result.fsDiv === 'CFS' ? '연결재무제표' : '개별재무제표')
+      + (curCode !== 'KRW' ? ' · ' + escHtml(CUR_NAME[curCode] || curCode) + ' 기준' : '') + '</div></div>'
       + '<div class="fs-score-wrap"><div class="fs-score-badge">' + result.score + '</div>'
       + '<div class="fs-score-max">/ ' + result.maxScore + '점</div></div>'
       + '</div>'
