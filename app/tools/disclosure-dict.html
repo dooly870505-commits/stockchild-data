@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>주식 공시 사전</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+#dds-wrap,#dds-wrap *{box-sizing:border-box;margin:0;padding:0;font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+#dds-wrap{max-width:760px;margin:0 auto;padding:0 0 3rem;background:#f5f6f8;color:#1a1a1a}
+#dds-wrap a{color:inherit;text-decoration:none}
+
+.dds-hd{background:#fff;border:1px solid #d0d3d8;border-radius:4px;padding:20px 22px 18px;margin-bottom:12px}
+.dds-hd-eyebrow{font-size:12px;font-weight:700;color:#0068c8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.dds-hd-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:6px}
+.dds-hd-desc{font-size:14px;color:#555;line-height:1.6}
+
+.dds-feed-wrap{background:#fff;border:1px solid #d0d3d8;border-radius:4px;margin-bottom:12px;overflow:hidden}
+.dds-feed-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f2f3f5;border-bottom:1px solid #e0e0e0}
+.dds-feed-date-label{font-size:14px;font-weight:700;color:#1a1a1a}
+.dds-feed-refresh{font-size:12px;color:#0068c8;background:#f0f5fc;border:1px solid #c8d8ef;border-radius:3px;cursor:pointer;padding:4px 10px;font-weight:600}
+.dds-feed-refresh:hover{background:#dce9f8}
+
+.dds-tbl{width:100%;border-collapse:collapse}
+.dds-tbl thead tr{background:#f8f9fa;border-bottom:2px solid #e0e0e0}
+.dds-tbl thead th{font-size:12px;font-weight:700;color:#666;padding:9px 12px;text-align:left;white-space:nowrap}
+.dds-tbl thead th:nth-child(1){width:100px}
+.dds-tbl thead th:nth-child(2){width:90px}
+.dds-tbl thead th:nth-child(3){width:auto}
+.dds-tbl thead th:nth-child(4){width:52px;text-align:center}
+.dds-tbl tbody tr{border-bottom:1px solid #f0f0f0;transition:background .1s}
+.dds-tbl tbody tr:last-child{border-bottom:none}
+.dds-tbl tbody tr.clickable{cursor:pointer}
+.dds-tbl tbody tr.clickable:hover{background:#f0f5fc}
+.dds-tbl tbody tr.clickable:hover .dds-corp{color:#0068c8}
+.dds-tbl td{font-size:13px;padding:10px 12px;vertical-align:middle;color:#333}
+.dds-corp{font-weight:700;color:#1a1a1a;white-space:nowrap}
+.dds-tbl-title{color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
+.dds-tbl-date{font-size:12px;color:#aaa;text-align:center;white-space:nowrap}
+.dds-badge{font-size:11px;font-weight:700;padding:3px 7px;border-radius:2px;display:inline-block;border:1px solid}
+.badge-red{background:#fff0f0;color:#d63031;border-color:#ffbdbd}
+.badge-amber{background:#fff8e6;color:#d68910;border-color:#fddfa0}
+.badge-green{background:#efffef;color:#1e8449;border-color:#a9dfb4}
+.badge-gray{background:#f5f5f5;color:#888;border-color:#ddd}
+.dds-feed-loading{text-align:center;padding:24px;font-size:14px;color:#999}
+.dds-feed-error{padding:14px;font-size:13px;color:#c0392b;line-height:1.6}
+.dds-feed-error a{color:#0068c8}
+
+.dds-cho-wrap{background:#fff;border:1px solid #d0d3d8;border-radius:4px;margin-bottom:16px}
+.dds-cho-topbar{padding:10px 14px;background:#f2f3f5;border-bottom:1px solid #e0e0e0;font-size:13px;font-weight:700;color:#1a1a1a;border-radius:4px 4px 0 0}
+.dds-cho-inner{padding:14px 14px 16px}
+.dds-cho-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.dds-cho-btn{width:40px;height:40px;font-size:15px;font-weight:700;border:1px solid #d0d3d8;border-radius:3px;background:#fff;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s}
+.dds-cho-btn:hover:not([disabled]){border-color:#0068c8;color:#0068c8;background:#f0f5fc}
+.dds-cho-btn.active{border-color:#0068c8;background:#0068c8;color:#fff}
+.dds-cho-btn[disabled]{opacity:.22;cursor:default}
+
+.dds-type-list{background:#fff;border:1px solid #d0d3d8;border-radius:4px;margin-bottom:16px;display:none;overflow:hidden}
+.dds-type-list.open{display:block}
+.dds-type-list-header{padding:11px 16px;background:#f2f3f5;border-bottom:1px solid #e0e0e0;font-size:12px;color:#888;font-weight:600}
+.dds-type-row{display:flex;align-items:center;justify-content:space-between;padding:18px 16px;border-bottom:2px solid #f0f0f0;cursor:pointer;transition:background .1s}
+.dds-type-row:last-child{border-bottom:none}
+.dds-type-row:hover{background:#f0f5fc}
+.dds-type-row-left{display:flex;align-items:center;gap:12px}
+.dds-type-icon{font-size:20px;width:28px;text-align:center}
+.dds-type-name{font-size:15px;font-weight:700;color:#1a1a1a}
+.dds-type-sub{font-size:12px;color:#999;margin-top:5px}
+.dds-risk-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:2px;border:1px solid;white-space:nowrap}
+.risk-high{background:#fff0f0;color:#d63031;border-color:#ffbdbd}
+.risk-mid{background:#fff8e6;color:#d68910;border-color:#fddfa0}
+.risk-low{background:#efffef;color:#1e8449;border-color:#a9dfb4}
+
+.dds-panel-wrap{display:none}
+.dds-panel-wrap.open{display:block;margin-top:16px}
+.dds-panel-back{font-size:13px;color:#0068c8;cursor:pointer;margin-bottom:10px;display:inline-flex;align-items:center;gap:4px;padding:4px 0}
+.dds-panel-back:hover{text-decoration:underline}
+.dds-panel-header{background:#fff;border:1px solid #d0d3d8;border-top:3px solid #0068c8;border-radius:4px;padding:20px 20px 18px;margin-bottom:0}
+.dds-panel-title{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:5px}
+.dds-panel-subtitle{font-size:13px;color:#666}
+
+.dds-tabs{display:flex;background:#fff;border:1px solid #d0d3d8;border-top:none;border-bottom:none;margin-top:12px}
+.dds-tab{padding:12px 20px;font-size:14px;font-weight:600;color:#888;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .1s}
+.dds-tab.active{color:#0068c8;border-bottom-color:#0068c8;background:#f5f8ff}
+.dds-tab:hover:not(.active){color:#333;background:#fafafa}
+.dds-tab-panel{display:none}
+.dds-tab-panel.active{display:block}
+
+.dds-pcard{background:#fff;border:1px solid #d0d3d8;border-top:none;border-radius:0 0 4px 4px;padding:28px 22px 24px;margin-bottom:12px}
+.dds-pcard-title{font-size:14px;font-weight:700;color:#1a1a1a;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:16px}
+
+.dds-point-row{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#333;line-height:1.6}
+.dds-point-row:last-child{border-bottom:none}
+.dds-point-num{min-width:24px;height:24px;border-radius:50%;background:#0068c8;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+.dds-signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.dds-signal{padding:14px 16px;border-radius:3px;border:1px solid}
+.dds-signal-pos{background:#f6fff8;border-color:#a9dfb4}
+.dds-signal-neg{background:#fff6f6;border-color:#ffbdbd}
+.dds-signal-warn{background:#fffdf0;border-color:#fddfa0}
+.dds-signal-title{font-size:13px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid}
+.dds-signal-pos .dds-signal-title{color:#1b7a3e;border-bottom-color:#a9dfb4}
+.dds-signal-neg .dds-signal-title{color:#c0392b;border-bottom-color:#ffbdbd}
+.dds-signal-warn .dds-signal-title{color:#c47b1a;border-bottom-color:#fddfa0}
+.dds-signal ul{padding-left:0;list-style:none;font-size:13px;color:#444;display:flex;flex-direction:column;gap:10px;line-height:1.5}
+.dds-signal ul li::before{content:'• ';color:#bbb}
+
+.dds-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e0e0e0;border:1px solid #e0e0e0;border-radius:3px;overflow:hidden;margin:16px 0 4px}
+.dds-stat{background:#fff;padding:20px 10px;text-align:center}
+.dds-stat-num{font-size:22px;font-weight:700;line-height:1}
+.dds-stat-lbl{font-size:12px;color:#888;margin-top:6px;line-height:1.4}
+.dds-stat-note{font-size:11px;color:#bbb;margin-top:8px}
+
+.dds-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.dds-chip{font-size:13px;padding:5px 14px;border-radius:2px;cursor:pointer;border:1px solid #d0d3d8;background:#fff;color:#555;font-weight:500}
+.dds-chip.active{background:#0068c8;color:#fff;border-color:#0068c8;font-weight:700}
+.dds-chip:hover:not(.active){background:#f0f5fc;border-color:#0068c8;color:#0068c8}
+
+.dds-case{border:1px solid #e8e8e8;border-left:4px solid #ddd;border-radius:3px;padding:14px 16px;margin-bottom:10px;background:#fff}
+.dds-case-up{border-left-color:#27ae60}
+.dds-case-down{border-left-color:#d63031}
+.dds-case-mixed{border-left-color:#e67e22}
+.dds-case-name{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.dds-case-meta{font-size:12px;color:#aaa;margin-bottom:10px}
+.change-up{color:#d63031;font-weight:700;margin-left:8px;font-size:14px}
+.change-down{color:#0068c8;font-weight:700;margin-left:8px;font-size:14px}
+.change-mixed{color:#e67e22;font-weight:700;margin-left:8px;font-size:14px}
+.dds-mini-chart{height:52px;width:100%;margin:8px 0}
+.dds-mini-chart svg{width:100%;height:100%}
+.dds-case-note{font-size:13px;color:#555;line-height:1.6;padding-top:10px;border-top:1px solid #f0f0f0}
+
+.dds-diag-row{margin-bottom:14px}
+.dds-diag-label{font-size:13px;font-weight:700;color:#333;display:block;margin-bottom:6px}
+.dds-diag-select{width:100%;padding:9px 10px;font-size:14px;border:1px solid #d0d3d8;border-radius:3px;background:#fff;color:#1a1a1a;cursor:pointer}
+.dds-diag-select:focus{outline:2px solid #0068c8;outline-offset:1px}
+.dds-result{display:none;padding:14px 16px;border-radius:3px;border:1px solid;margin-top:6px}
+.dds-result-title{font-size:15px;font-weight:700;margin-bottom:5px}
+.dds-result-desc{font-size:13px;line-height:1.6}
+.dds-result-pos{background:#f6fff8;border-color:#a9dfb4}
+.dds-result-pos .dds-result-title{color:#1b7a3e}
+.dds-result-mid{background:#fffdf0;border-color:#fddfa0}
+.dds-result-mid .dds-result-title{color:#c47b1a}
+.dds-result-neg{background:#fff6f6;border-color:#ffbdbd}
+.dds-result-neg .dds-result-title{color:#c0392b}
+
+.dds-disclaimer{font-size:12px;color:#bbb;line-height:1.7;padding:14px;background:#fff;border:1px solid #e8e8e8;border-radius:4px;margin-top:10px}
+.dds-disclaimer a{color:#0068c8}
+
+@media(max-width:540px){
+  .dds-signal-grid{grid-template-columns:1fr}
+  .dds-tbl thead th:nth-child(3),.dds-tbl td:nth-child(3){display:none}
+  .dds-cho-btn{width:34px;height:34px;font-size:13px}
+  .dds-panel-title{font-size:18px}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div id="dds-wrap">
+<div class="dds-hd">
+<div class="dds-hd-eyebrow">DART 공시 해석 사전</div>
+<div class="dds-hd-title">이 공시, 호재일까 악재일까?</div>
+<div class="dds-hd-desc">오늘 발생한 공시를 실시간으로 확인하고, 유형별 해석·사례·진단을 한 번에 볼 수 있습니다.</div>
+</div>
+<div class="dds-feed-wrap">
+<div class="dds-feed-topbar">
+<span class="dds-feed-date-label" id="dds-feed-date">불러오는 중…</span>
+<button class="dds-feed-refresh" onclick="DDS.loadFeed()">↻ 새로고침</button>
+</div>
+<div id="dds-feed-body"><div class="dds-feed-loading">공시 데이터 로딩 중…</div></div>
+</div>
+<div class="dds-cho-wrap">
+<div class="dds-cho-topbar">공시 유형 사전 검색</div>
+<div class="dds-cho-inner">
+<div class="dds-cho-tabs" id="dds-cho-tabs"></div>
+</div>
+</div>
+<div style="height:16px"></div>
+<div class="dds-type-list" id="dds-type-list">
+<div class="dds-type-list-header" id="dds-type-list-header"></div>
+<div id="dds-type-list-body"></div>
+</div>
+<div style="height:16px"></div>
+<div class="dds-panel-wrap" id="dds-panel-wrap">
+<div class="dds-panel-back" onclick="DDS.closePanel()">← 목록으로</div>
+<div class="dds-panel-header">
+<div class="dds-panel-title" id="dds-panel-title"></div>
+<div class="dds-panel-subtitle" id="dds-panel-subtitle"></div>
+</div>
+<div style="height:12px"></div>
+<div class="dds-tabs" id="dds-panel-tabs"></div>
+<div style="height:0"></div>
+<div id="dds-panel-body"></div>
+</div>
+<div class="dds-disclaimer">
+  ※ 본 페이지의 통계·사례는 참고용이며 투자 판단의 근거로 활용할 수 없습니다. 주식 투자는 원금 손실 위험이 있으며 모든 투자 결정은 투자자 본인의 판단과 책임 하에 이루어져야 합니다.<br/>
+  ※ 실시간 공시는 <a href="https://dart.fss.or.kr" rel="noopener" target="_blank">DART 전자공시시스템</a>에서 직접 확인하시기 바랍니다.
+</div>
+</div>
+
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%ea%b3%b5%ec%8b%9c-%ed%95%b4%ec%84%9d-%ec%82%ac%ec%a0%84/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+var DDS_CONFIG = {
+  PROXY_URL: 'https://script.google.com/macros/s/AKfycbz9r1kABPRLqYNag-iNFEVFfH1TpiR7hhUfwUOcwxJr31rj1XLcdMzNoD8yo-qqes-Mtw/exec'
+};
+
+</script>
+<script>
+
+var DDS = {
+  types: [
+    {id:'reduce',cho:'ㄱ',name:'감자 (무상감자)',icon:'✂️',risk:'high',riskLabel:'고위험',sub:'주식 수 강제 감소, 주주 손실 직접 발생',desc:'주주에게 아무런 보상 없이 주식 수를 강제로 줄이는 공시입니다. 기업 누적 결손금 처리가 목적이며, 이후 유상증자와 세트로 나오는 경우가 많습니다.',points:['감자 비율 확인: 10:1은 주식 90% 소멸','감자 후 유상증자 공시 여부 반드시 체크','대주주 지분도 동일 비율 감자인지 확인'],pros:['감자 비율 낮음 (10% 미만)','구조조정 마무리 단계','신규 사업 진출 계획 동반'],cons:['감자 비율 50% 이상','감자 후 유상증자 예고','관리종목·상장폐지 우려','대주주 지분 면제'],stats:{avg:'-18.4%',downPct:81,recover:19,avgColor:'#dc2626',recoverColor:'#d97706',label:'하락'},cases:[{name:'쌍용자동차',change:'-38.2%',type:'down',meta:'2021.12 · 10:1 감자 · 이후 유상증자 연달아',note:'10:1 대규모 감자 + 유상증자 세트. 기존 주주 자산 90% 소멸 후 추가 희석',pts:'0,5 50,18 100,30 150,40 200,47 250,52 300,55'},{name:'STX조선해양',change:'-29.7%',type:'down',meta:'2020.08 · 5:1 감자 · 워크아웃 절차 중',note:'재무구조 개선 목적이나 주주 신뢰 붕괴. 감자 이후 유상증자 연이어 발표',pts:'0,8 50,20 100,32 150,40 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'contract',cho:'ㄱ',name:'계약 체결 (대규모)',icon:'🤝',risk:'low',riskLabel:'호재',sub:'매출액 5%(코스닥 10%) 이상 계약 의무 공시',desc:'최근 매출액의 5% 이상에 해당하는 계약 체결 시 의무 공시합니다. 기업 성장성을 직접 보여주는 호재성 공시이나, 계약 조건과 상대방을 반드시 확인해야 합니다.',points:['계약 금액 / 최근 매출액 비율 계산','계약 상대방 신뢰도 및 규모 확인','계약 기간·납품 조건·해지 조항 체크'],pros:['매출 대비 계약 비율 높음','글로벌 대기업 상대방','장기 공급 계약 (3년 이상)','신규 고객사 확보'],cons:['기존 고객 반복 계약','계약 조건 미공개','주가 급등 후 공시','계약 해지 조항 광범위'],stats:{avg:'+6.3%',downPct:26,recover:74,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'LIG넥스원',change:'+24.1%',type:'up',meta:'2023.11 · 방산 수출 계약 · 계약규모 매출 대비 210%',note:'매출의 2배 이상 규모 방산 수출 계약. 장기 실적 가시성 확보로 기관·외국인 동반 매수',pts:'0,55 50,42 100,30 150,20 200,14 250,10 300,8'},{name:'에스에프에이',change:'+12.3% → -4.1%',type:'mixed',meta:'2023.07 · 디스플레이 장비 · 기존 고객 반복',note:'기존 고객 반복 계약으로 신규성 부족. 단기 급등 후 차익 매물 출회',pts:'0,40 50,25 100,18 150,22 200,30 250,38 300,42'}],hasCheck:false},
+    {id:'ceo',cho:'ㄷ',name:'대표이사 변경',icon:'👔',risk:'mid',riskLabel:'주의',sub:'경영 불확실성 확대, 변경 사유 확인 필수',desc:'기업의 최고 의사결정자가 바뀌는 공시입니다. 변경 사유와 신임 대표의 배경에 따라 주가 영향이 크게 달라집니다.',points:['변경 사유: 정기 임기만료 vs 갑작스러운 사임','신임 대표 배경: 내부 승진 vs 외부 영입','창업주 교체 여부 (비전 연속성 리스크)'],pros:['정기적 임기만료 후 교체','내부 승진 (경영 연속성)','실적 개선 전문가 영입'],cons:['갑작스러운 사임·해임','검찰·세무조사 직후 교체','창업주 퇴진 (비전 공백)'],stats:{avg:'-2.1%',downPct:52,recover:48,avgColor:'#d97706',recoverColor:'#d97706',label:'하락'},cases:[{name:'카카오',change:'-8.3%',type:'down',meta:'2023.10 · 데이터센터 화재 사태 후 대표 사임',note:'화재 책임론 + 검찰 수사 압박으로 대표 사임. 불확실성 확대',pts:'0,10 50,22 100,32 150,38 200,42 250,44 300,46'},{name:'삼성바이오로직스',change:'+5.2%',type:'up',meta:'2020.03 · 내부 승진 · 글로벌 영업 전문가',note:'CMO 영업 전문가 내부 승진. 글로벌 수주 기대감으로 긍정 반응',pts:'0,45 50,38 100,30 150,24 200,20 250,16 300,12'}],hasCheck:false},
+    {id:'bonus',cho:'ㅁ',name:'무상증자',icon:'🎁',risk:'low',riskLabel:'호재',sub:'자본잉여금→자본금 전환, 주주 무상 지급',desc:'기업이 자본잉여금을 자본금으로 전환해 주주에게 무상으로 주식을 지급하는 공시입니다. 기업 재무 부담이 없어 일반적으로 호재로 인식됩니다.',points:['발행 비율 확인: 1:1이면 주식 2배로 증가','권리락일 이후 주가 자동 조정됨','자본잉여금 규모가 뒷받침되는지 체크'],pros:['발행 비율 높음 (1:1 이상)','자본잉여금 풍부','실적 성장세 지속 중'],cons:['발행 비율 낮음 (1:0.1 미만)','단기 주가 과열 시 발표','재무 악화 중 발표'],stats:{avg:'+3.8%',downPct:32,recover:68,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'삼성전자',change:'+9.4%',type:'up',meta:'2018.05 · 1:1 무상증자 · 주주환원 정책 동시 발표',note:'1:1 비율 + 자사주 소각 동시 발표. 외국인 매수 유입',pts:'0,50 50,40 100,30 150,22 200,16 250,10 300,8'}],hasCheck:false},
+    {id:'reduce2',cho:'ㅁ',name:'무상감자',icon:'✂️',risk:'high',riskLabel:'고위험',sub:'주주 자산 강제 소멸, 투자 주의 최고 단계',desc:'주주에게 보상 없이 주식 수를 강제로 줄이는 공시입니다. 누적 결손금 처리가 목적이며 유상증자와 세트로 나오는 경우가 대부분입니다.',points:['감자 비율 확인 필수 (2:1=50%, 10:1=90% 소멸)','감자 후 유상증자 공시 여부 체크','대주주 지분도 동일 비율 감자인지 확인'],pros:['감자 비율 낮음 (10% 미만)','구조조정 마무리 단계','신규 사업 계획 동반'],cons:['감자 비율 50% 이상','유상증자 예고','관리종목·상장폐지 우려'],stats:{avg:'-18.4%',downPct:81,recover:19,avgColor:'#dc2626',recoverColor:'#d97706',label:'하락'},cases:[{name:'쌍용자동차',change:'-38.2%',type:'down',meta:'2021.12 · 10:1 감자 · 이후 유상증자',note:'10:1 대규모 감자 + 유상증자 세트. 기존 주주 자산 90% 소멸',pts:'0,5 50,18 100,30 150,40 200,47 250,52 300,55'}],hasCheck:false},
+    {id:'earnings',cho:'ㅂ',name:'분기·사업보고서 (실적공시)',icon:'📊',risk:'mid',riskLabel:'확인 필요',sub:'어닝서프라이즈·쇼크 여부가 주가 핵심 변수',desc:'분기·반기·사업 보고서 제출 의무 공시입니다. 시장 컨센서스 대비 실적 차이가 주가 영향의 핵심입니다.',points:['영업이익 YoY 성장률 확인','컨센서스 대비 ±10% 이상이면 강한 반응','매출 성장 없이 이익만 증가하면 지속성 검토'],pros:['어닝서프라이즈 (컨센서스 +10% 이상)','흑자전환 달성','매출·이익 동반 성장'],cons:['어닝쇼크 (컨센서스 -10% 이상)','흑자→적자 전환','가이던스 하향'],stats:{avg:'+1.2%',downPct:48,recover:52,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'POSCO홀딩스',change:'+11.4%',type:'up',meta:'2023.Q2 · 영업이익 컨센서스 +32% 초과',note:'리튬 사업부 흑자전환 + 철강 스프레드 개선. 외국인 대규모 순매수',pts:'0,50 50,40 100,28 150,20 200,15 250,10 300,8'},{name:'LG디스플레이',change:'-9.8%',type:'down',meta:'2023.Q3 · 영업손실 컨센서스 대비 2배',note:'OLED 패널 수요 부진 지속. 예상보다 큰 적자로 어닝쇼크 반응',pts:'0,10 50,22 100,33 150,40 200,45 250,48 300,50'}],hasCheck:false},
+    {id:'lawsuit',cho:'ㅅ',name:'소송·분쟁 공시',icon:'⚖️',risk:'mid',riskLabel:'주의',sub:'소송가액 자산 10% 이상 의무 공시',desc:'소송가액이 자산 총액의 10% 이상인 경우 의무 공시합니다. 소송 결과에 따라 대규모 손실이 발생할 수 있습니다.',points:['소송가액 vs 기업 자산·시가총액 비율 계산','원고·피고 구분: 기업이 피고면 리스크','특허 소송은 사업 존속에 영향 가능'],pros:['소송가액 소액 (자산 대비 1% 미만)','기업이 원고 (청구권 보유)','보험으로 손실 커버 가능'],cons:['소송가액 대규모 (자산 대비 30% 이상)','기업이 피고 + 특허 소송','해외 소송 (배상 규모 예측 불가)'],stats:{avg:'-3.2%',downPct:58,recover:42,avgColor:'#d97706',recoverColor:'#d97706',label:'하락'},cases:[{name:'HLB',change:'-18.3%',type:'down',meta:'2023.07 · FDA 임상 관련 소송 피소',note:'핵심 파이프라인 관련 특허 분쟁 피소. 신약 허가 불확실성 급등',pts:'0,8 50,20 100,32 150,40 200,45 250,48 300,50'}],hasCheck:false},
+    {id:'bw',cho:'ㅅ',name:'신주인수권부사채 (BW)',icon:'🎫',risk:'high',riskLabel:'고위험',sub:'워런트 분리 거래로 CB보다 수급 교란 강함',desc:'채권을 보유하면서 신주를 인수할 수 있는 권리(워런트)를 함께 부여하는 공시입니다. 분리형이면 워런트가 별도 거래되어 수급 교란이 더 강합니다.',points:['분리형 vs 비분리형 여부 최우선 확인','워런트 행사가격·행사기간 체크','발행 규모 시총 대비 비율 계산'],pros:['비분리형 BW','행사가 할인율 낮음','설비투자 목적'],cons:['분리형 BW (워런트 유통)','행사가 할인율 높음','운영자금·채무 목적'],stats:{avg:'-5.8%',downPct:67,recover:29,avgColor:'#dc2626',recoverColor:'#d97706',label:'하락'},cases:[{name:'셀트리온헬스케어',change:'-11.2%',type:'down',meta:'2022.06 · 분리형 BW · 시총 대비 8.3%',note:'분리형 워런트 출회 물량 부담. 바이오 업종 희석 민감도 높음',pts:'0,10 50,22 100,34 150,40 200,44 250,48 300,50'}],hasCheck:false},
+    {id:'spinoff',cho:'ㅇ',name:'영업양수도',icon:'🔄',risk:'mid',riskLabel:'확인 필요',sub:'사업부 매각 or 인수, 방향성과 조건이 핵심',desc:'기업이 영업의 전부 또는 일부를 양도하거나 인수하는 공시입니다. 양도(매각)는 선택과 집중, 양수(인수)는 사업 확장으로 해석하나 조건에 따라 다릅니다.',points:['양도(매각) vs 양수(인수) 구분','거래 금액이 자산 가치 대비 적정한지 체크','매각 대금 활용 계획 확인'],pros:['비핵심 사업부 매각 (선택과 집중)','적정 가치 이상 매각 (프리미엄)','매각 대금으로 부채 상환'],cons:['핵심 사업부 매각 (성장성 훼손)','헐값 매각 (경영 급박 신호)','과도한 차입 인수'],stats:{avg:'+0.8%',downPct:44,recover:56,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'SK이노베이션',change:'+7.3%',type:'up',meta:'2021.10 · SK배터리 물적분할 후 영업양수도',note:'배터리 사업부 분리로 전기차 사업 가치 재평가. 기관 매수 유입',pts:'0,50 50,40 100,30 150,22 200,16 250,12 300,10'}],hasCheck:false},
+    {id:'rights',cho:'ㅇ',name:'유상증자',icon:'📢',risk:'high',riskLabel:'고위험',sub:'주식 희석 직접 발생, 발행 방식·목적 필수 확인',desc:'새로운 주식을 발행해 자금을 조달하는 공시입니다. 주주배정, 일반공모, 제3자 배정 3가지 방식이 있으며 방식에 따라 주가 영향이 크게 다릅니다.',points:['주주배정 vs 일반공모 vs 제3자 배정 구분','발행가 현재 주가 대비 할인율 확인','발행 규모 시총 대비 비율 계산'],pros:['주주배정 방식','시설·R&D 투자 목적','발행가 할인율 낮음'],cons:['제3자 배정 방식','채무상환·운영자금','발행가 할인율 30% 이상'],stats:{avg:'-7.1%',downPct:72,recover:31,avgColor:'#dc2626',recoverColor:'#d97706',label:'하락'},cases:[{name:'HMM',change:'-15.4%',type:'down',meta:'2023.03 · 제3자 배정 · 시총 대비 22.1%',note:'제3자 배정 + 대규모 희석. 해운 업황 하락과 맞물려 낙폭 확대',pts:'0,8 50,20 100,32 150,38 200,43 250,46 300,50'},{name:'LG에너지솔루션',change:'-5.2% → +8.7%',type:'mixed',meta:'2023.08 · 주주배정 · 시총 대비 6.8%',note:'주주배정 방식 + 북미 공장 증설 목적. 단기 조정 후 반등',pts:'0,20 50,30 100,38 150,36 200,28 250,20 300,15'}],hasCheck:true,checkFields:[{id:'method',label:'발행 방식',options:[{v:'',t:'선택하세요'},{v:'2',t:'주주배정'},{v:'0',t:'일반공모'},{v:'-2',t:'제3자 배정'}]},{id:'purpose',label:'발행 목적',options:[{v:'',t:'선택하세요'},{v:'3',t:'시설투자 / R&D'},{v:'1',t:'M&A / 타법인 취득'},{v:'-2',t:'채무상환 / 운영자금'}]},{id:'discount',label:'발행가 할인율',options:[{v:'',t:'선택하세요'},{v:'2',t:'10% 미만'},{v:'0',t:'10~20%'},{v:'-2',t:'20~30%'},{v:'-3',t:'30% 이상'}]}]},
+    {id:'exec',cho:'ㅇ',name:'임원 변경',icon:'👥',risk:'mid',riskLabel:'주의',sub:'CFO·CTO 등 핵심 임원 교체는 주의',desc:'이사, CFO, CTO 등 주요 임원이 교체되는 공시입니다. 대규모 교체는 경영 전략 변화를 예고합니다.',points:['교체 임원의 역할: CFO·CTO 등 핵심 여부','교체 사유: 임기만료 vs 자진사퇴 vs 해임','신임 임원 배경: 업계 전문가 vs 외부인'],pros:['정기적 임기만료 교체','핵심 비즈니스 전문가 영입','기존 경영 연속성 유지'],cons:['CFO·감사 등 재무 담당 갑작스러운 사임','대규모 임원 동시 교체','검찰·감사 직후 교체'],stats:{avg:'-0.8%',downPct:38,recover:62,avgColor:'#6b7280',recoverColor:'#16a34a',label:'혼조'},cases:[{name:'두산에너빌리티',change:'+3.2%',type:'up',meta:'2023.02 · 원전 전문가 CTO 영입',note:'소형모듈원전(SMR) 전문가 영입. 신사업 추진 의지로 긍정 반응',pts:'0,45 50,38 100,30 150,24 200,20 250,16 300,12'}],hasCheck:false},
+    {id:'treasury',cho:'ㅈ',name:'자사주 취득·처분',icon:'💰',risk:'low',riskLabel:'호재/주의',sub:'취득=호재, 처분=수급 부담',desc:'기업이 자기 주식을 매입하거나 처분하는 공시입니다. 자사주 취득은 주가 부양 의지를 보여주는 호재로, 처분은 희석 요인으로 해석됩니다.',points:['취득 vs 처분 구분이 가장 중요','취득 규모: 시총 대비 1% 이상이면 효과적','처분 방법: 시장 매각 vs 임직원 스톡옵션'],pros:['자사주 취득 (주가 부양)','취득 규모 대형 (시총 3% 이상)','소각까지 이어지는 경우'],cons:['자사주 처분 (물량 부담)','대규모 처분 (수급 교란)','재무 악화 시 강제 처분'],stats:{avg:'+2.9%',downPct:28,recover:72,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'SK하이닉스',change:'+4.8%',type:'up',meta:'2023.04 · 자사주 1조원 취득·소각 발표',note:'AI 메모리 수요 증가 시기 취득+소각 동시 발표. 주주환원 기대감 강화',pts:'0,50 50,40 100,30 150,22 200,15 250,10 300,8'}],hasCheck:false},
+    {id:'cb',cho:'ㅈ',name:'전환사채 (CB)',icon:'🔄',risk:'high',riskLabel:'고위험',sub:'주식 희석 리스크, 발행 목적·조건 확인 필수',desc:'일정 조건 충족 시 주식으로 전환 가능한 채권을 발행하는 공시입니다. 리픽싱 조항이 있으면 희석 압력이 지속됩니다.',points:['발행 목적: R&D·시설투자 vs 채무상환','전환가액 현재 주가 대비 할인율 확인','리픽싱(Refixing) 조항 여부 반드시 체크'],pros:['R&D·신사업 자금 목적','전환가 할인율 10% 미만','리픽싱 조항 없음'],cons:['채무상환·운영자금 목적','전환가 할인율 20% 이상','리픽싱 조항 포함','반복 발행 이력'],stats:{avg:'-4.2%',downPct:61,recover:38,avgColor:'#dc2626',recoverColor:'#d97706',label:'하락'},cases:[{name:'에코프로비엠',change:'+18.3%',type:'up',meta:'2023.04 · 2차전지 공장 증설 · 시총 대비 4.2%',note:'시설투자 목적 + 소규모 발행 + 성장 모멘텀. 희석 우려 단기 소화',pts:'0,50 50,44 100,36 150,28 200,18 250,10 300,5'},{name:'스튜디오드래곤',change:'-23.1%',type:'down',meta:'2022.09 · 운영자금 · 시총 대비 17.8%',note:'운영자금 목적 + 대규모 발행. 실적 악화 시기 겹쳐 수급 이탈',pts:'0,10 50,20 100,30 150,38 200,44 250,50 300,54'}],hasCheck:true,checkFields:[{id:'purpose',label:'발행 목적',options:[{v:'',t:'선택하세요'},{v:'3',t:'시설투자 / R&D / 신사업'},{v:'1',t:'타법인 취득 / M&A'},{v:'-1',t:'채무상환'},{v:'-2',t:'운영자금 / 기타'}]},{id:'discount',label:'전환가 할인율',options:[{v:'',t:'선택하세요'},{v:'2',t:'할인 없음 (0%)'},{v:'1',t:'10% 미만'},{v:'-1',t:'10~20%'},{v:'-2',t:'20% 이상'}]},{id:'size',label:'발행 규모 (시총 대비)',options:[{v:'',t:'선택하세요'},{v:'2',t:'5% 미만'},{v:'1',t:'5~10%'},{v:'-1',t:'10~30%'},{v:'-2',t:'30% 이상'}]},{id:'refix',label:'리픽싱(Refixing) 조항',options:[{v:'',t:'선택하세요'},{v:'1',t:'없음'},{v:'-2',t:'있음'}]}]},
+    {id:'majority',cho:'ㅊ',name:'최대주주 변경',icon:'👑',risk:'high',riskLabel:'고위험',sub:'경영권 이전, 사업 방향 전면 변화 가능',desc:'기업의 최대주주가 바뀌는 공시입니다. 새 최대주주의 배경과 인수 목적이 핵심이며, 경영 방향·임원진·배당 정책이 크게 바뀔 수 있습니다.',points:['새 최대주주 배경: 산업 전문가 vs 재무 투자자','인수 대금 조달: 자기자금 vs 차입 인수','인수 프리미엄: 현재 주가 대비 할증률'],pros:['업종 시너지 기업 인수','높은 프리미엄 공개매수','자기자금 위주 인수'],cons:['차입 인수 (레버리지 부담)','재무투자자 인수 (단기 차익)','경영권 분쟁 중 교체'],stats:{avg:'+3.1%',downPct:45,recover:55,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'한진칼',change:'+18.7%',type:'up',meta:'2020.11 · KCGI 경영권 분쟁 종결',note:'경영권 분쟁 종결 + 최대주주 안정화. 불확실성 해소로 주가 급등',pts:'0,55 50,42 100,30 150,20 200,14 250,10 300,8'}],hasCheck:false},
+    {id:'merger',cho:'ㅎ',name:'합병',icon:'🏢',risk:'mid',riskLabel:'확인 필요',sub:'합병 비율·시너지·주식 교환 조건이 핵심',desc:'두 기업이 하나로 합쳐지는 공시입니다. 합병 비율이 현재 주가 기준으로 적절한지, 합병 후 시너지가 명확한지가 투자자 판단의 핵심입니다.',points:['합병 비율: 내 주식 몇 주가 신주로 전환되는지','피합병법인 재무 상태 (부채 이전 여부)','합병 후 사업 방향과 시너지 명확성'],pros:['합병 비율 주주에게 유리','강한 사업 시너지','우량 기업 흡수합병'],cons:['합병 비율 불리','피합병법인 부채 이전','강한 반대주주 존재'],stats:{avg:'+0.5%',downPct:48,recover:52,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'SK스퀘어+SK플래닛',change:'+5.1%',type:'up',meta:'2022.05 · 자회사 흡수합병 · 지주회사 단순화',note:'복잡한 자회사 구조 단순화. 기업가치 재평가 기대로 긍정 반응',pts:'0,48 50,38 100,28 150,22 200,18 250,14 300,12'}],hasCheck:false},
+    {id:'fraud',cho:'ㅎ',name:'횡령·배임 공시',icon:'🚨',risk:'high',riskLabel:'고위험',sub:'경영진 신뢰 붕괴, 즉각적 주가 충격',desc:'경영진이나 임직원의 횡령·배임 혐의가 공시되는 경우입니다. 법적 처벌과 함께 기업 신뢰가 급격히 하락하며, 상장폐지 가능성까지 연결될 수 있습니다.',points:['횡령·배임 금액 vs 기업 자산·자본금 비율','경영진 구속 여부 (경영 공백 리스크)','감사인 의견 변경 여부 (감사 거절 → 상폐)'],pros:['금액 소액 (자산 대비 1% 미만)','경영진 즉각 교체 및 재발방지 조치','수사 협조 + 피해 회복 조치'],cons:['대규모 횡령 (자산 대비 10% 이상)','CEO 구속 (경영 공백)','반복 발생 이력','감사인 의견 거절 연동'],stats:{avg:'-22.4%',downPct:87,recover:11,avgColor:'#dc2626',recoverColor:'#dc2626',label:'하락'},cases:[{name:'오스템임플란트',change:'-29.8%',type:'down',meta:'2022.01 · 직원 횡령 2215억원 발각',note:'직원 횡령 사실 공시 후 즉각 거래정지. 재발방지 조치 후 재개장 시 급락',pts:'0,5 50,20 100,35 150,42 200,46 250,49 300,52'}],hasCheck:false}
+  ,
+{id:'debt_guarantee',cho:'ㅌ',name:'타인에 대한 채무보증 결정',icon:'🔒',risk:'high',riskLabel:'고위험',sub:'계열사·관계사 채무 대신 갚아줄 책임 부담',desc:'기업이 타인(주로 계열사·관계사)의 채무를 보증하기로 결정했다는 공시입니다. 보증한 채무가 부실화될 경우 해당 기업이 직접 상환 책임을 지게 되어 재무 건전성에 악영향을 미칩니다.',points:['보증 금액이 자기자본 대비 몇 %인지 계산','피보증인(보증 대상) 재무 상태 별도 확인 필수','보증 목적: 계열사 지원 vs 사업상 불가피한 보증 구분'],pros:['보증 금액 소액 (자기자본 대비 5% 미만)','피보증인 신용등급 양호','단기 보증 (1년 이내)','사업 연관성 높은 계열사 보증'],cons:['보증 금액 대규모 (자기자본 대비 50% 이상)','피보증인 재무 악화 상태','장기 보증 (3년 이상)','반복적 채무보증 이력'],stats:{avg:'-3.8%',downPct:63,recover:37,avgColor:'#dc2626',recoverColor:'#d97706',label:'하락'},cases:[{name:'두산중공업',change:'-12.4%',type:'down',meta:'2020.03 · 두산건설 채무보증 · 자기자본 대비 38%',note:'계열사 유동성 위기 속 대규모 채무보증 결정. 연쇄 부실 우려로 주가 급락',pts:'0,10 50,22 100,34 150,42 200,47 250,50 300,53'},{name:'한화솔루션',change:'-4.1%',type:'mixed',meta:'2022.06 · 한화큐셀 설비투자 관련 보증 · 자기자본 대비 8%',note:'사업 연관성 높은 계열사 소규모 보증. 단기 하락 후 빠른 회복',pts:'0,25 50,35 100,40 150,38 200,32 250,26 300,22'}],hasCheck:false},
+    {id:'unfaithful',cho:'ㅂ',name:'불성실공시법인 지정',icon:'🚫',risk:'high',riskLabel:'고위험',sub:'공시 의무 위반 제재, 투자주의 최고 경보',desc:'공시 의무를 반복적으로 위반하거나 중요 사항을 누락·지연 공시한 기업에 대해 한국거래소가 지정하는 제재 공시입니다. 투자자 신뢰가 급격히 하락하며 관리종목 지정과 연결될 수 있습니다.',points:['불성실공시 벌점 누적 현황 확인 (15점 이상 시 관리종목)','공시 위반 내용: 단순 지연 vs 허위·중요 사항 누락 구분','과거 불성실공시 지정 이력 반복 여부 확인'],pros:['단순 지연 공시로 인한 경미한 위반','벌점 누적 낮음 (5점 미만)','재발방지 계획 즉각 제출'],cons:['허위 공시·중요 사항 고의 누락','벌점 누적 높음 (10점 이상)','반복 지정 이력','관리종목 지정 경계선'],stats:{avg:'-8.2%',downPct:76,recover:22,avgColor:'#dc2626',recoverColor:'#dc2626',label:'하락'},cases:[{name:'쌍방울',change:'-19.3%',type:'down',meta:'2022.10 · 중요사항 허위공시 · 벌점 12점 누적',note:'대주주 관련 허위 공시 적발. 벌점 누적으로 관리종목 지정 우려까지 겹쳐 급락',pts:'0,8 50,20 100,33 150,42 200,48 250,52 300,55'},{name:'에이치엘비',change:'-5.1%',type:'mixed',meta:'2021.04 · 공시 지연 · 벌점 4점',note:'단순 공시 지연으로 경미한 위반. 단기 조정 후 본업 모멘텀으로 빠르게 회복',pts:'0,28 50,36 100,42 150,40 200,35 250,28 300,24'}],hasCheck:false},
+    {id:'fine',cho:'ㅂ',name:'벌금 등의 부과',icon:'⚠️',risk:'mid',riskLabel:'주의',sub:'규제기관 제재, 금액·반복성이 핵심 변수',desc:'공정거래위원회, 금융감독원, 환경부 등 규제기관으로부터 벌금·과징금·과태료 등이 부과되었음을 알리는 공시입니다. 부과 금액과 위반 내용에 따라 주가 영향이 크게 달라집니다.',points:['부과 금액이 당기순이익 또는 자산 대비 몇 %인지 계산','부과 기관과 위반 내용: 담합·횡령·환경 위반 등 유형 파악','이의신청·항소 여부 확인 (취소 가능성 판단)'],pros:['부과 금액 소액 (순이익 대비 1% 미만)','이의신청으로 감액 가능성 높음','일회성 위반 (반복 아님)','사업 핵심과 무관한 위반'],cons:['부과 금액 대규모 (순이익 대비 10% 이상)','담합·불공정거래 등 핵심 사업 관련 위반','반복 부과 이력','추가 규제·영업정지 가능성'],stats:{avg:'-2.9%',downPct:55,recover:45,avgColor:'#d97706',recoverColor:'#d97706',label:'하락'},cases:[{name:'LG전자',change:'-3.2%',type:'mixed',meta:'2021.07 · 공정위 과징금 · 순이익 대비 0.8%',note:'소규모 과징금으로 실질 영향 미미. 단기 하락 후 빠른 회복. 이의신청으로 일부 감액',pts:'0,28 50,35 100,40 150,38 200,32 250,26 300,23'},{name:'카카오모빌리티',change:'-11.7%',type:'down',meta:'2023.12 · 공정위 과징금 724억 · 핵심 사업 불공정행위',note:'콜 몰아주기 담합 혐의 과징금. 플랫폼 핵심 사업 관련 제재로 투자심리 급격 악화',pts:'0,10 50,22 100,33 150,40 200,45 250,48 300,50'}],hasCheck:false},
+    {id:'supply_contract',cho:'ㄷ',name:'단일판매·공급계약 체결',icon:'📦',risk:'low',riskLabel:'호재',sub:'매출 직결 계약, 규모·상대방·기간이 핵심',desc:'특정 거래처와 단일 판매 또는 공급 계약을 체결했음을 알리는 공시입니다. 계약 금액이 최근 매출액의 일정 비율 이상일 때 의무 공시하며, 기업 실적 가시성을 높이는 호재성 공시입니다.',points:['계약 금액 / 최근 매출액 비율 확인 (클수록 임팩트 강함)','계약 상대방 신뢰도: 국내외 대기업 vs 중소기업','계약 기간·납품 일정·대금 지급 조건 확인'],pros:['계약 규모 대형 (매출 대비 50% 이상)','글로벌 대기업·공공기관 상대방','장기 공급 계약 (3년 이상)','신규 거래처 확보'],cons:['기존 고객과 반복 소규모 계약','계약 세부 조건 미공개','주가 급등 후 뒤늦은 공시','납품 조건 까다로움·해지 조항 광범위'],stats:{avg:'+5.8%',downPct:28,recover:72,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'한화에어로스페이스',change:'+16.2%',type:'up',meta:'2023.09 · 폴란드 K9 자주포 공급계약 · 매출 대비 180%',note:'매출의 1.8배 규모 방산 수출 계약. 장기 실적 가시성 확보로 기관·외국인 동반 순매수',pts:'0,55 50,42 100,30 150,20 200,14 250,10 300,7'},{name:'코스맥스',change:'+8.3%',type:'up',meta:'2023.05 · 글로벌 뷰티기업 OEM 공급계약 · 매출 대비 22%',note:'신규 글로벌 고객사 확보. 중국 외 매출 다변화 기대감으로 긍정 반응',pts:'0,50 50,40 100,30 150,23 200,17 250,12 300,9'}],hasCheck:false},
+    {id:'acquisition',cho:'ㅌ',name:'타법인 주식 및 출자증권 취득 결정',icon:'🏗️',risk:'mid',riskLabel:'확인 필요',sub:'M&A·지분 투자, 목적과 규모가 핵심',desc:'다른 기업의 주식이나 출자증권을 취득하기로 결정했다는 공시입니다. 경영권 인수, 전략적 지분 투자, 재무적 투자 등 목적에 따라 주가 영향이 크게 달라집니다.',points:['취득 목적: 경영권 인수 vs 전략적 투자 vs 재무적 투자','취득 금액이 자기자본 대비 몇 %인지 계산','취득 자금 조달 방법: 자체 보유 현금 vs 차입'],pros:['핵심 사업 시너지 기업 인수','자기자금 위주 취득 (재무 부담 없음)','취득 대상 기업 실적 우량','지분 취득 후 연결 편입 시 실적 증가'],cons:['사업 연관성 낮은 무리한 문어발 확장','대규모 차입으로 취득 (재무 악화)','취득 대상 기업 실적 부진','고가 취득 (프리미엄 과도)'],stats:{avg:'+1.4%',downPct:46,recover:54,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'카카오',change:'+7.8%',type:'up',meta:'2021.03 · SM엔터테인먼트 지분 취득 · 자기자본 대비 6%',note:'콘텐츠 IP 확보 전략으로 시장 긍정 평가. 자체 현금으로 소규모 전략적 취득',pts:'0,50 50,40 100,30 150,22 200,16 250,12 300,10'},{name:'한화그룹',change:'-6.3%',type:'down',meta:'2022.11 · 대우조선해양 인수 · 자기자본 대비 42%',note:'대규모 차입 인수로 재무 부담 우려. 인수 후 통합 리스크와 조선 업황 불확실성 겹침',pts:'0,15 50,25 100,35 150,42 200,46 250,49 300,52'}],hasCheck:false}
+  ,
+{id:'annual_report',cho:'ㅅ',name:'사업보고서',icon:'📋',risk:'mid',riskLabel:'확인 필요',sub:'연간 실적 총결산, 컨센서스 대비 차이가 핵심',desc:'기업이 1년간의 경영 실적을 종합 공시하는 연간 보고서입니다. 매출·영업이익·순이익의 전년 대비 변화와 시장 컨센서스 대비 달성 여부가 주가에 직접적인 영향을 미칩니다.',points:['영업이익 YoY 성장률과 컨센서스 달성 여부 확인','부채비율·유동비율 등 재무 건전성 지표 변화 체크','감사의견: 적정 vs 한정·부적정·의견거절 반드시 확인'],pros:['영업이익 컨센서스 초과 달성','부채비율 개선','배당 증가 발표 동반','감사의견 적정'],cons:['어닝쇼크 (컨센서스 대비 -10% 이상)','부채비율 급등','감사의견 한정·부적정','계속기업 불확실성 주석'],stats:{avg:'+0.9%',downPct:47,recover:53,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'삼성전자',change:'+4.2%',type:'up',meta:'2023 사업보고서 · 반도체 흑자전환 확인',note:'HBM 매출 급증 확인으로 어닝서프라이즈. 감사의견 적정 + 배당 유지로 외국인 매수 유입',pts:'0,48 50,38 100,28 150,20 200,15 250,10 300,8'},{name:'HLB',change:'-14.3%',type:'down',meta:'2022 사업보고서 · 계속기업 불확실성 주석',note:'감사보고서 내 계속기업 불확실성 주석 발견. 신약 개발 비용 과다로 재무 건전성 우려',pts:'0,10 50,22 100,34 150,41 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'half_report',cho:'ㅂ',name:'반기보고서',icon:'📊',risk:'mid',riskLabel:'확인 필요',sub:'상반기 실적 중간 점검, 연간 가이던스 수정 여부 주목',desc:'회계연도 상반기(6개월) 실적을 공시하는 반기 보고서입니다. 연간 실적 달성 가능성을 중간 점검하는 지표로 활용되며, 가이던스 수정 여부가 주가에 큰 영향을 미칩니다.',points:['상반기 실적 기준 연간 목표 달성률 계산','연간 가이던스 유지·상향·하향 여부 확인','전분기 대비 추세: 개선 중 vs 악화 중'],pros:['상반기 실적 호조 + 연간 가이던스 상향','전년 동기 대비 뚜렷한 개선','하반기 수주잔고 충분'],cons:['상반기 부진 + 연간 가이던스 하향','전년 동기 대비 실적 역성장','하반기 전망 불투명'],stats:{avg:'+0.6%',downPct:49,recover:51,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'현대차',change:'+6.1%',type:'up',meta:'2023 반기보고서 · 영업이익률 10% 첫 돌파',note:'사상 첫 두 자릿수 영업이익률 달성. 연간 가이던스 상향으로 외국인 대규모 순매수',pts:'0,50 50,40 100,29 150,21 200,15 250,10 300,7'},{name:'카카오',change:'-8.7%',type:'down',meta:'2023 반기보고서 · 광고 매출 역성장',note:'핵심 광고 사업 역성장 + 연간 가이던스 하향. 플랫폼 성장 둔화 우려 본격화',pts:'0,12 50,22 100,32 150,40 200,45 250,49 300,52'}],hasCheck:false},
+    {id:'quarter_report',cho:'ㅂ',name:'분기보고서',icon:'📈',risk:'mid',riskLabel:'확인 필요',sub:'3·9월 분기 실적, 컨센서스 대비 어닝서프라이즈 여부',desc:'1분기(3월) 또는 3분기(9월) 실적을 공시하는 분기 보고서입니다. 시장 컨센서스 대비 실적 차이가 즉각적인 주가 반응을 유발하며, 어닝서프라이즈·쇼크 여부가 핵심입니다.',points:['영업이익 컨센서스 대비 달성률 즉시 확인','전분기 대비 QoQ 추세 변화 확인','연간 실적 추정치 변경 여부 체크'],pros:['어닝서프라이즈 (컨센서스 +10% 이상)','QoQ 개선 추세 지속','연간 추정치 상향'],cons:['어닝쇼크 (컨센서스 -10% 이상)','QoQ 악화 추세','연간 추정치 하향'],stats:{avg:'+0.8%',downPct:48,recover:52,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'SK하이닉스',change:'+12.4%',type:'up',meta:'2024 1분기 · HBM 매출 급증 어닝서프라이즈',note:'HBM3E 판매 급증으로 컨센서스 대비 +40% 초과 달성. 외국인·기관 동반 대규모 순매수',pts:'0,52 50,40 100,28 150,19 200,13 250,9 300,6'},{name:'LG에너지솔루션',change:'-9.3%',type:'down',meta:'2024 1분기 · EV 수요 둔화 어닝쇼크',note:'전기차 수요 급감으로 가동률 하락. 컨센서스 대비 -35% 미달로 연간 추정치 대폭 하향',pts:'0,10 50,20 100,32 150,40 200,45 250,49 300,52'}],hasCheck:false},
+    {id:'major_mgmt',cho:'ㅌ',name:'투자판단관련 주요경영사항',icon:'📣',risk:'mid',riskLabel:'확인 필요',sub:'자율공시, 내용에 따라 호재·악재 즉시 판단 필요',desc:'법정 의무 공시 외에 투자자 판단에 중요한 영향을 미칠 수 있는 사항을 기업이 자율적으로 공시하는 형태입니다. 내용이 매우 다양하므로 구체적인 내용을 즉시 확인해야 합니다.',points:['공시 제목만 보지 말고 본문 내용 즉시 확인','호재성(신사업·계약·특허) vs 악재성(손실·제재·분쟁) 구분','기업이 자율적으로 선택한 공시임을 감안해 해석'],pros:['신사업 진출·특허 획득 등 성장 모멘텀 내용','대형 계약·MOU 체결','정부 지원·인증 획득'],cons:['손실 발생·소송 피소 등 부정적 내용','불확실한 루머 해소 목적 공시','내용 불충분·모호한 공시'],stats:{avg:'+1.2%',downPct:44,recover:56,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'에코프로',change:'+18.7%',type:'up',meta:'2023.02 · 글로벌 배터리사 장기 공급 MOU',note:'북미 배터리 제조사와 10년 장기 공급 MOU 자율공시. 구체적 규모와 기간 명시로 신뢰도 높음',pts:'0,54 50,42 100,30 150,21 200,14 250,10 300,7'},{name:'코오롱티슈진',change:'-22.4%',type:'down',meta:'2019.05 · 인보사 성분 허위 기재 자진공시',note:'임상 중 유전자치료제 성분 오류 자진 공시. 허가 취소 우려로 주가 폭락',pts:'0,5 50,18 100,32 150,43 200,50 250,54 300,56'}],hasCheck:false},
+    {id:'dividend',cho:'ㅎ',name:'현금·현물배당 결정',icon:'💵',risk:'low',riskLabel:'호재',sub:'주주환원 강화, 배당수익률과 증가율이 핵심',desc:'기업이 주주에게 현금 또는 현물로 배당을 지급하기로 결정했다는 공시입니다. 배당금 규모와 전년 대비 증감률이 주가에 직접 영향을 미치며, 주주환원 정책 강화 신호로 해석됩니다.',points:['배당수익률 계산: 주당배당금 ÷ 현재 주가','전년 대비 배당금 증감률 확인 (증가 시 강한 호재)','배당성향: 순이익 대비 배당금 비율 체크'],pros:['전년 대비 배당금 증가','배당수익률 3% 이상','특별배당 병행','배당성향 상향 정책 발표'],cons:['전년 대비 배당금 감소·무배당','배당 재원 부족 (순손실 중 배당)','일회성 배당 (지속성 불투명)'],stats:{avg:'+2.1%',downPct:29,recover:71,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'현대차',change:'+5.8%',type:'up',meta:'2023 · 주당배당금 YoY +33% 증가 · 특별배당 병행',note:'역대 최대 배당 + 특별배당 동시 발표. 주주환원 강화 정책으로 외국인 대규모 순매수',pts:'0,50 50,40 100,30 150,22 200,16 250,11 300,8'},{name:'KT&G',change:'-3.1%',type:'mixed',meta:'2022 · 배당금 동결 · 배당성향 하향',note:'배당금 동결 발표. 실적 부진과 맞물려 배당 매력 감소로 기관 이탈',pts:'0,28 50,35 100,40 150,38 200,34 250,30 300,27'}],hasCheck:false},
+    {id:'agm',cho:'ㅈ',name:'주주총회 소집결의',icon:'🏛️',risk:'mid',riskLabel:'확인 필요',sub:'정기·임시총회, 안건 내용이 주가 방향 결정',desc:'주주총회 개최를 결의하고 의안을 공시하는 공시입니다. 정기주주총회는 연례 행사이나, 임시주주총회는 대규모 안건(합병·분할·유상증자 등)을 처리할 때 소집되어 주가에 큰 영향을 줍니다.',points:['정기총회 vs 임시총회 구분 (임시총회는 중요 안건 신호)','주요 안건 확인: 임원 선임·정관 변경·합병 승인 등','주요 주주 반대 여부 및 주주 행동주의 가능성'],pros:['주주환원 강화 안건 (배당 증가·자사주 소각)','경영 효율화 목적 구조 개편','주주 친화적 정관 개정'],cons:['임시총회 + 대규모 유상증자·합병 안건','경영권 분쟁 속 임시총회 소집','주주 반대 안건 강행 추진'],stats:{avg:'-0.4%',downPct:48,recover:52,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'SM엔터테인먼트',change:'+14.2%',type:'up',meta:'2023.02 · 임시주총 · 이사회 구성 변경 안건',note:'카카오-하이브 경영권 분쟁 중 임시주총. 새 이사 선임으로 경영권 구도 변화 기대감',pts:'0,52 50,40 100,28 150,19 200,13 250,9 300,7'},{name:'고려아연',change:'-7.3%',type:'down',meta:'2024.10 · 임시주총 · 대규모 유상증자 안건',note:'MBK파트너스 적대적 M&A 방어 목적 유상증자 안건 강행. 주주 희석 우려로 급락',pts:'0,12 50,22 100,33 150,41 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'new_invest',cho:'ㅅ',name:'신규 시설투자 등',icon:'🏭',risk:'low',riskLabel:'호재',sub:'미래 성장 투자, 규모와 목적이 핵심',desc:'기업이 새로운 생산 설비·공장·연구시설 등에 대규모 투자를 결정했다는 공시입니다. 미래 성장을 위한 선제적 투자로 해석되나, 투자 규모와 회수 기간을 함께 따져야 합니다.',points:['투자 금액이 자기자본 대비 몇 %인지 계산','투자 완료 시점과 실적 기여 시점 확인','투자 재원: 자체 현금 vs 차입 vs 증자'],pros:['성장 산업 핵심 설비 투자','자체 현금으로 투자 가능한 규모','투자 후 실적 기여 시점 명확','정부 지원·보조금 수혜'],cons:['과잉 투자 우려 (업황 하락 시기)','대규모 차입 투자로 재무 부담','투자 회수 기간 과도하게 장기','경쟁사 동반 투자로 공급과잉 우려'],stats:{avg:'+3.4%',downPct:31,recover:69,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'삼성전자',change:'+5.3%',type:'up',meta:'2023.03 · 평택 4공장 20조 투자 결정',note:'HBM 수요 대응 선제 투자. AI 메모리 시장 선점 의지로 기관·외국인 긍정 반응',pts:'0,50 50,40 100,29 150,21 200,15 250,10 300,7'},{name:'포스코케미칼',change:'-4.1%',type:'mixed',meta:'2022.11 · 양극재 공장 증설 · 자기자본 대비 48%',note:'전기차 수요 둔화 시기 대규모 투자. 과잉 투자 우려로 단기 하락 후 업황 개선으로 회복',pts:'0,28 50,35 100,41 150,39 200,33 250,27 300,23'}],hasCheck:false},
+    {id:'asset_acquire',cho:'ㅇ',name:'유형자산 취득 결정',icon:'🏢',risk:'mid',riskLabel:'확인 필요',sub:'토지·건물·설비 취득, 목적과 금액이 핵심',desc:'토지, 건물, 기계장치 등 유형자산을 취득하기로 결정했다는 공시입니다. 사업 확장을 위한 설비 투자인지, 단순 부동산 매입인지에 따라 주가 영향이 달라집니다.',points:['취득 자산 종류: 생산 설비 vs 토지·부동산','취득 금액 / 자기자본 비율 계산','취득 목적: 생산능력 확대 vs 투자 목적 보유'],pros:['핵심 생산 설비 확충 (수주 대응)','자체 자금으로 취득 가능한 규모','부동산 취득 후 임대 수익 창출'],cons:['사업과 무관한 고가 부동산 취득','과도한 차입으로 자산 취득','유휴 자산 취득 (활용 계획 불명확)'],stats:{avg:'+0.8%',downPct:43,recover:57,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'현대重',change:'+3.7%',type:'up',meta:'2023.06 · 도크 설비 증설 · 수주 잔고 대응',note:'역대급 수주 잔고 소화를 위한 생산설비 확충. 실적 가시성 강화로 긍정 반응',pts:'0,48 50,38 100,28 150,21 200,15 250,11 300,8'},{name:'롯데쇼핑',change:'-2.8%',type:'mixed',meta:'2021.04 · 비핵심 상업용 부동산 취득',note:'핵심 유통 사업과 무관한 부동산 취득. 자원 배분 효율성 의문으로 소폭 하락',pts:'0,28 50,33 100,38 150,36 200,32 250,29 300,26'}],hasCheck:false},
+    {id:'asset_dispose',cho:'ㅇ',name:'유형자산 처분 결정',icon:'🏚️',risk:'mid',riskLabel:'확인 필요',sub:'자산 매각, 선택과 집중 vs 자금 급박 신호',desc:'보유 중인 토지·건물·설비 등 유형자산을 처분(매각)하기로 결정했다는 공시입니다. 비핵심 자산 정리인지, 자금 조달을 위한 급박한 매각인지에 따라 해석이 달라집니다.',points:['처분 자산이 핵심 생산 설비인지 비핵심 자산인지 파악','처분 금액 vs 장부가액: 차익 발생 여부 확인','처분 자금 활용 계획: 신사업 투자 vs 부채 상환'],pros:['비핵심 자산 매각 (선택과 집중)','장부가 대비 높은 가격 매각 (처분이익 발생)','매각 대금으로 부채 상환 또는 신사업 투자'],cons:['핵심 생산 설비 처분 (사업 축소 신호)','헐값 매각 (경영 급박 신호)','반복적 자산 매각 (유동성 위기)'],stats:{avg:'+1.3%',downPct:41,recover:59,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'CJ대한통운',change:'+4.2%',type:'up',meta:'2022.08 · 비핵심 물류센터 매각 후 재임대',note:'유휴 부동산 매각 후 재임대(세일앤리스백)로 현금 확보. 차입금 상환으로 재무 개선',pts:'0,48 50,38 100,29 150,22 200,17 250,12 300,9'},{name:'쌍용차',change:'-8.6%',type:'down',meta:'2020.12 · 핵심 생산라인 설비 처분',note:'유동성 위기 속 핵심 생산설비 매각. 사업 축소 신호로 투자자 이탈',pts:'0,12 50,22 100,33 150,41 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'stake_dispose',cho:'ㅌ',name:'타법인 주식 처분 결정',icon:'📤',risk:'mid',riskLabel:'확인 필요',sub:'보유 지분 매각, 현금화 목적 vs 관계 청산 신호',desc:'보유 중인 타법인의 주식을 처분(매각)하기로 결정했다는 공시입니다. 비핵심 지분 정리와 현금 확보 목적인지, 사업 관계 청산인지에 따라 해석이 달라집니다.',points:['처분 대상 법인이 핵심 사업 관계사인지 비핵심인지 파악','처분 단가 vs 취득 단가: 처분이익·손실 발생 여부','처분 후 잔여 지분율 변화 확인'],pros:['비핵심 지분 처분 (포트폴리오 정리)','취득가 대비 높은 가격 처분 (이익 실현)','처분 대금으로 핵심 사업 재투자'],cons:['핵심 관계사 지분 매각 (사업 관계 약화)','손실 처분 (취득가 대비 낮은 가격)','주요 투자 포트폴리오 축소'],stats:{avg:'+0.6%',downPct:44,recover:56,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'SK㈜',change:'+3.1%',type:'up',meta:'2023.05 · 비핵심 해외법인 지분 처분',note:'포트폴리오 재편 목적 비핵심 지분 처분. 현금 확보로 반도체 소재 투자 재원 마련',pts:'0,48 50,38 100,29 150,22 200,16 250,12 300,9'},{name:'한화투자증권',change:'-5.2%',type:'down',meta:'2022.10 · 핵심 자회사 지분 일부 처분',note:'자금 조달 목적 핵심 자회사 지분 처분. 지분율 하락으로 지배력 약화 우려',pts:'0,15 50,25 100,35 150,42 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'spinoff2',cho:'ㅎ',name:'회사 분할 결정',icon:'✂️',risk:'mid',riskLabel:'확인 필요',sub:'인적·물적 분할, 분할 방식이 주주 이익 핵심',desc:'기업이 사업 부문을 분리해 별도 법인으로 독립시키는 공시입니다. 인적 분할(주주에게 신주 배분)과 물적 분할(자회사로 편입)에 따라 기존 주주에게 미치는 영향이 크게 다릅니다.',points:['인적 분할 vs 물적 분할 반드시 구분','분할 비율: 존속·신설 법인 가치 배분 비율 확인','분할 목적: 상장·매각·지배구조 개편 등'],pros:['인적 분할 (기존 주주 신주 배분)','고수익 사업부 분리로 가치 재평가','분할 후 각 법인 독립 경영 효율화'],cons:['물적 분할 + 자회사 별도 상장 (주주 이익 침해)','핵심 사업부 분리 (모회사 성장성 훼손)','분할 비율 기존 주주에게 불리'],stats:{avg:'-2.3%',downPct:57,recover:43,avgColor:'#d97706',recoverColor:'#dc2626',label:'하락'},cases:[{name:'LG화학',change:'-8.4%',type:'down',meta:'2020.09 · 배터리사업부 물적분할 (LG에너지솔루션)','note':'물적분할로 핵심 사업 자회사화. 기존 주주 신주 미배분에 항의 매도 쏟아짐',pts:'0,10 50,20 100,32 150,40 200,45 250,49 300,52'},{name:'현대중공업',change:'+6.2%',type:'up',meta:'2019.06 · 지주사 인적분할',note:'지배구조 개편 목적 인적분할. 기존 주주 신주 배분으로 가치 재평가 기대',pts:'0,50 50,40 100,29 150,21 200,15 250,10 300,7'}],hasCheck:false},
+    {id:'audit_report',cho:'ㄱ',name:'감사보고서',icon:'🔍',risk:'mid',riskLabel:'확인 필요',sub:'감사의견 종류가 최우선 확인 사항',desc:'외부 감사인이 기업의 재무제표가 적정하게 작성되었는지 검토한 결과를 공시하는 보고서입니다. 감사의견의 종류에 따라 주가에 미치는 영향이 극명하게 갈립니다.',points:['감사의견 종류 즉시 확인: 적정·한정·부적정·의견거절','계속기업 불확실성 주석 포함 여부 체크','내부통제 취약점 및 강조 사항 확인'],pros:['감사의견 적정','내부통제 지적 사항 없음','전년 대비 재무 건전성 개선 확인'],cons:['감사의견 한정 (특정 항목 불일치)','감사의견 의견거절 (상폐 위험)','계속기업 불확실성 주석 포함','감사인 교체 직후 의견 변경'],stats:{avg:'-4.1%',downPct:58,recover:42,avgColor:'#d97706',recoverColor:'#d97706',label:'하락'},cases:[{name:'대우건설',change:'+1.2%',type:'mixed',meta:'2023 감사보고서 · 감사의견 적정 · 해외현장 손실 주석',note:'감사의견 적정 유지. 해외 현장 손실 주석은 이미 시장에 선반영되어 영향 제한적',pts:'0,35 50,32 100,29 150,27 200,25 250,24 300,23'},{name:'비보존제약',change:'-31.4%',type:'down',meta:'2023 감사보고서 · 감사의견 의견거절',note:'감사인 감사의견 거절로 상장폐지 사유 발생. 즉각 거래정지 후 급락',pts:'0,5 50,18 100,33 150,44 200,51 250,55 300,57'}],hasCheck:false},
+    {id:'mass_holding',cho:'ㅈ',name:'주식 대량보유 상황보고서',icon:'📌',risk:'mid',riskLabel:'확인 필요',sub:'5%룰, 보유 목적(경영참여 vs 단순투자)이 핵심',desc:'특정 주주가 발행 주식의 5% 이상을 보유하거나 1% 이상 변동 시 공시하는 보고서입니다. 보유 목적이 경영참여인지 단순 투자인지에 따라 주가 영향이 크게 달라집니다.',points:['보유 목적: 경영참여 vs 단순투자 vs 경영권 위협','보유 비율 변화: 신규 5% 이상 취득 vs 지분 축소','보고 주체: 행동주의 펀드·경쟁사·우호 세력 구분'],pros:['우호적 대주주 신규 지분 취득','행동주의 펀드 참여 (주주가치 제고 기대)','전략적 투자자 지분 취득'],cons:['경쟁사의 적대적 지분 매집','주요 주주 대규모 지분 매각','기존 대주주 지분율 하락'],stats:{avg:'+3.2%',downPct:38,recover:62,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'SM엔터테인먼트',change:'+22.1%',type:'up',meta:'2023.02 · 하이브 지분 14.8% 취득 공시',note:'하이브의 전격적 지분 취득으로 경영권 분쟁 시작. 인수 프리미엄 기대로 주가 급등',pts:'0,55 50,40 100,27 150,18 200,12 250,8 300,6'},{name:'한진칼',change:'-6.3%',type:'down',meta:'2020.03 · KCGI 지분 추가 매집 공시',note:'행동주의 펀드 경영 개입 우려. 경영권 분쟁 지속으로 불확실성 확대',pts:'0,18 50,27 100,36 150,42 200,46 250,49 300,52'}],hasCheck:false},
+    {id:'tender_offer',cho:'ㄱ',name:'공개매수',icon:'🎯',risk:'low',riskLabel:'호재',sub:'프리미엄 매수 제안, 대부분 주가 즉각 급등',desc:'특정 주주 또는 기업이 불특정 다수 주주에게 일정 가격에 주식을 매입하겠다고 공개적으로 제안하는 공시입니다. 통상 현재 주가보다 높은 프리미엄을 제시하므로 단기 급등 요인입니다.',points:['공개매수 가격과 현재 주가 차이(프리미엄율) 즉시 확인','공개매수 목적: 경영권 취득 vs 상장폐지 vs 지분 확대','응모 기간과 조건: 최소 응모율 달성 여부'],pros:['공개매수가 현재 주가 대비 높은 프리미엄 (20% 이상)','공개매수 성사 가능성 높음 (자금력 충분)','상장폐지 목적 (100% 취득 시도)'],cons:['공개매수가 현재 주가보다 낮거나 소폭 프리미엄','공개매수 철회 가능성 (조건 불충족)','적대적 공개매수 (기업 방어 시 무산 가능성)'],stats:{avg:'+14.8%',downPct:12,recover:88,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'한국콜마홀딩스',change:'+28.3%',type:'up',meta:'2021.07 · 자사주 공개매수 · 시장가 대비 30% 프리미엄',note:'30% 프리미엄 자사주 공개매수 발표. 주가 즉각 공개매수가 수렴',pts:'0,55 50,38 100,22 150,13 200,8 250,5 300,4'},{name:'오스템임플란트',change:'+19.4%',type:'up',meta:'2023.01 · MBK 공개매수 · 상장폐지 목적',note:'MBK파트너스 상장폐지 목적 공개매수. 공개매수가 19만원으로 시장가 대비 30% 프리미엄',pts:'0,54 50,40 100,27 150,17 200,11 250,7 300,5'}],hasCheck:false},
+    {id:'profit_change',cho:'ㅁ',name:'매출액 또는 손익구조 30% 이상 변동',icon:'📉',risk:'mid',riskLabel:'확인 필요',sub:'실적 급변, 변동 방향(개선 vs 악화)이 핵심',desc:'직전 사업연도 대비 매출액이나 손익이 30%(대규모법인 15%) 이상 변동될 것으로 예상될 때 의무 공시합니다. 어닝서프라이즈 또는 어닝쇼크의 사전 예고 성격을 가집니다.',points:['변동 방향 즉시 확인: 매출·이익 증가 vs 감소','변동 원인: 일시적 요인 vs 구조적 변화 구분','변동 규모: 30~50% vs 50% 이상 (클수록 영향 강함'],pros:['매출·이익 30% 이상 증가 (어닝서프라이즈 예고)','흑자전환 예고','일시적 대형 계약 반영으로 급증'],cons:['매출·이익 30% 이상 감소 (어닝쇼크 예고)','흑자→적자 전환 예고','구조적 수요 감소 반영'],stats:{avg:'+2.1%',downPct:44,recover:56,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'포스코퓨처엠',change:'+11.3%',type:'up',meta:'2023.Q2 · 양극재 매출 YoY +85% 예고',note:'전기차 배터리 소재 급증으로 분기 매출 85% 증가 예고. 시장 기대치 크게 상회',pts:'0,52 50,40 100,28 150,19 200,13 250,9 300,6'},{name:'LG디스플레이',change:'-12.7%',type:'down',meta:'2023.Q1 · 영업손실 전년비 -300% 예고',note:'디스플레이 수요 급감으로 대규모 적자 예고 공시. 어닝쇼크 선반영으로 급락',pts:'0,8 50,20 100,33 150,42 200,48 250,52 300,55'}],hasCheck:false}
+  ,
+{id:'exchangeable_bond',cho:'ㄱ',name:'교환사채권 발행 결정',icon:'🔀',risk:'high',riskLabel:'고위험',sub:'보유 주식과 교환 가능한 채권, 물량 출회 리스크',desc:'기업이 보유 중인 타법인 주식과 교환할 수 있는 채권을 발행하는 공시입니다. 전환사채(CB)와 유사하지만 신주 발행이 아닌 보유 주식으로 교환되므로, 교환 대상 주식의 물량 출회 부담이 핵심입니다.',points:['교환 대상 주식 종목과 교환가액 즉시 확인','교환가액 vs 현재 주가: 할인율 계산','발행 기업 재무 상태: 보유 주식 처분 목적 파악'],pros:['교환 대상 주식이 우량 대형주','교환가액 할인율 낮음 (10% 미만)','발행 목적이 전략적 파트너십 강화'],cons:['교환 대상 주식 물량 출회 부담','교환가액 할인율 높음 (20% 이상)','발행 기업 유동성 확보 목적 (보유 주식 처분 급박)','리픽싱 조항 포함'],stats:{avg:'-3.1%',downPct:59,recover:41,avgColor:'#d97706',recoverColor:'#d97706',label:'하락'},cases:[{name:'한화그룹',change:'-4.2%',type:'mixed',meta:'2022.04 · 한화에어로스페이스 보유주식 교환사채 발행',note:'계열사 지분 활용 자금 조달. 교환가액 할인율 낮아 단기 하락 후 회복',pts:'0,28 50,35 100,41 150,39 200,34 250,28 300,24'},{name:'두산',change:'-11.3%',type:'down',meta:'2020.06 · 두산밥캣 지분 교환사채 발행 · 유동성 확보',note:'코로나 유동성 위기 속 핵심 자회사 지분 교환사채 발행. 자산 처분 급박 신호로 급락',pts:'0,10 50,21 100,33 150,41 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'stake_transfer',cho:'ㅌ',name:'타법인 주식 및 출자증권 양도 결정',icon:'📤',risk:'mid',riskLabel:'확인 필요',sub:'보유 지분 양도, 목적과 상대방이 핵심',desc:'보유 중인 타법인의 주식 또는 출자증권을 특정 상대방에게 양도(매각)하기로 결정했다는 공시입니다. 단순 처분인지 사업 관계 재편인지에 따라 해석이 달라집니다.',points:['양도 대상 법인이 핵심 관계사인지 비핵심인지 파악','양도 단가 vs 장부가액: 처분손익 발생 여부','양도 상대방: 전략적 투자자 vs 재무적 투자자'],pros:['비핵심 지분 정리 (사업 집중)','장부가 대비 높은 가격 양도 (처분이익)','양도 대금으로 핵심 사업 재투자'],cons:['핵심 관계사 지분 양도 (사업 관계 약화)','손실 양도 (경영 급박 신호)','반복적 지분 양도 (유동성 위기 신호)'],stats:{avg:'+0.4%',downPct:45,recover:55,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'SK이노베이션',change:'+5.1%',type:'up',meta:'2022.09 · 비핵심 화학 자회사 지분 양도',note:'석유화학 비핵심 사업 정리 후 배터리·친환경 사업 집중 선언. 사업 포트폴리오 개선 기대',pts:'0,48 50,38 100,28 150,21 200,15 250,11 300,8'},{name:'한진그룹',change:'-6.8%',type:'down',meta:'2020.11 · 핵심 항공 계열사 지분 일부 양도',note:'코로나 유동성 위기 속 핵심 계열사 지분 양도. 경영권 약화 우려와 재무 악화 동시 반영',pts:'0,12 50,23 100,34 150,42 200,47 250,51 300,54'}],hasCheck:false},
+    {id:'share_exchange',cho:'ㅈ',name:'주식 교환 결정',icon:'🔄',risk:'mid',riskLabel:'확인 필요',sub:'완전 자회사화 수단, 교환 비율이 주주 이익 핵심',desc:'두 기업이 서로의 주식을 교환해 한 기업이 다른 기업의 완전 자회사가 되는 공시입니다. 주로 지배구조 재편 목적으로 활용되며, 주식 교환 비율이 기존 주주에게 유리한지가 핵심입니다.',points:['주식 교환 비율: 내 주식 몇 주가 상대방 주식으로 교환되는지','완전 자회사가 되는 기업 주주는 상장폐지 영향 받음','교환 비율 산정 기준일과 현재 주가 괴리 확인'],pros:['교환 비율 기존 주주에게 유리 (프리미엄)','지배구조 단순화로 기업가치 재평가','완전 모회사 안정적 지원 기대'],cons:['교환 비율 불리 (저평가 시점 교환)','완전 자회사 대상 기업 상장폐지 (유동성 상실)','교환 비율 산정 불투명'],stats:{avg:'+4.2%',downPct:38,recover:62,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'카카오페이',change:'+8.3%',type:'up',meta:'2023.08 · 카카오 완전 자회사화 주식교환',note:'카카오 완전 자회사 편입으로 안정적 모회사 지원 기대. 교환 비율 소폭 프리미엄',pts:'0,50 50,40 100,29 150,21 200,15 250,10 300,7'},{name:'오리온홀딩스',change:'-5.4%',type:'mixed',meta:'2017.10 · 지주사 전환 목적 주식교환',note:'주식 교환 비율 기존 주주에게 소폭 불리. 단기 하락 후 지주사 할인 해소로 반등',pts:'0,22 50,30 100,38 150,36 200,31 250,26 300,22'}],hasCheck:false},
+    {id:'share_transfer',cho:'ㅈ',name:'주식 이전 결정',icon:'🏛️',risk:'mid',riskLabel:'확인 필요',sub:'지주회사 설립 수단, 신설 지주사 상장 여부가 핵심',desc:'기업이 새로운 완전 지주회사를 설립하기 위해 기존 주주의 주식을 신설 지주회사로 이전하는 공시입니다. 기업 지배구조를 지주회사 체제로 전환할 때 주로 활용됩니다.',points:['신설 지주회사 상장 여부 확인','주식 이전 비율: 기존 주식 몇 주가 신주로 전환되는지','신설 지주회사의 자회사 포트폴리오와 사업 방향'],pros:['신설 지주회사 상장으로 유동성 확보','지배구조 투명성 강화','지주회사 할인 해소 기대'],cons:['신설 지주회사 비상장 (유동성 상실 우려)','이전 비율 불리','지주회사 전환 후 사업 방향 불명확'],stats:{avg:'+2.8%',downPct:41,recover:59,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'LG',change:'+6.1%',type:'up',meta:'2001 · LG지주 설립 주식이전 · 지주회사 체제 전환',note:'국내 대기업 최초 지주회사 전환. 지배구조 투명성 강화와 사업 효율화 기대로 긍정 반응',pts:'0,50 50,40 100,29 150,21 200,15 250,10 300,7'},{name:'현대백화점그룹',change:'-3.2%',type:'mixed',meta:'2022.05 · 지주회사 설립 목적 주식이전',note:'지주사 전환 과정에서 단기 거래 복잡성 증가. 이전 비율 소폭 불리로 일시 하락',pts:'0,25 50,31 100,37 150,35 200,31 250,27 300,24'}],hasCheck:false},
+    {id:'exec_holding',cho:'ㅇ',name:'임원·주요주주 특정증권 소유상황 보고서',icon:'👤',risk:'mid',riskLabel:'확인 필요',sub:'내부자 지분 변동, 매수=긍정·매도=주의 신호',desc:'임원 또는 주요주주(10% 이상 보유)가 회사 주식·전환사채 등 특정증권을 매매했을 때 5영업일 이내에 의무 공시하는 보고서입니다. 내부자의 매매 방향이 중요한 투자 신호입니다.',points:['매수 vs 매도 방향 즉시 확인','거래 주체: CEO·CFO 등 핵심 임원인지 파악','거래 규모: 전체 보유 지분 대비 비율 계산'],pros:['CEO·대주주 자사주 대량 매수 (강한 자신감 신호)','임원진 집단 매수 (실적 자신감)','저가 매수 후 장기 보유 목적'],cons:['CEO·대주주 대량 매도 (내부 정보 기반 우려)','임원진 집단 매도','매도 후 주가 하락 패턴 반복'],stats:{avg:'+1.4%',downPct:37,recover:63,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'카카오',change:'+4.8%',type:'up',meta:'2023.01 · 김범수 창업주 자사주 100억 매수',note:'주가 급락 후 창업주 자사주 매수. 강한 저가 매수 신호로 시장 긍정 반응',pts:'0,48 50,38 100,28 150,21 200,15 250,11 300,8'},{name:'셀트리온',change:'-7.3%',type:'down',meta:'2022.08 · 서정진 회장 지분 일부 매도',note:'대주주 지분 매도 공시로 내부자 차익실현 신호 해석. 투자심리 일시 위축',pts:'0,14 50,24 100,34 150,41 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'exec_trade_plan',cho:'ㅇ',name:'임원·주요주주 특정증권 거래계획 보고서',icon:'📅',risk:'mid',riskLabel:'확인 필요',sub:'내부자 매매 사전 예고, 매도 계획은 주의 신호',desc:'임원 또는 주요주주가 향후 특정증권을 매매할 계획을 사전에 공시하는 보고서입니다. 계획적 매도 예고는 주가 하락 압력으로, 매수 계획은 긍정 신호로 해석됩니다.',points:['매수 계획 vs 매도 계획 구분','계획 수량과 기간: 대량 단기 매도는 강한 하락 압력','거래 주체: CEO·CFO 등 핵심 임원인지 파악'],pros:['대주주·CEO 대량 매수 계획 공시','장기 분할 매수 계획 (신뢰 신호)','자사주 매입 계획 동반'],cons:['대주주·CEO 대량 매도 계획 공시','단기 집중 매도 계획','임원진 집단 매도 계획'],stats:{avg:'-1.2%',downPct:52,recover:48,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'네이버',change:'+3.1%',type:'up',meta:'2023.06 · 최수연 대표 자사주 매수 계획 공시',note:'대표이사 자사주 매수 계획 사전 공시. 주가 바닥 인식 강화로 긍정 반응',pts:'0,48 50,39 100,29 150,22 200,16 250,11 300,8'},{name:'크래프톤',change:'-5.6%',type:'down',meta:'2022.11 · 대주주 보호예수 해제 후 매도 계획 공시',note:'보호예수 해제 직후 대량 매도 계획 공시. 오버행 부담으로 주가 하락',pts:'0,14 50,23 100,33 150,41 200,46 250,50 300,53'}],hasCheck:false},
+    {id:'proxy_vote',cho:'ㅇ',name:'의결권 대리행사 권유',icon:'🗳️',risk:'mid',riskLabel:'확인 필요',sub:'주주총회 의결권 위임 요청, 경영권 분쟁 신호 가능',desc:'주주총회에서 의결권 행사를 위해 주주들에게 의결권 위임을 공개적으로 요청하는 공시입니다. 일반적 IR 활동일 수도 있으나, 경영권 분쟁 중 등장하면 주가 급등 촉매가 됩니다.',points:['권유 주체: 회사(경영진) vs 외부 주주(행동주의)','권유 목적: 정기총회 안건 통과 vs 경영진 교체','경영권 분쟁 진행 중 여부 확인'],pros:['행동주의 펀드의 주주가치 제고 안건 상정','외부 주주 주도 경영 개선 요구','지배구조 개선 안건 통과 기대'],cons:['경영진 방어 목적 백기사 의결권 확보 시도','경영권 분쟁 장기화 불확실성','소액 주주 이익과 상충되는 안건 통과 시도'],stats:{avg:'+5.3%',downPct:36,recover:64,avgColor:'#16a34a',recoverColor:'#16a34a',label:'상승'},cases:[{name:'고려아연',change:'+11.4%',type:'up',meta:'2024.10 · MBK 측 경영권 확보 의결권 권유',note:'MBK-영풍 연합 vs 현 경영진 경영권 분쟁. 양측 의결권 확보 경쟁으로 주가 급등',pts:'0,52 50,40 100,28 150,19 200,13 250,9 300,6'},{name:'한진칼',change:'+9.2%',type:'up',meta:'2020.03 · KCGI 측 이사 교체 의결권 권유',note:'KCGI 행동주의 펀드 이사 교체 안건 의결권 권유. 경영 개선 기대감으로 주가 급등',pts:'0,52 50,41 100,29 150,21 200,15 250,10 300,7'}],hasCheck:false},
+    {id:'securitization',cho:'ㅈ',name:'자산유동화 계획',icon:'💱',risk:'mid',riskLabel:'확인 필요',sub:'보유 자산을 증권화해 자금 조달, 유동성 확보 수단',desc:'기업이 보유한 매출채권·부동산·대출채권 등의 자산을 기초로 증권(ABS)을 발행해 자금을 조달하는 공시입니다. 자금 조달의 효율적 수단이나, 발행 규모와 기초자산 건전성이 핵심입니다.',points:['유동화 대상 자산 종류와 건전성 확인','유동화 금액이 자기자본 대비 몇 %인지 계산','유동화 목적: 운영자금 vs 신규 투자 vs 부채 상환'],pros:['우량 자산 기초 소규모 유동화','신규 사업 투자 재원 조달 목적','부채 없이 자금 조달 (재무비율 개선)'],cons:['부실 자산 유동화 (리스크 전가 우려)','대규모 반복 유동화 (유동성 부족 신호)','유동화 구조 복잡·불투명'],stats:{avg:'-1.3%',downPct:49,recover:51,avgColor:'#d97706',recoverColor:'#d97706',label:'혼조'},cases:[{name:'현대캐피탈',change:'+1.8%',type:'mixed',meta:'2023.06 · 자동차 할부금융채권 ABS 발행 · 1조원',note:'우량 자동차 할부채권 기초 정기적 ABS 발행. 시장에 이미 익숙한 구조로 영향 제한적',pts:'0,33 50,31 100,29 150,28 200,27 250,26 300,25'},{name:'태영건설',change:'-18.4%',type:'down',meta:'2023.12 · PF 대출채권 유동화 무산',note:'부동산 PF 자산유동화 계획 무산 공시. 유동성 위기 신호로 주가 급락 후 워크아웃 신청',pts:'0,8 50,20 100,33 150,43 200,49 250,53 300,56'}],hasCheck:false}
+  ],
+  choList:['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'],
+  activeCho:null, activeType:null,
+
+  init:function(){
+    this.buildChoTabs();
+    this.loadFeed();
+  },
+
+  buildChoTabs:function(){
+    var existing={};
+    this.types.forEach(function(t){existing[t.cho]=true;});
+    var html='';
+    this.choList.forEach(function(cho){
+      var has=existing[cho];
+      html+='<button class="dds-cho-btn"'+(has?'':' disabled')+' onclick="DDS.selectCho(\''+cho+'\',this)">'+cho+'</button>';
+    });
+    document.getElementById('dds-cho-tabs').innerHTML=html;
+  },
+
+  selectCho:function(cho,el){
+    if(this.activeCho===cho){
+      this.activeCho=null;
+      document.getElementById('dds-type-list').classList.remove('open');
+      document.querySelectorAll('#dds-cho-tabs .dds-cho-btn').forEach(function(b){b.classList.remove('active');});
+      return;
+    }
+    this.activeCho=cho;
+    document.querySelectorAll('#dds-cho-tabs .dds-cho-btn').forEach(function(b){b.classList.remove('active');});
+    el.classList.add('active');
+    this.buildTypeList(cho);
+    document.getElementById('dds-panel-wrap').classList.remove('open');
+  },
+
+  buildTypeList:function(cho){
+    var types=this.types.filter(function(t){return t.cho===cho;});
+    document.getElementById('dds-type-list-header').textContent=cho+' — '+types.length+'개 공시 유형';
+    var html='';
+    types.forEach(function(t){
+      html+='<div class="dds-type-row" onclick="DDS.openPanel(\''+t.id+'\')">';
+      html+='<div class="dds-type-row-left"><span class="dds-type-icon">'+t.icon+'</span>';
+      html+='<div><div class="dds-type-name">'+t.name+'</div><div class="dds-type-sub">'+t.sub+'</div></div></div>';
+      html+='<span class="dds-risk-badge risk-'+(t.risk==='high'?'high':t.risk==='low'?'low':'mid')+'">'+t.riskLabel+'</span></div>';
+    });
+    document.getElementById('dds-type-list-body').innerHTML=html;
+    document.getElementById('dds-type-list').classList.add('open');
+  },
+
+  openPanel:function(id){
+    var t=this.types.find(function(x){return x.id===id;});
+    if(!t)return;
+    this.activeType=t;
+    document.getElementById('dds-panel-title').textContent=t.icon+' '+t.name;
+    document.getElementById('dds-panel-subtitle').textContent=t.sub;
+    var tabs=['summary','cases'];
+    if(t.hasCheck)tabs.push('check');
+    var labels={summary:'📌 공시 해석',cases:'📈 과거 사례',check:'✅ 진단 체크'};
+    document.getElementById('dds-panel-tabs').innerHTML=tabs.map(function(tab,i){
+      return '<button class="dds-tab'+(i===0?' active':'')+'" onclick="DDS.switchTab(\''+tab+'\',this)">'+labels[tab]+'</button>';
+    }).join('');
+    this.buildPanelBody(t,tabs);
+    document.getElementById('dds-panel-wrap').classList.add('open');
+    setTimeout(function(){document.getElementById('dds-panel-wrap').scrollIntoView({behavior:'smooth',block:'start'});},50);
+  },
+
+  
+  buildPanelBody:function(t){
+    var html='';
+    // summary
+    html+='<div id="ddsp-summary" class="dds-tab-panel active">';
+    html+='<div class="dds-pcard"><div class="dds-pcard-title">'+t.name+'이란?</div>';
+    t.points.forEach(function(p,i){html+='<div class="dds-point-row"><div class="dds-point-num">'+(i+1)+'</div><div>'+p+'</div></div>';});
+    html+='</div>';
+    html+='<div class="dds-signal-grid">';
+    html+='<div class="dds-signal dds-signal-pos"><div class="dds-signal-title">✅ 긍정 신호</div><ul>';
+    t.pros.forEach(function(p){html+='<li>'+p+'</li>';});
+    html+='</ul></div>';
+    html+='<div class="dds-signal '+(t.risk==='low'?'dds-signal-warn':'dds-signal-neg')+'"><div class="dds-signal-title">'+(t.risk==='low'?'⚠️ 주의 신호':'❌ 부정 신호')+'</div><ul>';
+    t.cons.forEach(function(c){html+='<li>'+c+'</li>';});
+    html+='</ul></div></div>';
+    html+='<div class="dds-pcard"><div class="dds-pcard-title">공시 발생 후 통계 (참고용)</div><div class="dds-stat-grid">';
+    html+='<div class="dds-stat"><div class="dds-stat-num" style="color:'+t.stats.avgColor+'">'+t.stats.avg+'</div><div class="dds-stat-lbl">공시 당일<br>평균 등락</div></div>';
+    html+='<div class="dds-stat"><div class="dds-stat-num" style="color:'+(t.stats.label==='상승'?'#16a34a':'#dc2626')+'">'+t.stats.downPct+'%</div><div class="dds-stat-lbl">단기(1개월)<br>'+t.stats.label+' 비율</div></div>';
+    html+='<div class="dds-stat"><div class="dds-stat-num" style="color:'+t.stats.recoverColor+'">'+t.stats.recover+'%</div><div class="dds-stat-lbl">3개월 후<br>회복 비율</div></div>';
+    html+='</div><div style="font-size:11px;color:#9ca3af">※ 통계는 참고용이며 개별 종목 상황에 따라 크게 다를 수 있습니다.</div></div></div>';
+    // cases
+    html+='<div id="ddsp-cases" class="dds-tab-panel">';
+    html+='<div class="dds-chips"><button class="dds-chip active" onclick="DDS.filterCases(\'all\',this)">전체</button><button class="dds-chip" onclick="DDS.filterCases(\'up\',this)">상승</button><button class="dds-chip" onclick="DDS.filterCases(\'down\',this)">하락</button><button class="dds-chip" onclick="DDS.filterCases(\'mixed\',this)">혼조</button></div>';
+    t.cases.forEach(function(c){
+      var cl=c.type==='up'?'dds-case-up':c.type==='down'?'dds-case-down':'dds-case-mixed';
+      var col=c.type==='up'?'#16a34a':c.type==='down'?'#dc2626':'#d97706';
+      html+='<div class="dds-case '+cl+'" data-type="'+c.type+'">';
+      html+='<div class="dds-case-name">'+c.name+'<span class="change-'+c.type+'">'+c.change+'</span></div>';
+      html+='<div class="dds-case-meta">'+c.meta+'</div>';
+      html+='<div class="dds-mini-chart"><svg viewBox="0 0 300 55" preserveAspectRatio="none"><polyline points="'+c.pts+'" fill="none" stroke="'+col+'" stroke-width="2"/><line x1="0" y1="53" x2="300" y2="53" stroke="#e5e7eb" stroke-width="0.5"/></svg></div>';
+      html+='<div class="dds-case-note">'+c.note+'</div></div>';
+    });
+    html+='</div>';
+    // check
+    if(t.hasCheck){
+      html+='<div id="ddsp-check" class="dds-tab-panel"><div class="dds-pcard"><div class="dds-pcard-title">내 종목 빠른 진단</div>';
+      t.checkFields.forEach(function(f){
+        html+='<label class="dds-diag-label">'+f.label+'</label><select class="dds-diag-select" id="ddsc-'+t.id+'-'+f.id+'" onchange="DDS.calcScore()">';
+        f.options.forEach(function(o){html+='<option value="'+o.v+'">'+o.t+'</option>';});
+        html+='</select>';
+      });
+      html+='<div id="ddsc-result" class="dds-result"><div class="dds-result-title" id="ddsc-result-title"></div><div class="dds-result-desc" id="ddsc-result-desc"></div></div></div></div>';
+    }
+    document.getElementById('dds-panel-body').innerHTML=html;
+  },
+
+  switchTab:function(tab,el){
+    document.querySelectorAll('#dds-panel-wrap .dds-tab').forEach(function(t){t.classList.remove('active');});
+    el.classList.add('active');
+    document.querySelectorAll('#dds-panel-body .dds-tab-panel').forEach(function(p){p.classList.remove('active');});
+    var target=document.getElementById('ddsp-'+tab);
+    if(target)target.classList.add('active');
+  },
+
+  filterCases:function(type,el){
+    document.querySelectorAll('#ddsp-cases .dds-chip').forEach(function(c){c.classList.remove('active');});
+    el.classList.add('active');
+    document.querySelectorAll('#ddsp-cases .dds-case').forEach(function(c){
+      c.style.display=(type==='all'||c.dataset.type===type)?'block':'none';
+    });
+  },
+
+  calcScore:function(){
+    var t=this.activeType;
+    if(!t||!t.hasCheck)return;
+    var vals=t.checkFields.map(function(f){
+      var el=document.getElementById('ddsc-'+t.id+'-'+f.id);
+      var v=el?parseInt(el.value):null;
+      return isNaN(v)?null:v;
+    });
+    if(vals.indexOf(null)!==-1)return;
+    var total=vals.reduce(function(a,b){return a+b;},0);
+    var res=document.getElementById('ddsc-result');
+    var title=document.getElementById('ddsc-result-title');
+    var desc=document.getElementById('ddsc-result-desc');
+    if(!res)return;
+    res.style.display='block';
+    res.className='dds-result';
+    if(total>=4){res.classList.add('dds-result-pos');title.textContent='긍정 신호 — 보유 고려 가능';desc.textContent='단기 조정 가능성은 있으나 펀더멘털 훼손 가능성 낮음. 발행 목적 실현 여부를 지속 모니터링하세요.';}
+    else if(total>=0){res.classList.add('dds-result-mid');title.textContent='혼조 — 추가 모니터링 필요';desc.textContent='단기 변동성 확대 예상. 이후 분기 실적과 수급 동향을 함께 확인하세요.';}
+    else{res.classList.add('dds-result-neg');title.textContent='부정 신호 — 주의 필요';desc.textContent='희석 리스크 높음. 보유 비중 축소 또는 손절 기준선 재점검을 권장합니다.';}
+  },
+
+  closePanel:function(){
+    document.getElementById('dds-panel-wrap').classList.remove('open');
+  },
+
+  /* ── 공시 피드 렌더링 (테이블형) ── */
+  renderFeed:function(list, dateStr, offset){
+    if(dateStr){
+      var y=dateStr.slice(0,4), m=parseInt(dateStr.slice(4,6)), d=parseInt(dateStr.slice(6,8));
+      var label=y+'년 '+m+'월 '+d+'일 공시';
+      if(offset===1) label+=' (어제)';
+      else if(offset>=2) label+=' ('+offset+'일 전)';
+      document.getElementById('dds-feed-date').textContent=label;
+    }
+    var riskCls={high:'badge-red',mid:'badge-amber',low:'badge-green'};
+    var html='<table class="dds-tbl"><thead><tr><th>기업명</th><th>공시유형</th><th>공시제목</th><th>날짜</th></tr></thead><tbody>';
+    var shown=0;
+    list.forEach(function(item){
+      if(shown>=12)return;
+      var dt=item.disclosure_type;
+      var badge=dt?'<span class="dds-badge '+riskCls[dt.risk]+'">'+dt.label+'</span>':'<span class="dds-badge badge-gray">공시</span>';
+      var onclick=dt?'onclick="DDS.openPanel(\''+dt.type+'\')"':'';
+      var cls=dt?'clickable':'';
+      var time=item.rcept_dt?item.rcept_dt.slice(4,6)+'/'+item.rcept_dt.slice(6,8):'';
+      html+='<tr class="'+cls+'" '+onclick+'>';
+      html+='<td class="dds-corp">'+item.corp_name+'</td>';
+      html+='<td>'+badge+'</td>';
+      html+='<td class="dds-tbl-title">'+item.report_nm+'</td>';
+      html+='<td class="dds-tbl-date">'+time+'</td>';
+      html+='</tr>';
+      shown++;
+    });
+    html+='</tbody></table>';
+    document.getElementById('dds-feed-body').innerHTML=html;
+  },
+
+  /* ── DART 피드 로드 (GAS 프록시) ── */
+  loadFeed:function(){
+    var proxyUrl=DDS_CONFIG.PROXY_URL;
+    var body=document.getElementById('dds-feed-body');
+    var today=new Date();
+    document.getElementById('dds-feed-date').textContent=today.getFullYear()+'년 '+(today.getMonth()+1)+'월 '+today.getDate()+'일 공시';
+    if(!proxyUrl||proxyUrl==='YOUR_GAS_DEPLOYMENT_URL'){
+      body.innerHTML='<div class="dds-feed-error">⚙️ Apps Script 배포 URL을 HTML 상단 DDS_CONFIG.PROXY_URL에 입력해 주세요. <a href="https://dart.fss.or.kr" target="_blank">DART 직접 확인 →</a></div>';
+      return;
+    }
+    body.innerHTML='<div class="dds-feed-loading">📡 공시 불러오는 중...</div>';
+    var self=this;
+    fetch(proxyUrl+'?action=list')
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(data.status==='000'&&data.list&&data.list.length>0){
+          self.renderFeed(data.list,data.queried_date,data.date_offset||0);
+        } else {
+          body.innerHTML='<div class="dds-feed-error">분류 가능한 공시가 없습니다. <a href="https://dart.fss.or.kr" target="_blank">DART에서 직접 확인 →</a></div>';
+        }
+      })
+      .catch(function(){
+        body.innerHTML='<div class="dds-feed-error">공시 데이터 로드 실패. 잠시 후 새로고침을 눌러주세요.</div>';
+      });
+  }
+};
+
+DDS.init();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

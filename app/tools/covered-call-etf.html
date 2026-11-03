@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>미국 커버드콜 ETF 총정리</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --cream:#faf6ee; --paper:#fffdf8; --beige:#f0e7d6; --line:#e3d6bf;
+  --ink:#3f362b; --muted:#8a7c68; --accent:#c0402f; --accentsoft:#f6e5df;
+  --up:#c0402f; --down:#2f6fb0; --flat:#8a7c68; --stale:#b89b6a; --yield:#b06a1f; --yieldbg:#f6ecdb;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+.cc-wrap{font-family:'Noto Sans KR',sans-serif; color:var(--ink); background:var(--cream);
+  padding:22px 16px 32px; max-width:900px; margin:0 auto; border-radius:14px; border:1px solid var(--line);}
+.cc-head h2{font-family:'Noto Serif KR',serif; font-size:1.5rem; letter-spacing:-.5px; line-height:1.3}
+.cc-head .sub{color:var(--muted); font-size:.86rem; margin-top:6px; line-height:1.6}
+.cc-badges{display:flex; flex-wrap:wrap; gap:6px; margin-top:11px; align-items:center}
+.cc-badge{display:inline-block; background:var(--accentsoft); color:var(--accent);
+  font-weight:700; font-size:.75rem; padding:3px 10px; border-radius:20px}
+.cc-badge.delay{background:#f3ecdd; color:var(--stale)}
+.cc-updated{font-size:.72rem; color:var(--muted); font-family:'JetBrains Mono'}
+.cc-refresh{margin-left:auto; border:1px solid var(--line); background:var(--paper); color:var(--muted);
+  font-family:'Noto Sans KR'; font-size:.74rem; padding:4px 11px; border-radius:16px; cursor:pointer}
+.cc-refresh:hover{border-color:var(--accent); color:var(--accent)}
+.cc-refresh.load{opacity:.5; pointer-events:none}
+.cc-warn{margin-top:12px; background:var(--yieldbg); border:1px solid #e7d3ad; border-radius:9px;
+  padding:9px 12px; font-size:.75rem; color:#7a5514; line-height:1.6}
+.cc-warn b{color:var(--yield)}
+.cc-controls{margin-top:14px; display:flex; flex-direction:column; gap:10px}
+.cc-search{width:100%; padding:11px 14px; border:1px solid var(--line); border-radius:10px;
+  background:var(--paper); font-family:'Noto Sans KR'; font-size:.92rem; color:var(--ink)}
+.cc-search:focus{outline:none; border-color:var(--accent)}
+.cc-chips{display:flex; flex-wrap:wrap; gap:7px}
+.cc-chip{border:1px solid var(--line); background:var(--paper); color:var(--muted);
+  font-size:.8rem; font-weight:500; padding:6px 13px; border-radius:20px; cursor:pointer; transition:.15s}
+.cc-chip:hover{border-color:var(--accent)}
+.cc-chip.on{background:var(--ink); color:var(--cream); border-color:var(--ink)}
+.cc-sortrow{display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:8px}
+.cc-count{font-size:.82rem; color:var(--muted)}
+.cc-count b{color:var(--accent); font-family:'JetBrains Mono'}
+.cc-sort{font-family:'Noto Sans KR'; font-size:.8rem; padding:6px 10px; border:1px solid var(--line);
+  border-radius:8px; background:var(--paper); color:var(--ink)}
+.cc-list{margin-top:14px; display:flex; flex-direction:column; gap:9px}
+.cc-card{background:var(--paper); border:1px solid var(--line); border-radius:11px;
+  padding:13px 15px; display:grid; grid-template-columns:1fr auto; gap:6px; transition:.15s}
+.cc-card:hover{border-color:var(--accent); box-shadow:0 2px 10px rgba(120,90,50,.08)}
+.cc-l{min-width:0}
+.cc-ticker{font-family:'JetBrains Mono'; font-weight:700; font-size:1.02rem; color:var(--ink)}
+.cc-name{font-size:.82rem; color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cc-tags{display:flex; flex-wrap:wrap; gap:5px; margin-top:7px}
+.cc-tag{font-size:.68rem; font-weight:500; padding:2px 8px; border-radius:12px; background:var(--beige); color:#6b5c46}
+.cc-tag.u{background:var(--accentsoft); color:var(--accent); font-weight:700}
+.cc-tag.na{background:#efe7d5; color:var(--stale); font-weight:700}
+.cc-tag.yld{background:var(--yieldbg); color:var(--yield); font-weight:700}
+.cc-tag.freq{background:#e8eef0; color:#456; font-weight:700}
+.cc-r{text-align:right; display:flex; flex-direction:column; justify-content:center; gap:2px; padding-left:8px}
+.cc-price{font-family:'JetBrains Mono'; font-weight:700; font-size:1rem}
+.cc-chg{font-family:'JetBrains Mono'; font-size:.8rem; font-weight:500}
+.cc-vol{font-family:'JetBrains Mono'; font-size:.7rem; color:var(--muted)}
+.cc-na{font-size:.74rem; color:var(--stale)}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--flat)}
+.cc-empty{text-align:center; color:var(--muted); padding:30px; font-size:.9rem}
+.cc-foot{margin-top:20px; padding-top:14px; border-top:1px dashed var(--line);
+  font-size:.72rem; color:var(--muted); line-height:1.7}
+.cc-foot b{color:#6b5c46}
+@media(max-width:480px){
+  .cc-wrap{padding:18px 12px 26px}
+  .cc-head h2{font-size:1.28rem}
+  .cc-name{max-width:150px}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="cc-wrap">
+<div class="cc-head">
+<h2>미국 커버드콜 ETF 대백과</h2>
+<p class="sub">미국 상장 액티브 ETF 전수에서 커버드콜: 옵션인컴 계열 170개를 기초자산별로 정리했어요. 티커나 종목명으로 검색하고, 버튼으로 유형을 골라보세요.</p>
+<div class="cc-badges">
+<span class="cc-badge">수록 170개</span>
+<span class="cc-badge delay">시세 약 20분 지연</span>
+<span class="cc-updated" id="ccUpdated">스냅샷 기준</span>
+<button class="cc-refresh" id="ccRefresh">새로고침</button>
+</div>
+<div class="cc-warn">
+<b>분배율(TTM) 주의</b> : 표에 표시되는 분배율은 최근 12개월 기준이며 원금 재분배(ROC)가 섞일 수 있어요. <b>분배율이 높다고 총수익률이 높은 것은 아닙니다.</b> 숫자만 보고 판단하지 마세요.
+    </div>
+</div>
+<div class="cc-controls">
+<input class="cc-search" id="ccSearch" placeholder="티커 또는 종목명 검색 (예: NVDY, YIELDMAX, 나스닥)"/>
+<div class="cc-chips" id="ccChips"></div>
+<div class="cc-sortrow">
+<span class="cc-count" id="ccCount"></span>
+<select class="cc-sort" id="ccSort">
+<option value="vol">거래량 많은순</option>
+<option value="yld">분배율 높은순</option>
+<option value="chg">등락률 높은순</option>
+<option value="chgl">등락률 낮은순</option>
+<option value="code">티커순</option>
+</select>
+</div>
+</div>
+<div class="cc-list" id="ccList"></div>
+<div class="cc-foot">
+<b>시세 안내</b> : 현재가: 거래량: 등락률은 구글 파이낸스 기준으로 <b>약 20분 지연</b>됩니다. 실시간이 아니며 장 마감 후에는 마지막 종가가 표시돼요.<br/>
+<b>분배율(TTM)</b>은 stockanalysis 기준 최근 12개월 분배액을 반영하며, 원금 재분배가 포함될 수 있어 실제 투자수익률과 다릅니다.<br/>
+<b>최신 상장 ETF는 시세나 분배율이 아직 안 잡힐 수 있어요.</b> 데이터가 없으면 <span style="color:var(--stale);font-weight:700">미확인</span>으로 표시되고 분류 정보는 그대로 제공됩니다.<br/>
+    본 자료는 정보 제공용이며 특정 종목의 매수: 매도 권유가 아닙니다.
+  </div>
+</div>
+
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%eb%af%b8%ea%b5%ad-%ec%bb%a4%eb%b2%84%eb%93%9c%ec%bd%9c-etf-%ec%b4%9d%ec%a0%95%eb%a6%ac-170%ec%a2%85%eb%aa%a9-%eb%b6%84%eb%b0%b0%ec%9c%a8-%eb%b9%84%ea%b5%90/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+/* ===== 라이브 시세/분배율 연동 =====
+   Apps Script 웹앱 배포 URL을 아래에 넣으면 시세와 분배율을 자동으로 덮어씁니다.
+   비워두면 내장 스냅샷(분배율 없음)으로만 표시됩니다.            */
+const API_URL = "https://script.google.com/macros/library/d/1caywF4pw4_vj2PI9h-DFmr3L_gcZa-UL3AFfgcUEqmLdlt3rGpYmFAaf/4";   // 예: "https://script.google.com/macros/s/AKfy.../exec"
+
+const DATA = [{"code": "JEPQ", "name": "Jp Morgan Nasdaq Equity Premium Income", "exch": "나스닥", "price": 60.51, "chg": 0.45, "vol": 5083541, "issuer": "JP모건", "under": "지수형", "tag": ""}, {"code": "QQQI", "name": "Neos Nasdaq 100 High Income", "exch": "나스닥", "price": 56.36, "chg": 0.36, "vol": 3834764, "issuer": "NEOS", "under": "지수형", "tag": ""}, {"code": "JEPI", "name": "Jp Morgan Equity Premium Income", "exch": "아멕스", "price": 56.76, "chg": 0.23, "vol": 3321571, "issuer": "JP모건", "under": "지수형", "tag": ""}, {"code": "NVDY", "name": "Yieldmax Nvda Option Income Strategy", "exch": "아멕스", "price": 12.75, "chg": 2.66, "vol": 3217743, "issuer": "YieldMax", "under": "단일종목", "tag": "엔비디아(NVDA)"}, {"code": "SPYI", "name": "Neos S&P 500 High Income", "exch": "아멕스", "price": 53.7, "chg": 0.36, "vol": 2602966, "issuer": "NEOS", "under": "지수형", "tag": ""}, {"code": "GPIQ", "name": "Goldman Sachs Nasdaq 100 Core Premium Income", "exch": "나스닥", "price": 58.15, "chg": 0.35, "vol": 1427445, "issuer": "Goldman", "under": "지수형", "tag": ""}, {"code": "YMAX", "name": "Yieldmax Universe Fund Of Option Income", "exch": "아멕스", "price": 7.92, "chg": -0.75, "vol": 1326261, "issuer": "YieldMax", "under": "펀드묶음", "tag": ""}, {"code": "MSTY", "name": "Yieldmax Mstr Option Income Strategy", "exch": "아멕스", "price": 12.83, "chg": 0.79, "vol": 1229747, "issuer": "YieldMax", "under": "단일종목", "tag": "마이크로스트래티지"}, {"code": "YMAG", "name": "Yieldmax Magnificent 7 Fund Of Option Income", "exch": "아멕스", "price": 11.81, "chg": 1.2, "vol": 897655, "issuer": "YieldMax", "under": "펀드묶음", "tag": ""}, {"code": "GPIX", "name": "Goldman Sachs S&P 500 Core Premium Income", "exch": "나스닥", "price": 55.7, "chg": 0.32, "vol": 719995, "issuer": "Goldman", "under": "지수형", "tag": ""}, {"code": "SMCY", "name": "Yieldmax Smci Option Income Strategy", "exch": "아멕스", "price": 4.82, "chg": 1.05, "vol": 525398, "issuer": "YieldMax", "under": "단일종목", "tag": "슈퍼마이크로(SMCI)"}, {"code": "QDTE", "name": "Roundhill Nasdaq 100 0Dte Covered Call Strategy", "exch": "아멕스", "price": 30.5, "chg": 0.35, "vol": 501981, "issuer": "Roundhill", "under": "지수형", "tag": ""}, {"code": "MARO", "name": "Yieldmax Mara Option Income Strategy", "exch": "아멕스", "price": 5.45, "chg": -4.39, "vol": 500875, "issuer": "YieldMax", "under": "단일종목", "tag": "마라"}, {"code": "MSTW", "name": "Roundhill Mstr Weeklypay", "exch": "아멕스", "price": 3.47, "chg": 1.46, "vol": 470079, "issuer": "Roundhill", "under": "단일종목", "tag": "마이크로스트래티지"}, {"code": "GDXY", "name": "Yieldmax Gold Miners Option Income Strategy", "exch": "아멕스", "price": 10.04, "chg": 0.3, "vol": 461469, "issuer": "YieldMax", "under": "섹터/테마", "tag": "금"}, {"code": "IWMI", "name": "Neos Russell 2000 High Income", "exch": "아멕스", "price": 53.09, "chg": -0.26, "vol": 401229, "issuer": "NEOS", "under": "지수형", "tag": ""}, {"code": "BTCI", "name": "Neos Bitcoin High Income", "exch": "아멕스", "price": 28.86, "chg": 1.0, "vol": 371773, "issuer": "NEOS", "under": "크립토", "tag": ""}, {"code": "CHPY", "name": "Yieldmax Semiconductor Portfolio Option Income", "exch": "아멕스", "price": 79.61, "chg": 0.14, "vol": 364114, "issuer": "YieldMax", "under": "섹터/테마", "tag": "반도체"}, {"code": "MRNY", "name": "Yieldmax Mrna Option Income Strategy", "exch": "아멕스", "price": 18.2, "chg": -8.27, "vol": 334488, "issuer": "YieldMax", "under": "단일종목", "tag": "모더나(MRNA)"}, {"code": "XDTE", "name": "Roundhill S&P 500 0Dte Covered Call Strategy", "exch": "아멕스", "price": 39.21, "chg": 0.46, "vol": 332080, "issuer": "Roundhill", "under": "지수형", "tag": ""}, {"code": "ULTY", "name": "Yieldmax Ultra Option Income Strategy", "exch": "아멕스", "price": 28.65, "chg": 0.0, "vol": 316862, "issuer": "YieldMax", "under": "펀드묶음", "tag": ""}, {"code": "TSLY", "name": "Yieldmax Tsla Option Income Strategy", "exch": "아멕스", "price": 27.42, "chg": -0.04, "vol": 304225, "issuer": "YieldMax", "under": "단일종목", "tag": "테슬라(TSLA)"}, {"code": "FBY", "name": "Yieldmax Meta Option Income Strategy", "exch": "아멕스", "price": 10.27, "chg": 5.23, "vol": 263488, "issuer": "YieldMax", "under": "단일종목", "tag": "메타(META)"}, {"code": "HOOW", "name": "Roundhill Hood Weeklypay", "exch": "아멕스", "price": 32.06, "chg": -3.4, "vol": 263077, "issuer": "Roundhill", "under": "단일종목", "tag": "로빈후드(HOOD)"}, {"code": "AMDY", "name": "Yieldmax Amd Option Income Strategy", "exch": "아멕스", "price": 55.56, "chg": 2.04, "vol": 262272, "issuer": "YieldMax", "under": "단일종목", "tag": "AMD(AMD)"}, {"code": "GOOY", "name": "Yieldmax Googl Option Income Strategy", "exch": "아멕스", "price": 13.16, "chg": -0.68, "vol": 260996, "issuer": "YieldMax", "under": "단일종목", "tag": "구글(GOOGL)"}, {"code": "CONY", "name": "Yieldmax Coin Option Income Strategy", "exch": "아멕스", "price": 19.63, "chg": 0.31, "vol": 247405, "issuer": "YieldMax", "under": "단일종목", "tag": "코인베이스(COIN)"}, {"code": "AMZY", "name": "Yieldmax Amzn Option Income Strategy", "exch": "아멕스", "price": 10.78, "chg": 0.0, "vol": 242691, "issuer": "YieldMax", "under": "단일종목", "tag": "아마존(AMZN)"}, {"code": "MLPI", "name": "Neos Mlb & Energy Infrastructure High Income", "exch": "아멕스", "price": 55.48, "chg": -0.52, "vol": 227041, "issuer": "NEOS", "under": "섹터/테마", "tag": "에너지"}, {"code": "COIW", "name": "Roundhill Coin Weeklypay", "exch": "아멕스", "price": 8.84, "chg": 0.68, "vol": 208327, "issuer": "Roundhill", "under": "단일종목", "tag": "코인베이스(COIN)"}, {"code": "RDTE", "name": "Roundhill Small Cap 0Dte Covered Call Strategy", "exch": "아멕스", "price": 28.9, "chg": -0.28, "vol": 204666, "issuer": "Roundhill", "under": "지수형", "tag": ""}, {"code": "TSMY", "name": "Yieldmax Tsm Option Income Strategy", "exch": "아멕스", "price": 16.41, "chg": 0.12, "vol": 164170, "issuer": "YieldMax", "under": "단일종목", "tag": "TSMC(TSM)"}, {"code": "FEPI", "name": "Rex Fang & Innovation Equity Premium Income", "exch": "나스닥", "price": 42.68, "chg": 0.19, "vol": 163906, "issuer": "REX", "under": "지수형", "tag": ""}, {"code": "HOOY", "name": "Yieldmax Hood Option Income Strategy", "exch": "아멕스", "price": 32.19, "chg": -1.77, "vol": 156495, "issuer": "YieldMax", "under": "단일종목", "tag": "로빈후드(HOOD)"}, {"code": "XOMO", "name": "Yieldmax Xom Option Income Strategy", "exch": "아멕스", "price": 10.56, "chg": 0.57, "vol": 144321, "issuer": "YieldMax", "under": "단일종목", "tag": "엑슨모빌(XOM)"}, {"code": "IAUI", "name": "Neos Gold High Income", "exch": "아멕스", "price": 49.52, "chg": -0.22, "vol": 132125, "issuer": "NEOS", "under": "섹터/테마", "tag": "금"}, {"code": "AMDW", "name": "Roundhill Amd Weeklypay", "exch": "아멕스", "price": 108.44, "chg": 3.13, "vol": 113797, "issuer": "Roundhill", "under": "단일종목", "tag": "AMD(AMD)"}, {"code": "AIPI", "name": "Rex Ai Equity Premium Income", "exch": "나스닥", "price": 37.04, "chg": 0.14, "vol": 112936, "issuer": "REX", "under": "섹터/테마", "tag": "AI"}, {"code": "NFLY", "name": "Yieldmax Nflx Option Income Strategy", "exch": "아멕스", "price": 7.8, "chg": -2.5, "vol": 107998, "issuer": "YieldMax", "under": "단일종목", "tag": "넷플릭스(NFLX)"}, {"code": "PLTY", "name": "Yieldmax Pltr Option Income Strategy", "exch": "아멕스", "price": 30.06, "chg": -1.12, "vol": 107206, "issuer": "YieldMax", "under": "단일종목", "tag": "팔란티어(PLTR)"}, {"code": "ULTI", "name": "Rex Incomemax Option Strategy", "exch": "나스닥", "price": 9.76, "chg": -3.03, "vol": 98865, "issuer": "REX", "under": "기타/전략", "tag": ""}, {"code": "PLTW", "name": "Roundhill Pltr Weeklypay", "exch": "아멕스", "price": 18.24, "chg": -1.88, "vol": 92559, "issuer": "Roundhill", "under": "단일종목", "tag": "팔란티어(PLTR)"}, {"code": "ROCY", "name": "Jp Morgan Equity Premium Yield", "exch": "나스닥", "price": 54.53, "chg": 0.33, "vol": 86447, "issuer": "JP모건", "under": "지수형", "tag": ""}, {"code": "ROCQ", "name": "Jp Morgan Nasdaq Equity Premium Yield", "exch": "나스닥", "price": 56.79, "chg": 0.46, "vol": 84605, "issuer": "JP모건", "under": "지수형", "tag": ""}, {"code": "SNOY", "name": "Yieldmax Snow Option Income Strategy", "exch": "아멕스", "price": 10.47, "chg": -0.38, "vol": 78132, "issuer": "YieldMax", "under": "단일종목", "tag": "스노우플레이크(SNOW)"}, {"code": "TCAL", "name": "T. Rowe Price Capital Appreciation Premium Income", "exch": "아멕스", "price": 22.78, "chg": 0.57, "vol": 77936, "issuer": "T.RowePrice", "under": "기타/전략", "tag": ""}, {"code": "PAPI", "name": "Parametric Equity Premium Income", "exch": "아멕스", "price": 27.14, "chg": 0.67, "vol": 77068, "issuer": "Parametric", "under": "지수형", "tag": ""}, {"code": "INYY", "name": "Yieldmax Intc Option Income Strategy", "exch": "아멕스", "price": 47.0, "chg": -3.0, "vol": 76399, "issuer": "YieldMax", "under": "단일종목", "tag": "인텔(INTC)"}, {"code": "IYRI", "name": "Neos Real Estate High Income", "exch": "아멕스", "price": 49.6, "chg": 0.28, "vol": 63900, "issuer": "NEOS", "under": "섹터/테마", "tag": "리츠"}, {"code": "YBTC", "name": "Roundhill Bitcoin Covered Call Strategy", "exch": "아멕스", "price": 17.77, "chg": 1.02, "vol": 61524, "issuer": "Roundhill", "under": "크립토", "tag": ""}, {"code": "TSLW", "name": "Roundhill Tsla Weeklypay", "exch": "아멕스", "price": 22.7, "chg": 0.04, "vol": 60341, "issuer": "Roundhill", "under": "단일종목", "tag": "테슬라(TSLA)"}, {"code": "NVDW", "name": "Roundhill Nvda Weeklypay", "exch": "아멕스", "price": 37.57, "chg": 4.65, "vol": 59551, "issuer": "Roundhill", "under": "단일종목", "tag": "엔비디아(NVDA)"}, {"code": "AIYY", "name": "Yieldmax Ai Option Income Strategy", "exch": "아멕스", "price": 7.97, "chg": 0.27, "vol": 59510, "issuer": "YieldMax", "under": "섹터/테마", "tag": "AI"}, {"code": "CRCO", "name": "Yieldmax Crcl Option Income Strategy", "exch": "아멕스", "price": 13.56, "chg": 0.89, "vol": 58060, "issuer": "YieldMax", "under": "단일종목", "tag": "서클"}, {"code": "ARMW", "name": "Roundhill Arm Weeklypay", "exch": "아멕스", "price": 63.28, "chg": -1.62, "vol": 56648, "issuer": "Roundhill", "under": "단일종목", "tag": "ARM(ARM)"}, {"code": "SLVO", "name": "X-Links Silver Shares Covered Call Etn", "exch": "나스닥", "price": 65.84, "chg": 0.27, "vol": 56598, "issuer": "iPath", "under": "섹터/테마", "tag": "은"}, {"code": "KHPI", "name": "Kensington Hedged Premium Income", "exch": "아멕스", "price": 26.03, "chg": 0.12, "vol": 56481, "issuer": "Kensington", "under": "기타/전략", "tag": ""}, {"code": "MSFO", "name": "Yieldmax Msft Option Income Strategy", "exch": "아멕스", "price": 10.58, "chg": 0.0, "vol": 52902, "issuer": "YieldMax", "under": "단일종목", "tag": "MS(MSFT)"}, {"code": "HIYY", "name": "Yieldmax Hims Option Income Strategy", "exch": "아멕스", "price": 15.87, "chg": -2.64, "vol": 52002, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "MAGY", "name": "Roundhill Magnificent Seven Covered Call", "exch": "아멕스", "price": 43.21, "chg": 0.49, "vol": 51183, "issuer": "Roundhill", "under": "지수형", "tag": ""}, {"code": "APLY", "name": "Yieldmax Aapl Option Income Strategy", "exch": "아멕스", "price": 12.24, "chg": -0.45, "vol": 49194, "issuer": "YieldMax", "under": "단일종목", "tag": "애플(AAPL)"}, {"code": "GPTY", "name": "Yieldmax Ai & Tech Portfolio Option Income", "exch": "아멕스", "price": 44.48, "chg": -1.16, "vol": 47253, "issuer": "YieldMax", "under": "섹터/테마", "tag": "AI"}, {"code": "RDYY", "name": "Yieldmax Rddt Option Income Strategy", "exch": "아멕스", "price": 21.44, "chg": -0.97, "vol": 40753, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "LFGY", "name": "Yieldmax Crypto Industry & Tech Portfolio Option Income", "exch": "아멕스", "price": 20.46, "chg": -1.4, "vol": 36231, "issuer": "YieldMax", "under": "크립토", "tag": ""}, {"code": "NEHI", "name": "Neos Ethereum High Income", "exch": "아멕스", "price": 26.2, "chg": 2.14, "vol": 34529, "issuer": "NEOS", "under": "크립토", "tag": ""}, {"code": "XLEI", "name": "Energy Select Sector Spdr Premium Income", "exch": "아멕스", "price": 25.5, "chg": 0.2, "vol": 33459, "issuer": "SPDR", "under": "섹터/테마", "tag": "에너지"}, {"code": "YETH", "name": "Roundhill Ether Covered Call Strategy", "exch": "아멕스", "price": 8.58, "chg": 3.13, "vol": 33053, "issuer": "Roundhill", "under": "크립토", "tag": ""}, {"code": "NFLW", "name": "Roundhill Nflx Weeklypay", "exch": "아멕스", "price": 16.7, "chg": -3.19, "vol": 30727, "issuer": "Roundhill", "under": "단일종목", "tag": "넷플릭스(NFLX)"}, {"code": "NIHI", "name": "Neos Msci Eafe High Income", "exch": "아멕스", "price": 51.82, "chg": 0.43, "vol": 30580, "issuer": "NEOS", "under": "기타/전략", "tag": ""}, {"code": "BABO", "name": "Yieldmax Baba Option Income Strategy", "exch": "아멕스", "price": 8.22, "chg": 0.12, "vol": 30172, "issuer": "YieldMax", "under": "단일종목", "tag": "알리바바(BABA)"}, {"code": "RBLY", "name": "Yieldmax Rblx Option Income Strategy", "exch": "아멕스", "price": 13.82, "chg": -1.54, "vol": 29420, "issuer": "YieldMax", "under": "단일종목", "tag": "로블록스(RBLX)"}, {"code": "ICOI", "name": "Bitwise Coin Option Income Strategy", "exch": "아멕스", "price": 10.52, "chg": 0.67, "vol": 28711, "issuer": "Bitwise", "under": "단일종목", "tag": "코인베이스(COIN)"}, {"code": "UNHW", "name": "Roundhill Unh Weeklypay", "exch": "아멕스", "price": 54.66, "chg": -1.69, "vol": 28711, "issuer": "Roundhill", "under": "단일종목", "tag": "유나이티드헬스(UNH)"}, {"code": "METW", "name": "Roundhill Meta Weeklypay", "exch": "아멕스", "price": 29.62, "chg": 7.05, "vol": 28682, "issuer": "Roundhill", "under": "단일종목", "tag": "메타(META)"}, {"code": "CEPI", "name": "Rex Crypto Equity Premium Income", "exch": "나스닥", "price": 32.77, "chg": -0.41, "vol": 28561, "issuer": "REX", "under": "크립토", "tag": ""}, {"code": "GDXW", "name": "Roundhill Gold Miners Weeklypay", "exch": "아멕스", "price": 36.15, "chg": -0.28, "vol": 27714, "issuer": "Roundhill", "under": "섹터/테마", "tag": "금"}, {"code": "NBOS", "name": "Neuberger Berman Option Strategy", "exch": "아멕스", "price": 28.25, "chg": 0.18, "vol": 26793, "issuer": "Neuberger", "under": "기타/전략", "tag": ""}, {"code": "JPO", "name": "Yieldmax Jp Option Income Strategy", "exch": "아멕스", "price": 14.23, "chg": 0.28, "vol": 26447, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "HAKY", "name": "Amplify Hack Cybersecurity Covered Call", "exch": "아멕스", "price": 31.48, "chg": 1.41, "vol": 25311, "issuer": "Amplify", "under": "섹터/테마", "tag": "사이버보안"}, {"code": "IMST", "name": "Bitwise Mstr Option Income Strategy", "exch": "아멕스", "price": 7.26, "chg": 0.55, "vol": 25055, "issuer": "Bitwise", "under": "단일종목", "tag": "마이크로스트래티지"}, {"code": "OARK", "name": "Yieldmax Innovation Option Income Strategy", "exch": "아멕스", "price": 30.81, "chg": -0.39, "vol": 23496, "issuer": "YieldMax", "under": "지수형", "tag": ""}, {"code": "GOOW", "name": "Roundhill Googl Weeklypay", "exch": "아멕스", "price": 67.47, "chg": -0.61, "vol": 22986, "issuer": "Roundhill", "under": "단일종목", "tag": "구글(GOOGL)"}, {"code": "CVNY", "name": "Yieldmax Cvna Option Income Strategy", "exch": "아멕스", "price": 21.29, "chg": -0.89, "vol": 20526, "issuer": "YieldMax", "under": "단일종목", "tag": "카바나(CVNA)"}, {"code": "SEPI", "name": "Shelton Equity Premium Income", "exch": "아멕스", "price": 28.39, "chg": 0.57, "vol": 20140, "issuer": "Shelton", "under": "지수형", "tag": ""}, {"code": "SCEP", "name": "Sterling Capital Hedged Equity Premium Income", "exch": "아멕스", "price": 25.1, "chg": 0.47, "vol": 19790, "issuer": "Sterling", "under": "지수형", "tag": ""}, {"code": "SOLM", "name": "Amplify Solana 3% Monthly Option Income", "exch": "아멕스", "price": 8.74, "chg": -0.07, "vol": 18483, "issuer": "Amplify", "under": "크립토", "tag": ""}, {"code": "BITA", "name": "Ishares Bitcoin Premium Income", "exch": "나스닥", "price": 51.56, "chg": 0.99, "vol": 17213, "issuer": "iShares", "under": "크립토", "tag": ""}, {"code": "SLJY", "name": "Amplify Silj Covered Call", "exch": "아멕스", "price": 27.45, "chg": -0.69, "vol": 15846, "issuer": "Amplify", "under": "기타/전략", "tag": ""}, {"code": "BCCC", "name": "Global X Bitcoin Covered Call", "exch": "아멕스", "price": 11.91, "chg": 0.25, "vol": 15761, "issuer": "Global X", "under": "크립토", "tag": ""}, {"code": "XLUI", "name": "Utilities Select Sector Spdr Premium Income", "exch": "아멕스", "price": 24.5, "chg": 0.45, "vol": 15079, "issuer": "SPDR", "under": "섹터/테마", "tag": "유틸리티"}, {"code": "GLDI", "name": "X-Links Gold Shares Covered Call Etn", "exch": "나스닥", "price": 143.48, "chg": -0.19, "vol": 14528, "issuer": "iPath", "under": "섹터/테마", "tag": "금"}, {"code": "AVGW", "name": "Roundhill Avgo Weeklypay", "exch": "아멕스", "price": 42.13, "chg": -0.66, "vol": 14485, "issuer": "Roundhill", "under": "단일종목", "tag": "브로드컴(AVGO)"}, {"code": "AAPW", "name": "Roundhill Aapl Weeklypay", "exch": "아멕스", "price": 41.0, "chg": -0.64, "vol": 13356, "issuer": "Roundhill", "under": "단일종목", "tag": "애플(AAPL)"}, {"code": "BTCC", "name": "Grayscale Bitcoin Covered Call", "exch": "아멕스", "price": 13.12, "chg": 0.5, "vol": 13142, "issuer": "Grayscale", "under": "크립토", "tag": ""}, {"code": "XLVI", "name": "Health Care Select Sector Spdr Premium Income", "exch": "아멕스", "price": 26.31, "chg": -0.04, "vol": 12685, "issuer": "SPDR", "under": "섹터/테마", "tag": "헬스케어"}, {"code": "XYZY", "name": "Yieldmax Xyz Option Income Strategy", "exch": "아멕스", "price": 25.82, "chg": 0.51, "vol": 12083, "issuer": "YieldMax", "under": "단일종목", "tag": "블록(XYZ)"}, {"code": "YQQQ", "name": "Yieldmax N100 Short Option Income Strategy", "exch": "나스닥", "price": 9.92, "chg": -0.16, "vol": 11671, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "JULH", "name": "Innovator Premium Income 20 Barrier - Jul", "exch": "아멕스", "price": 24.93, "chg": 0.19, "vol": 11443, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "QDTY", "name": "Yieldmax Nasdaq 100 0Dte Covered Call Strategy", "exch": "나스닥", "price": 41.18, "chg": 0.33, "vol": 11010, "issuer": "YieldMax", "under": "지수형", "tag": ""}, {"code": "SDTY", "name": "Yieldmax S&P 500 0Dte Covered Call Strategy", "exch": "나스닥", "price": 41.84, "chg": 0.19, "vol": 10752, "issuer": "YieldMax", "under": "지수형", "tag": ""}, {"code": "QVOL", "name": "Infrastructure Capital Nasdaq Option Income", "exch": "나스닥", "price": 101.39, "chg": 0.14, "vol": 9705, "issuer": "Infrastructure", "under": "기타/전략", "tag": ""}, {"code": "YBMN", "name": "Defiance Bmnr Option Income", "exch": "나스닥", "price": 10.59, "chg": 1.84, "vol": 9530, "issuer": "Defiance", "under": "크립토", "tag": ""}, {"code": "XLSI", "name": "Consumer Staples Select Sector Spdr Premium Income", "exch": "아멕스", "price": 23.38, "chg": 1.04, "vol": 8738, "issuer": "SPDR", "under": "섹터/테마", "tag": "필수소비재"}, {"code": "BIGY", "name": "Yieldmax Target 12 Big 50 Option Income", "exch": "아멕스", "price": 52.71, "chg": 0.4, "vol": 8339, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "RDTY", "name": "Yieldmax Russell 2000 0Dte Covered Call Strategy", "exch": "나스닥", "price": 38.39, "chg": -0.46, "vol": 8217, "issuer": "YieldMax", "under": "지수형", "tag": ""}, {"code": "AMZW", "name": "Roundhill Amzn Weeklypay", "exch": "아멕스", "price": 36.94, "chg": -0.83, "vol": 8071, "issuer": "Roundhill", "under": "단일종목", "tag": "아마존(AMZN)"}, {"code": "YBTY", "name": "Graniteshares Yieldboost Topyielders", "exch": "나스닥", "price": 12.09, "chg": -0.49, "vol": 8068, "issuer": "GraniteShares", "under": "기타/전략", "tag": ""}, {"code": "XLKI", "name": "Technology Select Sector Spdr Premium Income", "exch": "아멕스", "price": 26.62, "chg": 0.28, "vol": 7761, "issuer": "SPDR", "under": "기타/전략", "tag": ""}, {"code": "BRKC", "name": "Yieldmax Brkb Option Income Strategy", "exch": "아멕스", "price": 40.35, "chg": 0.0, "vol": 7412, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "GLDW", "name": "Roundhill Gold Weeklypay", "exch": "아멕스", "price": 41.77, "chg": -0.46, "vol": 7260, "issuer": "Roundhill", "under": "섹터/테마", "tag": "금"}, {"code": "BRKW", "name": "Roundhill Brkb Weeklypay", "exch": "아멕스", "price": 39.02, "chg": -0.2, "vol": 7230, "issuer": "Roundhill", "under": "기타/전략", "tag": ""}, {"code": "SOXY", "name": "Yieldmax Target 12 Semiconductor Option Income", "exch": "아멕스", "price": 102.86, "chg": -0.32, "vol": 7223, "issuer": "YieldMax", "under": "섹터/테마", "tag": "반도체"}, {"code": "ODTE", "name": "Vegashares Spx Ndx Rty Premium Income", "exch": "나스닥", "price": 26.84, "chg": 0.2, "vol": 7195, "issuer": "Vegashares", "under": "기타/전략", "tag": ""}, {"code": "COSW", "name": "Roundhill Cost Weeklypay", "exch": "아멕스", "price": 39.0, "chg": 0.24, "vol": 7140, "issuer": "Roundhill", "under": "기타/전략", "tag": ""}, {"code": "XLII", "name": "Industrial Select Sector Spdr Premium Income", "exch": "아멕스", "price": 26.08, "chg": 0.79, "vol": 7079, "issuer": "SPDR", "under": "섹터/테마", "tag": "산업재"}, {"code": "YBIT", "name": "Yieldmax Bitcoin Option Income Strategy", "exch": "아멕스", "price": 18.94, "chg": 0.32, "vol": 7053, "issuer": "YieldMax", "under": "크립토", "tag": ""}, {"code": "MSFW", "name": "Roundhill Msft Weeklypay", "exch": "아멕스", "price": 25.4, "chg": 0.55, "vol": 6698, "issuer": "Roundhill", "under": "단일종목", "tag": "MS(MSFT)"}, {"code": "XRPM", "name": "Amplify Xrp 3% Monthly Premium Income", "exch": "아멕스", "price": 10.88, "chg": 0.74, "vol": 6488, "issuer": "Amplify", "under": "크립토", "tag": ""}, {"code": "SLTY", "name": "Yieldmax 2X Option Income Strategy", "exch": "아멕스", "price": 22.48, "chg": -0.71, "vol": 6315, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "UBEW", "name": "Roundhill Uber Weeklypay", "exch": "아멕스", "price": 28.3, "chg": 0.46, "vol": 6186, "issuer": "Roundhill", "under": "단일종목", "tag": "우버(UBER)"}, {"code": "PYPY", "name": "Yieldmax Pypl Option Income Strategy", "exch": "아멕스", "price": 25.9, "chg": 1.42, "vol": 5874, "issuer": "YieldMax", "under": "단일종목", "tag": "페이팔(PYPL)"}, {"code": "SIXH", "name": "6 Meridian Hedged Equity Option Strategy", "exch": "아멕스", "price": 43.11, "chg": 0.26, "vol": 4663, "issuer": "6", "under": "기타/전략", "tag": ""}, {"code": "APRH", "name": "Innovator Premium Income 20 Barrier - Apr", "exch": "아멕스", "price": 25.03, "chg": 0.1, "vol": 4383, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "XIJN", "name": "Ft Vest Us Equity Buffer & Premium Income - Jun", "exch": "아멕스", "price": 30.7, "chg": 0.08, "vol": 4233, "issuer": "FirstTrust", "under": "기타/전략", "tag": ""}, {"code": "XLCI", "name": "Communication Services Select Sector Spdr Premium Income", "exch": "아멕스", "price": 23.75, "chg": 1.05, "vol": 4141, "issuer": "SPDR", "under": "섹터/테마", "tag": "커뮤니케이션"}, {"code": "WEEL", "name": "Peerless Option Income Wheel", "exch": "아멕스", "price": 20.04, "chg": -0.1, "vol": 3721, "issuer": "Peerless", "under": "기타/전략", "tag": ""}, {"code": "LJAN", "name": "Innovator Premium Income 15 Buffer - Jan", "exch": "아멕스", "price": 24.72, "chg": -0.02, "vol": 3584, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "XLFI", "name": "Financial Select Sector Spdr Premium Income", "exch": "아멕스", "price": 23.72, "chg": 0.28, "vol": 3398, "issuer": "SPDR", "under": "섹터/테마", "tag": "금융"}, {"code": "JULJ", "name": "Innovator Premium Income 30 Barrier - Jul", "exch": "아멕스", "price": 24.78, "chg": 0.07, "vol": 3393, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "BITY", "name": "Amplify Bitcoin 24% Premium Income", "exch": "아멕스", "price": 25.71, "chg": 1.21, "vol": 3119, "issuer": "Amplify", "under": "크립토", "tag": ""}, {"code": "XLBI", "name": "Materials Select Sector Spdr Premium Income", "exch": "아멕스", "price": 23.77, "chg": 1.59, "vol": 3091, "issuer": "SPDR", "under": "섹터/테마", "tag": "소재"}, {"code": "MINY", "name": "Yieldmax Strategic Metals & Mining Portfolio Option Income", "exch": "아멕스", "price": 37.0, "chg": 0.74, "vol": 2845, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "THOR", "name": "Thornburg Premium Income Builder", "exch": "아멕스", "price": 25.24, "chg": 0.77, "vol": 2828, "issuer": "Thornburg", "under": "기타/전략", "tag": ""}, {"code": "ETTY", "name": "Amplify Ethereum 3% Monthly Option Income", "exch": "아멕스", "price": 7.99, "chg": 3.11, "vol": 2768, "issuer": "Amplify", "under": "크립토", "tag": ""}, {"code": "EHY", "name": "Amplify Ethereum Max Income Covered Call", "exch": "아멕스", "price": 7.25, "chg": 3.47, "vol": 2729, "issuer": "Amplify", "under": "크립토", "tag": ""}, {"code": "BITK", "name": "Tuttle Capital Ibit 0Dte Covered Call", "exch": "아멕스", "price": 9.84, "chg": 0.94, "vol": 2536, "issuer": "Tuttle", "under": "크립토", "tag": ""}, {"code": "SPUT", "name": "Innovator Equity Premium Income - Daily Putwrite", "exch": "아멕스", "price": 28.33, "chg": 0.23, "vol": 2392, "issuer": "Innovator", "under": "지수형", "tag": ""}, {"code": "BABW", "name": "Roundhill Baba Weeklypay", "exch": "아멕스", "price": 22.6, "chg": 1.14, "vol": 2281, "issuer": "Roundhill", "under": "단일종목", "tag": "알리바바(BABA)"}, {"code": "YBST", "name": "Graniteshares Yieldboost Single Stock Universe", "exch": "나스닥", "price": 13.52, "chg": -0.15, "vol": 2246, "issuer": "GraniteShares", "under": "펀드묶음", "tag": ""}, {"code": "XLRI", "name": "Real Estate Select Sector Spdr Premium Income", "exch": "아멕스", "price": 23.59, "chg": 0.57, "vol": 1865, "issuer": "SPDR", "under": "섹터/테마", "tag": "리츠"}, {"code": "BAGY", "name": "Amplify Bitcoin Max Income Covered Call", "exch": "아멕스", "price": 22.98, "chg": 1.32, "vol": 1659, "issuer": "Amplify", "under": "크립토", "tag": ""}, {"code": "TSYW", "name": "Roundhill Treasury Bond Weeklypay", "exch": "아멕스", "price": 43.04, "chg": -0.09, "vol": 1371, "issuer": "Roundhill", "under": "기타/전략", "tag": ""}, {"code": "LAPR", "name": "Innovator Premium Income 15 Buffer - Apr", "exch": "아멕스", "price": 25.32, "chg": 0.12, "vol": 1351, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "LJUL", "name": "Innovator Premium Income 15 Buffer - Jul", "exch": "아멕스", "price": 23.89, "chg": 0.06, "vol": 1257, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "IMRA", "name": "Bitwise Mara Option Income Strategy", "exch": "아멕스", "price": 16.24, "chg": -3.18, "vol": 1219, "issuer": "Bitwise", "under": "단일종목", "tag": "마라"}, {"code": "LOCT", "name": "Innovator Premium Income 15 Buffer - Oct", "exch": "아멕스", "price": 23.93, "chg": 0.04, "vol": 1183, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "BALQ", "name": "Ishares Nasdaq Premium Income Active", "exch": "나스닥", "price": 56.4, "chg": 0.54, "vol": 1172, "issuer": "iShares", "under": "기타/전략", "tag": ""}, {"code": "DRAY", "name": "Yieldmax Dkng Option Income Strategy", "exch": "아멕스", "price": 16.64, "chg": 0.57, "vol": 1149, "issuer": "YieldMax", "under": "기타/전략", "tag": ""}, {"code": "XAPR", "name": "Ft Vest Us Equity Buffer & Premium Income - Apr", "exch": "아멕스", "price": 37.92, "chg": 0.14, "vol": 976, "issuer": "FirstTrust", "under": "기타/전략", "tag": ""}, {"code": "JANH", "name": "Innovator Premium Income 20 Barrier - Jan", "exch": "아멕스", "price": 24.83, "chg": 0.06, "vol": 971, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "GMEY", "name": "Yieldmax Gme Option Income Strategy", "exch": "아멕스", "price": 27.7, "chg": -1.13, "vol": 955, "issuer": "YieldMax", "under": "단일종목", "tag": "게임스톱(GME)"}, {"code": "ETCO", "name": "Grayscale Ethereum Covered Call", "exch": "아멕스", "price": 8.38, "chg": 1.2, "vol": 745, "issuer": "Grayscale", "under": "크립토", "tag": ""}, {"code": "RNTY", "name": "Yieldmax Target 12 Real Estate Option Income", "exch": "아멕스", "price": 49.92, "chg": 0.55, "vol": 722, "issuer": "YieldMax", "under": "섹터/테마", "tag": "리츠"}, {"code": "XIDE", "name": "Ft Vest Us Equity Buffer & Premium Income - Dec", "exch": "아멕스", "price": 30.32, "chg": 0.07, "vol": 612, "issuer": "FirstTrust", "under": "기타/전략", "tag": ""}, {"code": "OCTH", "name": "Innovator Premium Income 20 Barrier - Oct", "exch": "아멕스", "price": 24.05, "chg": 0.21, "vol": 579, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "OCTJ", "name": "Innovator Premium Income 30 Barrier - Oct", "exch": "아멕스", "price": 24.0, "chg": 0.04, "vol": 487, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "XLYI", "name": "Consumer Discretionary Select Sector Spdr Premium Income", "exch": "아멕스", "price": 22.9, "chg": 0.41, "vol": 406, "issuer": "SPDR", "under": "기타/전략", "tag": ""}, {"code": "JANJ", "name": "Innovator Premium Income 30 Barrier - Jan", "exch": "아멕스", "price": 24.77, "chg": 0.04, "vol": 403, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "APRJ", "name": "Innovator Premium Income 30 Barrier - Apr", "exch": "아멕스", "price": 24.79, "chg": 0.04, "vol": 326, "issuer": "Innovator", "under": "기타/전략", "tag": ""}, {"code": "IETH", "name": "Bitwise Ethereum Option Income Strategy", "exch": "아멕스", "price": 18.24, "chg": 2.23, "vol": 268, "issuer": "Bitwise", "under": "크립토", "tag": ""}, {"code": "BPI", "name": "Grayscale Bitcoin Premium Income", "exch": "아멕스", "price": 20.86, "chg": 1.09, "vol": 268, "issuer": "Grayscale", "under": "크립토", "tag": ""}, {"code": "SPIN", "name": "Spdr Ssga Us Equity Premium Income", "exch": "아멕스", "price": 32.61, "chg": 0.6, "vol": 161, "issuer": "SPDR", "under": "지수형", "tag": ""}, {"code": "ICRC", "name": "Bitwise Crcl Option Income Strategy", "exch": "아멕스", "price": 18.42, "chg": 4.04, "vol": 129, "issuer": "Bitwise", "under": "단일종목", "tag": "서클"}, {"code": "IGME", "name": "Bitwise Gme Option Income Strategy", "exch": "아멕스", "price": 22.69, "chg": -0.99, "vol": 128, "issuer": "Bitwise", "under": "단일종목", "tag": "게임스톱(GME)"}, {"code": "XIMR", "name": "Ft Vest Us Equity Buffer & Premium Income - Mar", "exch": "아멕스", "price": 31.4, "chg": 0.03, "vol": 23, "issuer": "FirstTrust", "under": "기타/전략", "tag": ""}, {"code": "EHCC", "name": "Global X Ethereum Covered Call", "exch": "아멕스", "price": 19.38, "chg": 1.39, "vol": 21, "issuer": "Global X", "under": "크립토", "tag": ""}, {"code": "CVRD", "name": "Madison Covered Call", "exch": "아멕스", "price": 18.05, "chg": 0.44, "vol": 18, "issuer": "Madison", "under": "기타/전략", "tag": ""}, {"code": "SRHR", "name": "Srh Reit Covered Call", "exch": "아멕스", "price": 59.52, "chg": -0.4, "vol": 16, "issuer": "Srh", "under": "기타/전략", "tag": ""}, {"code": "XISE", "name": "Ft Vest Us Equity Buffer & Premium Income - Sep", "exch": "아멕스", "price": 30.41, "chg": 0.1, "vol": 13, "issuer": "FirstTrust", "under": "기타/전략", "tag": ""}, {"code": "HEMI", "name": "Hartford Equity Premium Income", "exch": "아멕스", "price": 42.17, "chg": 0.48, "vol": 11, "issuer": "Hartford", "under": "지수형", "tag": ""}];
+DATA.forEach(d => { d.live = true; d.yld = null; d.annual = null; d.freq = ''; d.stale = true;
+  d._p = d.price; d._v = d.vol; d._c = d.chg; });   // 내장 스냅샷 원본 보존
+const BYCODE = {}; DATA.forEach(d => BYCODE[d.code] = d);
+
+const UNDERS = ['전체','단일종목','지수형','크립토','섹터/테마','펀드묶음','기타/전략'];
+let curU='전체', curSort='vol', curQ='';
+
+const chipBox=document.getElementById('ccChips');
+UNDERS.forEach(u=>{
+  const b=document.createElement('button');
+  b.className='cc-chip'+(u==='전체'?' on':''); b.textContent=u;
+  b.onclick=()=>{curU=u;[...chipBox.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');render();};
+  chipBox.appendChild(b);
+});
+document.getElementById('ccSearch').addEventListener('input',e=>{curQ=e.target.value.trim().toLowerCase();render();});
+document.getElementById('ccSort').addEventListener('change',e=>{curSort=e.target.value;render();});
+document.getElementById('ccRefresh').addEventListener('click',loadLive);
+
+function fmtVol(v){ if(v==null) return '-'; if(v>=1e6) return (v/1e6).toFixed(1)+'M'; if(v>=1e3) return (v/1e3).toFixed(1)+'K'; return v; }
+function fmtTime(d){ try{ const t=new Date(d); const p=n=>String(n).padStart(2,'0');
+  return `${t.getMonth()+1}/${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())} 갱신`; }catch(e){ return '스냅샷 기준'; } }
+
+async function loadLive(){
+  if(!API_URL){ document.getElementById('ccUpdated').textContent='스냅샷 기준'; render(); return; }
+  const btn=document.getElementById('ccRefresh'); btn.classList.add('load'); btn.textContent='불러오는 중';
+  try{
+    const res=await fetch(API_URL,{cache:'no-store'});
+    const js=await res.json();
+    const rows=js.rows||[];
+    let hit=0;
+    rows.forEach(r=>{
+      const d=BYCODE[r.code]; if(!d) return;
+      if(r.yld!=null) d.yld=r.yld;
+      if(r.annual!=null) d.annual=r.annual;
+      if(r.freq) d.freq=r.freq;
+      if(r.price!=null){                                  // 라이브 시세 확보
+        d.price=r.price; d.vol=r.vol; d.chg=r.chg;
+        d.live=true; d.stale=false; hit++;
+      }else{                                              // 이 종목만 못 잡음 -> 스냅샷 유지
+        d.price=d._p; d.vol=d._v; d.chg=d._c;
+        d.live=true; d.stale=true;
+      }
+    });
+    if(hit===0){                                          // 응답이 통째로 비었으면 전부 스냅샷 복원
+      DATA.forEach(d=>{ d.price=d._p; d.vol=d._v; d.chg=d._c; d.live=true; d.stale=true; });
+      document.getElementById('ccUpdated').textContent='스냅샷 표시 (시트 미갱신)';
+    }else{
+      document.getElementById('ccUpdated').textContent=js.updated?fmtTime(js.updated):'갱신됨';
+    }
+  }catch(e){
+    DATA.forEach(d=>{ d.price=d._p; d.vol=d._v; d.chg=d._c; d.live=true; d.stale=true; });
+    document.getElementById('ccUpdated').textContent='연동 실패: 스냅샷 표시';
+  }finally{
+    btn.classList.remove('load'); btn.textContent='새로고침'; render();
+  }
+}
+
+function render(){
+  let rows=DATA.filter(r=>{
+    if(curU!=='전체'&&r.under!==curU) return false;
+    if(curQ){const s=(r.code+' '+r.name+' '+r.issuer+' '+r.tag+' '+(r.freq||'')).toLowerCase(); if(!s.includes(curQ)) return false;}
+    return true;
+  });
+  rows.sort((a,b)=>{
+    if(curSort==='vol') return (b.vol||0)-(a.vol||0);
+    if(curSort==='yld') return (b.yld||-1)-(a.yld||-1);
+    if(curSort==='chg') return (b.chg||0)-(a.chg||0);
+    if(curSort==='chgl') return (a.chg||0)-(b.chg||0);
+    return a.code.localeCompare(b.code);
+  });
+  document.getElementById('ccCount').innerHTML='<b>'+rows.length+'</b>개 종목';
+  const list=document.getElementById('ccList');
+  if(!rows.length){ list.innerHTML='<div class="cc-empty">조건에 맞는 종목이 없어요.</div>'; return; }
+  list.innerHTML=rows.map(r=>{
+    const utag=r.under+(r.tag?' · '+r.tag:'');
+    const yldTag = (r.yld!=null)
+      ? `<span class="cc-tag yld" title="연간 분배금 ${r.annual!=null?('$'+Number(r.annual).toFixed(2)):'-'}">분배율 ${Number(r.yld).toFixed(1)}%</span>`
+      : '';
+    const freqTag = r.freq?`<span class="cc-tag freq">${r.freq}배당</span>`:'';
+    let right;
+    if(r.price!=null){
+      const cls=r.chg>0?'up':(r.chg<0?'down':'flat'); const sign=r.chg>0?'+':'';
+      right=`<span class="cc-price">$${Number(r.price).toFixed(2)}</span>
+             <span class="cc-chg ${cls}">${sign}${Number(r.chg).toFixed(2)}%</span>
+             <span class="cc-vol">거래량 ${fmtVol(r.vol)}</span>`;
+    }else{
+      right=`<span class="cc-na">시세 미확인</span>`;
+    }
+    const naTag = (r.price==null)?'<span class="cc-tag na">시세 미확인</span>'
+                : (r.stale?'<span class="cc-tag na">스냅샷</span>':'');
+    return `<div class="cc-card">
+      <div class="cc-l">
+        <div class="cc-ticker">${r.code}</div>
+        <div class="cc-name">${r.name}</div>
+        <div class="cc-tags">
+          <span class="cc-tag u">${utag}</span>
+          ${yldTag}
+          ${freqTag}
+          <span class="cc-tag">${r.issuer}</span>
+          <span class="cc-tag">${r.exch}</span>
+          ${naTag}
+        </div>
+      </div>
+      <div class="cc-r">${right}</div>
+    </div>`;
+  }).join('');
+}
+
+render();
+loadLive();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

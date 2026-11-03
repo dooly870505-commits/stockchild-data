@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>종목 궁합 테스트 무료</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== 종목 궁합 테스트 (No.114) : 크림/베이지 시스템 ===== */
+.nct-match{
+  --nct-bg:#FAF7F0; --nct-card:#FFFDF7; --nct-line:#E8E0D0;
+  --nct-ink:#3D3529; --nct-sub:#8A7F6C; --nct-accent:#8B6F47;
+  --nct-loss:#C0563A; --nct-gain:#5B8A5B; --nct-gold:#C79A3B;
+  max-width:560px; margin:0 auto; padding:20px 16px 32px;
+  background:var(--nct-bg); color:var(--nct-ink);
+  font-family:'Noto Sans KR',sans-serif; line-height:1.6;
+  border-radius:18px; box-sizing:border-box;
+}
+.nct-match *{box-sizing:border-box;}
+.nct-match .nct-num{font-family:'JetBrains Mono',monospace;}
+
+.nct-match .nct-title{font-size:24px; font-weight:900; letter-spacing:-.5px; margin:0 0 6px;}
+.nct-match .nct-sub{font-size:13.5px; color:var(--nct-sub); margin:0 0 18px;}
+
+/* 진행 표시 */
+.nct-match .nct-progress{font-size:12.5px; font-weight:700; color:var(--nct-accent); margin-bottom:8px;}
+.nct-match .nct-pbar{height:6px; border-radius:4px; background:#EBE4D6; overflow:hidden; margin-bottom:16px;}
+.nct-match .nct-pfill{height:100%; background:var(--nct-accent); border-radius:4px; transition:width .25s ease; width:0%;}
+
+/* 질문 카드 */
+.nct-match .nct-qlist{margin-bottom:14px;}
+.nct-match .nct-qcard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px;
+  padding:15px 15px; margin-bottom:10px;
+}
+.nct-match .nct-qtext{font-size:14.5px; font-weight:700; margin-bottom:11px; line-height:1.5;}
+.nct-match .nct-qnum{color:var(--nct-accent); font-family:'JetBrains Mono',monospace; margin-right:6px;}
+.nct-match .nct-opts{display:flex; gap:8px;}
+.nct-match .nct-opt{
+  flex:1; padding:12px 10px; cursor:pointer; text-align:center; user-select:none;
+  border:1.5px solid var(--nct-line); border-radius:11px; background:#fff;
+  font-size:13.5px; font-weight:600; line-height:1.45; color:var(--nct-ink);
+  transition:all .15s;
+}
+.nct-match .nct-opt.on{border-color:var(--nct-accent); background:#F6F0E4; font-weight:800; color:var(--nct-accent);}
+
+/* 종목명 입력 */
+.nct-match .nct-inputcard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line);
+  border-radius:14px; padding:16px 15px; margin-bottom:14px;
+}
+.nct-match .nct-label{display:block; font-size:13px; font-weight:700; color:var(--nct-sub); margin-bottom:7px;}
+.nct-match .nct-input{
+  width:100%; padding:13px 14px; font-size:16px; font-weight:600;
+  border:1.5px solid var(--nct-line); border-radius:11px;
+  background:#fff; color:var(--nct-ink); outline:none; transition:border-color .15s;
+}
+.nct-match .nct-input:focus{border-color:var(--nct-accent);}
+.nct-match .nct-inhint{font-size:12px; color:var(--nct-sub); margin-top:7px;}
+
+.nct-match .nct-go{
+  width:100%; padding:15px; cursor:pointer;
+  background:var(--nct-accent); color:#fff; border:none; border-radius:12px;
+  font-size:16px; font-weight:900; font-family:'Noto Sans KR',sans-serif;
+  letter-spacing:-.3px; transition:opacity .15s;
+}
+.nct-match .nct-go:active{opacity:.8;}
+
+/* 결과 */
+.nct-match .nct-result{display:none;}
+.nct-match .nct-result.show{display:block; animation:nctFade .3s ease;}
+@keyframes nctFade{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:none;}}
+
+.nct-match .nct-notice{
+  background:#FBF5E6; border:1.5px solid var(--nct-gold); border-radius:13px;
+  padding:16px; text-align:center; font-size:14px; font-weight:700;
+}
+
+/* 유형 카드 */
+.nct-match .nct-typecard{
+  border:2px solid var(--nct-accent); border-radius:16px; background:#F6F0E4;
+  padding:22px 18px; text-align:center; margin-bottom:12px;
+}
+.nct-match .nct-tlabel{font-size:12.5px; font-weight:700; color:var(--nct-sub); margin-bottom:2px;}
+.nct-match .nct-ticon{font-size:42px; line-height:1.1; margin:6px 0 2px;}
+.nct-match .nct-tname{font-size:27px; font-weight:900; letter-spacing:-.5px; margin-bottom:8px;}
+.nct-match .nct-tdesc{font-size:14.5px; font-weight:500; line-height:1.6;}
+
+/* 궁합 점수 카드 */
+.nct-match .nct-scorecard{
+  border:2px solid var(--nct-line); border-radius:16px; background:var(--nct-card);
+  padding:22px 18px; text-align:center; margin-bottom:12px;
+}
+.nct-match .nct-scorecard.s1{border-color:var(--nct-gold); background:#FBF5E6;}
+.nct-match .nct-scorecard.s2{border-color:var(--nct-gain); background:#F1F7F1;}
+.nct-match .nct-scorecard.s3{border-color:var(--nct-line); background:#FFFDF7;}
+.nct-match .nct-scorecard.s4{border-color:var(--nct-loss); background:#FBF3F0;}
+
+.nct-match .nct-swho{font-size:13.5px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-match .nct-sbig{font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1.1;}
+.nct-match .nct-sbig .nct-spt{font-size:20px; letter-spacing:-.5px; margin-left:2px;}
+.nct-match .nct-sgrade{font-size:17px; font-weight:900; margin-top:4px;}
+.nct-match .nct-sline{font-size:14px; font-weight:600; margin-top:8px; line-height:1.6;}
+
+/* 포인트 */
+.nct-match .nct-points{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px;
+  padding:6px 16px; margin-bottom:14px;
+}
+.nct-match .nct-prow{
+  display:flex; gap:12px; align-items:flex-start;
+  padding:13px 0; border-bottom:1px solid var(--nct-line);
+}
+.nct-match .nct-prow:last-child{border-bottom:none;}
+.nct-match .nct-picon{font-size:19px; flex-shrink:0; width:24px; text-align:center;}
+.nct-match .nct-pinfo{flex:1; min-width:0;}
+.nct-match .nct-plabel{font-size:12px; font-weight:700; color:var(--nct-sub); margin-bottom:2px;}
+.nct-match .nct-pval{font-size:14px; font-weight:600; line-height:1.55;}
+
+.nct-match .nct-retry{
+  width:100%; padding:12px; cursor:pointer; margin-bottom:10px;
+  background:#fff; color:var(--nct-sub); border:1.5px solid var(--nct-line);
+  border-radius:12px; font-size:13.5px; font-weight:700;
+  font-family:'Noto Sans KR',sans-serif; transition:all .15s;
+}
+.nct-match .nct-copy{
+  width:100%; padding:13px; cursor:pointer; margin-bottom:16px;
+  background:#fff; color:var(--nct-accent); border:1.5px solid var(--nct-accent);
+  border-radius:12px; font-size:14.5px; font-weight:700;
+  font-family:'Noto Sans KR',sans-serif; transition:all .15s;
+}
+.nct-match .nct-copy:active{background:#F6F0E4;}
+.nct-match .nct-copy.done{background:var(--nct-accent); color:#fff;}
+
+.nct-match .nct-disc{
+  font-size:12px; color:var(--nct-sub); line-height:1.7;
+  background:#F3EEE3; border-radius:10px; padding:12px 14px; margin-bottom:12px;
+}
+.nct-match .nct-foot{font-size:11.5px; color:var(--nct-sub); text-align:center;}
+
+@media (max-width:480px){
+  .nct-match{padding:16px 12px 26px;}
+  .nct-match .nct-title{font-size:21px;}
+  .nct-match .nct-tname{font-size:23px;}
+  .nct-match .nct-sbig{font-size:38px;}
+  .nct-match .nct-opt{font-size:12.5px; padding:11px 8px;}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="nct-match" id="nctMatch">
+<div class="nct-title">🧩 종목 궁합 테스트</div>
+<div class="nct-sub">내 투자 성향을 알아보고, 관심 종목과의 궁합을 재미로 확인해보세요.</div>
+<div class="nct-progress" id="nctProgress">0 / 6 답변</div>
+<div class="nct-pbar"><div class="nct-pfill" id="nctPfill"></div></div>
+<div class="nct-qlist" id="nctQList"></div>
+<div class="nct-inputcard">
+<label class="nct-label">궁합을 볼 종목명 (선택)</label>
+<input class="nct-input" id="nctStock" placeholder="관심 있는 종목 이름을 적어보세요" type="text"/>
+<div class="nct-inhint">비워두시면 투자 성향 유형만 알려드려요.</div>
+</div>
+<button class="nct-go" id="nctGo">결과 보기 🧩</button>
+
+<div class="nct-result" id="nctResult">
+<div id="nctResultBody"></div>
+<button class="nct-retry" id="nctRetry">🔄 다시 하기</button>
+<button class="nct-copy" id="nctCopy">📋 결과 복사하기</button>
+</div>
+<div class="nct-disc">
+    궁합 점수는 입력한 종목 이름을 바탕으로 만들어지는 재미용 결과예요. 해당 기업의 실적, 재무 상태, 주가 전망과는 아무런 관련이 없습니다.
+    투자 성향 유형과 조언은 종목이 아니라 본인의 매매 습관에 대한 이야기예요.
+    이 도구는 오락용이며 특정 종목의 매수나 매도를 추천하지 않습니다.
+  </div>
+<div class="nct-foot">stockchild.com · 주소남 투자도구 · 종목 궁합 테스트</div>
+</div>
+<details class="app-faq"><summary>자주 묻는 질문</summary><div class="rank-math-block" id="rank-math-faq">
+<div class="rank-math-list">
+<div class="rank-math-list-item" id="faq-question-1786194839125">
+<h3 class="rank-math-question"><strong>Q1. 이 테스트로 종목을 추천받을 수 있나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니요. 이 도구는 종목을 추천하지 않아요. 사용자가 직접 입력한 종목과 본인 투자 성향의 궁합을 재미로 보여주는 도구입니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786194852387">
+<h3 class="rank-math-question"><strong>Q2. 궁합 점수는 무엇을 근거로 계산되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 입력한 종목 이름과 판정된 투자 성향 유형을 조합해서 계산돼요. 해당 기업의 실적이나 재무 상태와는 전혀 관련이 없는 순수 재미 요소입니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786194859969">
+<h3 class="rank-math-question"><strong>Q3. 같은 종목을 여러 번 넣으면 점수가 바뀌나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니요. 같은 종목명과 같은 유형이면 언제 다시 확인해도 항상 같은 점수가 나와요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786194867381">
+<h3 class="rank-math-question"><strong>Q4. 종목명을 안 넣으면 어떻게 되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 투자 성향 유형과 그 유형의 강점, 조심할 점만 보여드려요. 궁합 점수 없이도 완결된 결과를 확인할 수 있어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786194874057">
+<h3 class="rank-math-question"><strong>Q5. 네 가지 유형 중 어떤 게 가장 좋은 유형인가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 우열은 없어요. 각 유형마다 강점과 조심할 점이 다를 뿐이에요. 본인 성향에 맞게 투자하는 게 가장 중요합니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786194880762">
+<h3 class="rank-math-question"><strong>Q6. 입력한 종목명이 저장되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니에요. 모든 계산은 브라우저 안에서만 이뤄지고 저장되거나 전송되지 않습니다.</p>
+</div>
+</div>
+</div>
+</div></details>
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%ec%a2%85%eb%aa%a9-%ea%b6%81%ed%95%a9-%ed%85%8c%ec%8a%a4%ed%8a%b8-%eb%ac%b4%eb%a3%8c/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+(function(){
+  var root = document.getElementById('nctMatch');
+  function $(id){ return document.getElementById(id); }
+
+  // axis: 'term' (a쪽 선택 시 단기 성향), 'focus' (a쪽 선택 시 테마·성장 성향)
+  var QUESTIONS = [
+    { axis:'term',  q:'종목을 사면 보통 얼마나 들고 계시나요?',
+      a:'며칠에서<br>몇 주', b:'몇 달에서<br>몇 년' },
+    { axis:'term',  q:'하루에 계좌를 몇 번이나 확인하시나요?',
+      a:'수시로<br>들여다본다', b:'하루 한두 번<br>이하' },
+    { axis:'term',  q:'보유 종목이 10퍼센트 올랐어요. 어떻게 하시나요?',
+      a:'일단 익절<br>먼저 한다', b:'더 갈 것 같으면<br>계속 들고 간다' },
+    { axis:'focus', q:'종목을 고를 때 더 끌리는 쪽은?',
+      a:'지금 뜨는<br>테마와 성장주', b:'꾸준한 실적과<br>배당' },
+    { axis:'focus', q:'뉴스에서 새로운 기술 소식을 봤어요.',
+      a:'관련주부터<br>찾아본다', b:'실체가 있는지<br>의심부터 한다' },
+    { axis:'focus', q:'포트폴리오에 더 담고 싶은 쪽은?',
+      a:'미래가 기대되는<br>성장 기대주', b:'흔들림 적은<br>대형주와 배당주' }
+  ];
+
+  var TYPES = {
+    shortTheme:  { icon:'🎢', name:'파도타기형',
+      desc:'뜨는 흐름에 빠르게 올라타는 스타일이에요. 감각이 좋은 대신 파도가 꺼질 때도 빨라야 해요.',
+      strengths:['시장 흐름을 빨리 읽는 편이에요.','기회가 왔을 때 망설이지 않아요.','새로운 테마에 대한 학습이 빨라요.'],
+      cautions:['진입보다 이탈 기준을 먼저 정해두세요.','추격매수는 이 유형이 가장 조심해야 할 지점이에요.','매매 횟수가 늘수록 수수료도 함께 늘어난다는 걸 기억하세요.'] },
+    shortStable: { icon:'⚡', name:'눈치백단형',
+      desc:'짧게 보되 안정적인 쪽을 고르는 스타일이에요. 크게 잃지 않는 대신 크게 먹기도 어려운 구조예요.',
+      strengths:['손실을 키우지 않고 잘 끊어내요.','무리한 종목에 잘 휩쓸리지 않아요.','현금 비중 관리를 잘하는 편이에요.'],
+      cautions:['너무 일찍 익절해서 아쉬웠던 경험을 한번 돌아보세요.','짧은 매매가 잦으면 거래 비용이 은근히 쌓여요.','안정형 종목도 하락장에서는 함께 빠진다는 점을 기억하세요.'] },
+    longTheme:   { icon:'🚀', name:'꿈수집형',
+      desc:'미래 가능성에 길게 베팅하는 스타일이에요. 크게 열매를 볼 수도 있지만 인내의 시간이 길어요.',
+      strengths:['단기 흔들림에 잘 동요하지 않아요.','산업의 큰 그림을 보려고 노력해요.','장기 보유로 매매 비용을 아끼는 편이에요.'],
+      cautions:['꿈에 근거가 있는지 주기적으로 다시 확인해보세요.','장기 보유와 방치는 다르다는 걸 기억하세요.','한 종목에 비중이 쏠려 있지 않은지 점검해보세요.'] },
+    longStable:  { icon:'🪨', name:'바위존버형',
+      desc:'실적과 배당을 보고 오래 들고 가는 스타일이에요. 지루하지만 가장 오래 살아남는 유형이기도 해요.',
+      strengths:['시장 소음에 흔들리지 않아요.','복리의 시간을 온전히 쓸 줄 알아요.','현금흐름 관점으로 투자를 바라봐요.'],
+      cautions:['버티는 것과 손절 기준이 없는 것은 다른 이야기예요.','기업의 실적이 꺾이지 않았는지는 정기적으로 확인하세요.','너무 안전한 쪽만 담다 보면 자산 성장 속도가 느려질 수 있어요.'] }
+  };
+
+  var MATCH_LINES = {
+    shortTheme: [
+      '이 종목과는 속도가 잘 맞는 편이에요. 다만 들어갈 때보다 나올 때를 먼저 정해두세요.',
+      '흐름을 타기엔 나쁘지 않지만, 이 종목 앞에서는 유독 손이 빨라질 수 있어요.',
+      '설레는 만큼 조심스러운 조합이에요. 비중부터 정하고 시작해보세요.',
+      '궁합과 별개로, 이 종목에서는 매매 횟수를 세어보시는 걸 권해요.'
+    ],
+    shortStable: [
+      '무리 없이 다룰 수 있는 조합이에요. 다만 기대 수익도 그만큼 차분할 거예요.',
+      '조급해지지만 않으면 편안한 궁합이에요.',
+      '짧게 보시는 성향과 이 종목의 호흡이 어긋날 수도 있어요. 기간을 먼저 정해보세요.',
+      '안정적으로 보이더라도 하락장에서는 함께 흔들린다는 점만 기억하세요.'
+    ],
+    longTheme: [
+      '길게 보실 생각이라면 나쁘지 않은 조합이에요. 대신 근거를 정기적으로 점검하세요.',
+      '기다림이 필요한 궁합이에요. 그 기다림을 버틸 이유가 명확한지 적어보세요.',
+      '설득력 있는 이야기일수록 숫자로 한 번 더 확인해보시는 게 좋아요.',
+      '한 종목에 마음이 쏠릴 때일수록 비중 관리가 중요해져요.'
+    ],
+    longStable: [
+      '차분하게 오래 갈 수 있는 조합이에요. 조급함만 없다면 잘 맞아요.',
+      '지루할 수 있지만 그게 이 유형의 강점이에요.',
+      '오래 들고 갈 생각이라면 실적 흐름만 주기적으로 확인해보세요.',
+      '버티는 힘은 충분해요. 다만 버티는 이유를 한 문장으로 적어두세요.'
+    ]
+  };
+
+  var answers = {};
+
+  function buildQuestions(){
+    var wrap = $('nctQList');
+    wrap.innerHTML = '';
+    QUESTIONS.forEach(function(item, i){
+      var card = document.createElement('div');
+      card.className = 'nct-qcard';
+      card.innerHTML =
+        '<div class="nct-qtext"><span class="nct-qnum">Q' + (i+1) + '</span>' + item.q + '</div>' +
+        '<div class="nct-opts">' +
+          '<div class="nct-opt" data-i="' + i + '" data-v="a">' + item.a + '</div>' +
+          '<div class="nct-opt" data-i="' + i + '" data-v="b">' + item.b + '</div>' +
+        '</div>';
+      wrap.appendChild(card);
+    });
+
+    wrap.querySelectorAll('.nct-opt').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var i = btn.getAttribute('data-i');
+        var v = btn.getAttribute('data-v');
+        answers[i] = v;
+        wrap.querySelectorAll('.nct-opt[data-i="' + i + '"]').forEach(function(x){ x.classList.remove('on'); });
+        btn.classList.add('on');
+        updateProgress();
+      });
+    });
+  }
+
+  function updateProgress(){
+    var n = Object.keys(answers).length;
+    $('nctProgress').textContent = n + ' / 6 답변';
+    $('nctPfill').style.width = Math.round(n/6*100) + '%';
+  }
+
+  // 해시 + PRNG (오늘의 매매운과 동일 방식)
+  function hashStr(str){
+    var h = 1779033703 ^ str.length;
+    for(var i=0;i<str.length;i++){
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
+  function mulberry32(seed){
+    var a = seed;
+    return function(){
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function pick(rng, arr){ return arr[Math.floor(rng()*arr.length)]; }
+
+  function decideType(){
+    var termScore = 0, focusScore = 0;
+    QUESTIONS.forEach(function(item, i){
+      if(answers[i] === 'a'){
+        if(item.axis === 'term') termScore++;
+        else focusScore++;
+      }
+    });
+    var isShort = termScore >= 2;
+    var isTheme = focusScore >= 2;
+    if(isShort && isTheme) return 'shortTheme';
+    if(isShort && !isTheme) return 'shortStable';
+    if(!isShort && isTheme) return 'longTheme';
+    return 'longStable';
+  }
+
+  function gradeByScore(s){
+    if(s >= 90) return { key:'s1', label:'천생연분', icon:'💛' };
+    if(s >= 75) return { key:'s2', label:'좋은 궁합', icon:'🍀' };
+    if(s >= 60) return { key:'s3', label:'무난한 궁합', icon:'🙂' };
+    return { key:'s4', label:'시험대에 오른 궁합', icon:'🌪️' };
+  }
+
+  function render(){
+    var body = $('nctResultBody');
+
+    if(Object.keys(answers).length < 6){
+      body.innerHTML = '<div class="nct-notice">✍️ 6개 질문에 모두 답해주세요.<br><span style="font-size:12.5px;font-weight:500;color:#8A7F6C;">' + Object.keys(answers).length + '개 답변하셨어요.</span></div>';
+      $('nctResult').classList.add('show');
+      $('nctCopy').style.display = 'none';
+      $('nctRetry').style.display = 'none';
+      return;
+    }
+
+    var typeKey = decideType();
+    var t = TYPES[typeKey];
+    var stock = ($('nctStock').value || '').trim();
+
+    var html =
+      '<div class="nct-typecard">' +
+        '<div class="nct-tlabel">내 투자 성향 유형</div>' +
+        '<div class="nct-ticon">' + t.icon + '</div>' +
+        '<div class="nct-tname">' + t.name + '</div>' +
+        '<div class="nct-tdesc">' + t.desc + '</div>' +
+      '</div>';
+
+    var copyText = '🧩 종목 궁합 테스트\n내 유형: ' + t.icon + ' ' + t.name + '\n' + t.desc;
+
+    if(stock){
+      var rng = mulberry32(hashStr(stock + '::' + typeKey));
+      var score = 55 + Math.floor(rng()*45); // 55 ~ 99
+      var g = gradeByScore(score);
+      var line = pick(rng, MATCH_LINES[typeKey]);
+
+      html +=
+        '<div class="nct-scorecard ' + g.key + '">' +
+          '<div class="nct-swho">' + t.name + ' × ' + stock + '</div>' +
+          '<div class="nct-sbig nct-num">' + score + '<span class="nct-spt">점</span></div>' +
+          '<div class="nct-sgrade">' + g.icon + ' ' + g.label + '</div>' +
+          '<div class="nct-sline">' + line + '</div>' +
+        '</div>';
+
+      copyText += '\n' + stock + '와의 궁합 ' + score + '점 (' + g.label + ')\n' + line;
+    }
+
+    var rng2 = mulberry32(hashStr(typeKey + '::points::' + (stock||'none')));
+    var strength = pick(rng2, t.strengths);
+    var caution = pick(rng2, t.cautions);
+
+    html +=
+      '<div class="nct-points">' +
+        '<div class="nct-prow"><div class="nct-picon">💪</div><div class="nct-pinfo"><div class="nct-plabel">이 유형의 강점</div><div class="nct-pval">' + strength + '</div></div></div>' +
+        '<div class="nct-prow"><div class="nct-picon">⚠️</div><div class="nct-pinfo"><div class="nct-plabel">이 유형이 조심할 점</div><div class="nct-pval">' + caution + '</div></div></div>' +
+      '</div>';
+
+    if(!stock){
+      html += '<div class="nct-notice" style="margin-bottom:14px;font-size:13px;">💡 위에 종목명을 넣고 다시 누르면 궁합 점수도 볼 수 있어요.</div>';
+    }
+
+    copyText += '\n강점: ' + strength + '\n주의: ' + caution + '\nstockchild.com';
+
+    body.innerHTML = html;
+    root.dataset.copytext = copyText;
+
+    $('nctResult').classList.add('show');
+    $('nctCopy').style.display = 'block';
+    $('nctRetry').style.display = 'block';
+    $('nctCopy').classList.remove('done');
+    $('nctCopy').textContent = '📋 결과 복사하기';
+  }
+
+  buildQuestions();
+
+  $('nctGo').addEventListener('click', function(){
+    render();
+    setTimeout(function(){ $('nctResult').scrollIntoView({behavior:'smooth', block:'nearest'}); }, 60);
+  });
+
+  $('nctRetry').addEventListener('click', function(){
+    answers = {};
+    $('nctStock').value = '';
+    root.querySelectorAll('.nct-opt').forEach(function(x){ x.classList.remove('on'); });
+    updateProgress();
+    $('nctResult').classList.remove('show');
+    root.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  $('nctCopy').addEventListener('click', function(){
+    var t = root.dataset.copytext || '';
+    if(!t) return;
+    var btn = $('nctCopy');
+    function ok(){ btn.classList.add('done'); btn.textContent = '✅ 복사됐어요'; }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(ok).catch(function(){ fallback(t); ok(); });
+    } else { fallback(t); ok(); }
+  });
+  function fallback(t){
+    var ta = document.createElement('textarea');
+    ta.value = t; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+  }
+})();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

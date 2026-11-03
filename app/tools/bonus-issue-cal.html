@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>무상증자 권리락 캘린더 : 일정 한눈에 확인</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+    #bic-app {
+      --bic-bg: #FAF7F0;
+      --bic-card: #FFFFFF;
+      --bic-border: #E8E0D0;
+      --bic-text: #3D3529;
+      --bic-sub: #8A7F6C;
+      --bic-accent: #B8956A;
+      --bic-accent-deep: #8F6F45;
+      --bic-today: #C0392B;
+      --bic-kospi: #2C5F7C;
+      --bic-kosdaq: #6B7C3C;
+      --bic-past: #B5AC9D;
+      font-family: 'Noto Sans KR', -apple-system, sans-serif;
+      color: var(--bic-text);
+      background: var(--bic-bg);
+      border: 1px solid var(--bic-border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      max-width: 760px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+    #bic-app *, #bic-app *::before, #bic-app *::after { box-sizing: border-box; }
+    #bic-app .bic-mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+
+    /* ---------- 헤더 ---------- */
+    #bic-app .bic-head { text-align: center; margin-bottom: 6px; }
+    #bic-app .bic-title { font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.5px; }
+    #bic-app .bic-title .bic-title-accent { color: var(--bic-accent-deep); }
+    #bic-app .bic-desc { font-size: 13px; color: var(--bic-sub); margin: 0 0 18px; line-height: 1.6; }
+
+    /* ---------- 필터 ---------- */
+    #bic-app .bic-filters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+    #bic-app .bic-tab {
+      border: 1px solid var(--bic-border); background: var(--bic-card);
+      color: var(--bic-sub); border-radius: 20px; padding: 7px 16px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: all .15s;
+    }
+    #bic-app .bic-tab:hover { border-color: var(--bic-accent); color: var(--bic-accent-deep); }
+    #bic-app .bic-tab.bic-on {
+      background: var(--bic-accent-deep); border-color: var(--bic-accent-deep);
+      color: #fff; font-weight: 700;
+    }
+    #bic-app .bic-count-line { text-align: center; font-size: 12px; color: var(--bic-sub); margin: 8px 0 16px; }
+
+    /* ---------- 월 구분 ---------- */
+    #bic-app .bic-month {
+      display: flex; align-items: center; gap: 10px;
+      margin: 22px 0 10px; color: var(--bic-accent-deep);
+      font-size: 14px; font-weight: 700;
+    }
+    #bic-app .bic-month::after { content: ''; flex: 1; height: 1px; background: var(--bic-border); }
+
+    /* ---------- 카드 ---------- */
+    #bic-app .bic-card {
+      background: var(--bic-card); border: 1px solid var(--bic-border);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+      display: flex; gap: 14px; align-items: flex-start;
+      transition: box-shadow .15s;
+    }
+    #bic-app .bic-card:hover { box-shadow: 0 3px 12px rgba(61,53,41,.08); }
+    #bic-app .bic-card.bic-is-today { border-color: var(--bic-today); box-shadow: 0 0 0 1px var(--bic-today); }
+    #bic-app .bic-card.bic-is-past { opacity: .62; }
+
+    /* 날짜 블록 (좌측) */
+    #bic-app .bic-date-block {
+      flex-shrink: 0; width: 64px; text-align: center;
+      border-right: 1px solid var(--bic-border); padding-right: 12px;
+    }
+    #bic-app .bic-date-day { font-size: 24px; font-weight: 700; line-height: 1.1; }
+    #bic-app .bic-date-wd { font-size: 11px; color: var(--bic-sub); margin-top: 2px; }
+    #bic-app .bic-dday {
+      display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 10px;
+      background: #F3EBDD; color: var(--bic-accent-deep);
+    }
+    #bic-app .bic-dday.bic-dday-today { background: var(--bic-today); color: #fff; }
+    #bic-app .bic-dday.bic-dday-soon { background: var(--bic-accent-deep); color: #fff; }
+    #bic-app .bic-dday.bic-dday-past { background: #EDE9E1; color: var(--bic-past); }
+
+    /* 본문 블록 */
+    #bic-app .bic-body { flex: 1; min-width: 0; }
+    #bic-app .bic-row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    #bic-app .bic-name { font-size: 16px; font-weight: 700; }
+    #bic-app .bic-name a { color: inherit; text-decoration: none; }
+    #bic-app .bic-name a:hover { color: var(--bic-accent-deep); text-decoration: underline; }
+    #bic-app .bic-mkt {
+      font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; color: #fff;
+    }
+    #bic-app .bic-mkt-kospi { background: var(--bic-kospi); }
+    #bic-app .bic-mkt-kosdaq { background: var(--bic-kosdaq); }
+    #bic-app .bic-code { font-size: 11.5px; color: var(--bic-sub); }
+
+    #bic-app .bic-ratio-line { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    #bic-app .bic-pill {
+      font-size: 11.5px; padding: 3px 9px; border-radius: 12px;
+      background: #F6F1E7; border: 1px solid var(--bic-border); color: var(--bic-text);
+    }
+    #bic-app .bic-pill b { color: var(--bic-accent-deep); }
+    #bic-app .bic-pill-drop { background: #FBEFE9; border-color: #EAD2C4; }
+    #bic-app .bic-pill-drop b { color: var(--bic-today); }
+
+    #bic-app .bic-dates { font-size: 12px; color: var(--bic-sub); line-height: 1.7; }
+    #bic-app .bic-dates b { color: var(--bic-text); font-weight: 500; }
+
+    /* ---------- 상태/푸터 ---------- */
+    #bic-app .bic-status { text-align: center; padding: 36px 0; color: var(--bic-sub); font-size: 14px; }
+    #bic-app .bic-foot {
+      margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--bic-border);
+      font-size: 11.5px; color: var(--bic-sub); line-height: 1.7; text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      #bic-app { padding: 18px 12px; border-radius: 12px; }
+      #bic-app .bic-title { font-size: 19px; }
+      #bic-app .bic-card { padding: 12px; gap: 10px; }
+      #bic-app .bic-date-block { width: 54px; padding-right: 8px; }
+      #bic-app .bic-date-day { font-size: 20px; }
+      #bic-app .bic-name { font-size: 15px; }
+    }
+  </style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div id="bic-app">
+
+<div class="bic-head">
+<h2 class="bic-title">무상증자 <span class="bic-title-accent">권리락 캘린더</span></h2>
+<p class="bic-desc">DART 공시 기반으로 무상증자 권리락 일정을 자동 수집해 정리합니다.<br/>권리락일에는 주가가 이론적으로 조정되니 착시 급등에 주의하세요.</p>
+</div>
+<div class="bic-filters" id="bicTabs">
+<button class="bic-tab bic-on" data-mode="upcoming">예정 일정</button>
+<button class="bic-tab" data-mode="all">전체 보기</button>
+<button class="bic-tab" data-mkt="all" data-role="mkt" style="display:none"></button>
+</div>
+<div class="bic-filters" id="bicMktTabs">
+<button class="bic-tab bic-on" data-mkt="all">전체 시장</button>
+<button class="bic-tab" data-mkt="코스피">코스피</button>
+<button class="bic-tab" data-mkt="코스닥">코스닥</button>
+</div>
+<div class="bic-count-line" id="bicCount"></div>
+<div id="bicList"><div class="bic-status">일정을 불러오는 중입니다…</div></div>
+<div class="bic-foot">
+    출처: 금융감독원 DART 무상증자 결정 공시 · <span id="bicUpdated"></span><br/>
+    권리락일은 신주배정기준일 직전 영업일 기준 자동 계산 값이며, 정정공시에 따라 변동될 수 있습니다.<br/>
+    본 자료는 투자 참고용이며 특정 종목의 매수·매도 추천이 아닙니다.
+  </div>
+</div>
+
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%eb%ac%b4%ec%83%81%ec%a6%9d%ec%9e%90-%ea%b6%8c%eb%a6%ac%eb%9d%bd-%ec%ba%98%eb%a6%b0%eb%8d%94-%ec%9d%bc%ec%a0%95-%ed%95%9c%eb%88%88%ec%97%90-%ed%99%95%ec%9d%b8/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+(function () {
+  // ▼▼▼ Apps Script 웹앱 배포 URL 입력 ▼▼▼
+  var GAS_URL = 'https://script.google.com/macros/s/AKfycbwC8YB0DMnNNPqp-3IX_-8M45y4Ilm3aggm2A36h0OdazvrFBkFZwIn6o5bXU93pQmUwg/exec';
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+  var allItems = [];
+  var mode = 'upcoming';   // upcoming | all
+  var mkt = 'all';         // all | 코스피 | 코스닥
+  var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+  // ---------- JSONP 로드 ----------
+  window.bicCallback = function (data) {
+    if (!data || data.status !== 'ok') {
+      document.getElementById('bicList').innerHTML =
+        '<div class="bic-status">데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
+      return;
+    }
+    allItems = data.items || [];
+    document.getElementById('bicUpdated').textContent = '업데이트: ' + (data.updated || '');
+    render();
+  };
+
+  function load() {
+    var s = document.createElement('script');
+    s.src = GAS_URL + (GAS_URL.indexOf('?') === -1 ? '?' : '&') + 'callback=bicCallback&t=' + Date.now();
+    s.onerror = function () {
+      document.getElementById('bicList').innerHTML =
+        '<div class="bic-status">서버에 연결하지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
+    };
+    document.body.appendChild(s);
+  }
+
+  // ---------- 유틸 ----------
+  function todayStr() {
+    var d = new Date();
+    var kst = new Date(d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60000);
+    return kst.getFullYear() + '-' + pad(kst.getMonth() + 1) + '-' + pad(kst.getDate());
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function dayDiff(ymd) {
+    var t = todayStr().split('-'), e = ymd.split('-');
+    var a = Date.UTC(+t[0], +t[1] - 1, +t[2]);
+    var b = Date.UTC(+e[0], +e[1] - 1, +e[2]);
+    return Math.round((b - a) / 86400000);
+  }
+
+  function weekday(ymd) {
+    var p = ymd.split('-');
+    return WEEKDAYS[new Date(+p[0], +p[1] - 1, +p[2]).getDay()];
+  }
+
+  // 권리락 이론 하락률: ratio / (1 + ratio)
+  function dropRate(ratio) {
+    if (!ratio || ratio <= 0) return null;
+    return Math.round(ratio / (1 + ratio) * 1000) / 10;
+  }
+
+  function ratioText(ratio) {
+    if (ratio == null) return '비율 미확인';
+    return '1주당 <b>' + ratio + '주</b> 배정';
+  }
+
+  // ---------- 렌더 ----------
+  function render() {
+    var today = todayStr();
+    var items = allItems.filter(function (it) {
+      if (mkt !== 'all' && it.market !== mkt) return false;
+      if (mode === 'upcoming') return it.exDate && it.exDate >= today;
+      return true;
+    });
+
+    // 예정: 가까운 순 / 전체: 최신이 위로
+    items.sort(function (a, b) {
+      if (!a.exDate) return 1;
+      if (!b.exDate) return -1;
+      return mode === 'upcoming'
+        ? (a.exDate < b.exDate ? -1 : 1)
+        : (a.exDate > b.exDate ? -1 : 1);
+    });
+
+    document.getElementById('bicCount').textContent =
+      (mode === 'upcoming' ? '예정된 권리락 ' : '올해 누적 ') + items.length + '건';
+
+    if (!items.length) {
+      document.getElementById('bicList').innerHTML =
+        '<div class="bic-status">' +
+        (mode === 'upcoming'
+          ? '현재 예정된 무상증자 권리락 일정이 없습니다.<br>새 공시가 나오면 자동으로 추가됩니다.'
+          : '조건에 맞는 일정이 없습니다.') +
+        '</div>';
+      return;
+    }
+
+    var html = '';
+    var curMonth = '';
+    items.forEach(function (it) {
+      var ex = it.exDate || '';
+      var monthKey = ex ? ex.substr(0, 7) : '기타';
+      if (monthKey !== curMonth) {
+        curMonth = monthKey;
+        var mLabel = ex ? (+ex.substr(0, 4)) + '년 ' + (+ex.substr(5, 2)) + '월' : '일정 미정';
+        html += '<div class="bic-month">' + mLabel + '</div>';
+      }
+      html += card(it);
+    });
+    document.getElementById('bicList').innerHTML = html;
+  }
+
+  function card(it) {
+    var diff = it.exDate ? dayDiff(it.exDate) : null;
+    var isToday = diff === 0;
+    var isPast = diff !== null && diff < 0;
+
+    var ddayCls = 'bic-dday';
+    var ddayTxt = '';
+    if (diff === null) { ddayTxt = '미정'; ddayCls += ' bic-dday-past'; }
+    else if (diff === 0) { ddayTxt = '오늘'; ddayCls += ' bic-dday-today'; }
+    else if (diff > 0 && diff <= 3) { ddayTxt = 'D-' + diff; ddayCls += ' bic-dday-soon'; }
+    else if (diff > 0) { ddayTxt = 'D-' + diff; }
+    else { ddayTxt = '완료'; ddayCls += ' bic-dday-past'; }
+
+    var drop = dropRate(it.ratio);
+    var mktCls = it.market === '코스피' ? 'bic-mkt-kospi' : 'bic-mkt-kosdaq';
+
+    return '' +
+      '<div class="bic-card' + (isToday ? ' bic-is-today' : '') + (isPast ? ' bic-is-past' : '') + '">' +
+        '<div class="bic-date-block">' +
+          '<div class="bic-date-day bic-mono">' + (it.exDate ? +it.exDate.substr(8, 2) : '-') + '</div>' +
+          '<div class="bic-date-wd">' + (it.exDate ? weekday(it.exDate) + '요일 권리락' : '권리락 미정') + '</div>' +
+          '<span class="' + ddayCls + '">' + ddayTxt + '</span>' +
+        '</div>' +
+        '<div class="bic-body">' +
+          '<div class="bic-row1">' +
+            '<span class="bic-mkt ' + mktCls + '">' + esc(it.market) + '</span>' +
+            '<span class="bic-name"><a href="' + esc(it.link) + '" target="_blank" rel="noopener">' + esc(it.name) + '</a></span>' +
+            '<span class="bic-code bic-mono">' + esc(it.code) + '</span>' +
+          '</div>' +
+          '<div class="bic-ratio-line">' +
+            '<span class="bic-pill">' + ratioText(it.ratio) + '</span>' +
+            (drop !== null ? '<span class="bic-pill bic-pill-drop">이론 조정 <b>-' + drop + '%</b></span>' : '') +
+          '</div>' +
+          '<div class="bic-dates">' +
+            '신주배정기준일 <b class="bic-mono">' + esc(it.baseDate || '-') + '</b> · ' +
+            '신주상장예정일 <b class="bic-mono">' + esc(it.listDate || '-') + '</b>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- 탭 이벤트 ----------
+  document.getElementById('bicTabs').addEventListener('click', function (e) {
+    var btn = e.target.closest('.bic-tab');
+    if (!btn || !btn.dataset.mode) return;
+    mode = btn.dataset.mode;
+    this.querySelectorAll('.bic-tab').forEach(function (b) { b.classList.toggle('bic-on', b === btn); });
+    render();
+  });
+  document.getElementById('bicMktTabs').addEventListener('click', function (e) {
+    var btn = e.target.closest('.bic-tab');
+    if (!btn) return;
+    mkt = btn.dataset.mkt;
+    this.querySelectorAll('.bic-tab').forEach(function (b) { b.classList.toggle('bic-on', b === btn); });
+    render();
+  });
+
+  load();
+})();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

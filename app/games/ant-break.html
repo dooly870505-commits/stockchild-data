@@ -1,0 +1,420 @@
+<title>개미 매도벽 돌파</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: single dark arcade screen (by choice). Thin HUD on top, canvas board fills the rest, inventory row floats at the bottom-left. */
+:root{
+  --bg:#0F1A2E; --bg2:#15233D; --fg:#F3F4F8; --muted:#8E9AB5; --line:#2A3A5C;
+  --brand:#FFE94D; --brand-ink:#2B2500;
+  --up:#F04452; --down:#3182F6; --theme:#B06CFF; --gold:#F5B400; --wall:#8E8A82;
+  --display:'Jua','Noto Sans KR',system-ui,sans-serif; --body:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;overflow:hidden;
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px));padding-block:0;
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none;touch-action:none}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;position:relative}
+.hud{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:8px;align-items:center;padding:6px max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px));font-variant-numeric:tabular-nums}
+.hud .k{font-size:10px;color:var(--muted);letter-spacing:.04em;line-height:1}
+.hud .v{font-family:var(--display);font-size:15px;line-height:1.1;white-space:nowrap}
+.hud .stage{font-family:var(--display);font-size:14px;color:var(--brand);line-height:1.1;white-space:nowrap}
+.hud .seed{font-size:10px;color:var(--muted);line-height:1.2;white-space:nowrap}
+.hud .chg{display:block;width:fit-content;font:700 10px var(--body);padding:1px 5px;border-radius:5px;background:rgba(240,68,82,.18);color:#FF7A85;margin:2px 0 0}
+.hud .chg.flat{background:rgba(142,154,181,.15);color:var(--muted)} .hud .chg.limit{background:var(--up);color:#fff}
+.stage-wrap{position:relative;flex:1;min-height:0}
+canvas{display:block;width:100%;height:100%}
+.inv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.inv button{position:relative;width:52px;height:52px;border-radius:14px;border:1px solid var(--line);background:var(--bg2);color:var(--fg);font:700 10px var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;touch-action:manipulation}
+.inv button .ic{font-size:20px;line-height:1} .inv button .n{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--brand);color:var(--brand-ink);font:700 11px var(--body);display:flex;align-items:center;justify-content:center;padding:0 4px}
+.inv button:disabled{opacity:.35}
+.inv button:focus-visible,.btn:focus-visible,.hud button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.pausebtn{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--fg);font-size:16px;cursor:pointer}
+.fx{position:absolute;left:0;right:0;top:38%;text-align:center;pointer-events:none;font-family:var(--display);font-size:24px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);opacity:0;transition:opacity .15s,transform .5s}
+.fx.show{opacity:1;transform:translateY(-12px)} .fx.up{color:#FF7A85} .fx.down{color:#6FA8FF} .fx.theme{color:var(--theme)} .fx.gold{color:var(--brand)}
+.overlay{position:absolute;inset:0;background:rgba(15,26,46,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));text-align:center;overflow:auto}
+.overlay h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;line-height:1.1;text-wrap:balance}
+.overlay p{margin:0;color:var(--muted);font-size:13px;line-height:1.55;max-width:32ch;text-wrap:balance}
+.mascot{width:92px;height:92px;border-radius:24px}
+.btn{font:700 15px var(--body);background:var(--brand);color:var(--brand-ink);border:0;border-radius:12px;padding:12px 24px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);font-weight:600;font-size:13px;padding:9px 14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:380px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:3px;font-family:var(--body)}
+.card:disabled{opacity:.4;cursor:default}
+.card .t{font-family:var(--display);font-size:16px} .card .m{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums} .card .s{font-size:12px;color:var(--gold);letter-spacing:1px}
+.result{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;font-size:13px;text-align:left}
+.result b{font-family:var(--display);font-weight:400;font-size:16px}
+.stars{font-size:30px;letter-spacing:4px;color:var(--gold)}
+.legend{font-size:12px;color:var(--muted);line-height:1.6;max-width:34ch;text-align:left}
+.legend b{color:var(--fg)}
+.note{font-size:11px;color:var(--muted)}
+.rank{width:100%;max-width:340px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.rank th{color:var(--muted);font-weight:500;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.rank td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:left}
+.rank .n{text-align:right} .rank tr.me td{background:rgba(255,233,77,.18)} .rank td.name{font-family:var(--display);letter-spacing:1px}
+.arcade{font:700 22px var(--display);letter-spacing:4px;text-transform:uppercase;text-align:center;padding:12px 14px;border:2px solid var(--brand);border-radius:12px;width:min(100%,240px);background:var(--bg2);color:var(--fg)}
+.bigscore{font-family:var(--display);font-size:40px;color:var(--brand);line-height:1;font-variant-numeric:tabular-nums}
+.dev{font-size:11px;color:var(--muted);text-decoration:underline;background:none;border:0;cursor:pointer;font-family:var(--body)}
+@media (prefers-reduced-motion:reduce){.fx{transition:none}}
+</style>
+
+<div class="app">
+  <div class="hud">
+    <div><div class="k">스테이지</div><div class="stage" id="hudStage">1 · 깔때기</div><div class="seed" id="hudSeed"></div></div>
+    <div><div class="k">현재가</div><div class="v"><span id="price">10,000</span><span id="chg" class="chg flat">0.00%</span></div></div>
+    <div><div class="k">개미</div><div class="v" id="balls">🐜 1</div></div>
+    <div><div class="k">점수</div><div class="v" id="hudScore">0</div></div>
+    <div><div class="k">시간</div><div class="v" id="time">0:00</div></div>
+  </div>
+
+  <div class="stage-wrap" id="wrap">
+    <canvas id="c"></canvas>
+    <div class="fx" id="fx"></div>
+    <div class="inv" id="inv">
+      <button type="button" data-use="credit" disabled><span class="ic">🟠</span>신용<span class="n">0</span></button>
+      <button type="button" data-use="earn" disabled><span class="ic">⚡</span>어닝<span class="n">0</span></button>
+      <button type="button" data-use="theme" disabled><span class="ic">🟣</span>테마<span class="n">0</span></button>
+    </div>
+    <button class="pausebtn" id="pauseBtn" type="button" aria-label="일시정지">⏸</button>
+
+    <div class="overlay" id="ovTitle">
+      <img class="mascot" id="m1" alt="개미 마스코트">
+      <h2>개미 매도벽 돌파</h2>
+      <p>작은 틈으로 개미 한 마리를 넣으세요. 🔴 추매를 먹을 때마다 개미가 3배로 불어나 파란 매도 잔량을 녹입니다. 전부 걷어내면 상한가.</p>
+      <div class="row"><button class="btn" id="runBtn" type="button">도전 시작</button><button class="btn ghost" id="playBtn" type="button">연습</button></div>
+      <div class="row"><button class="btn ghost" id="rankBtn" type="button">🏆 랭킹</button><button class="btn ghost" id="recBtn" type="button">📒 기록</button><button class="btn ghost" id="helpBtn" type="button">? 설명</button></div>
+      <p class="note">도전: 1스테이지부터 시드 3개로 점수를 누적해 랭킹에 도전 · 연습: 열린 스테이지를 자유롭게</p>
+    </div>
+
+    <div class="overlay" id="ovSelect" hidden>
+      <h2>연습 스테이지</h2>
+      <div class="grid" id="stageGrid"></div>
+      <div class="row"><button class="btn ghost" id="selBack" type="button">뒤로</button><button class="dev" id="devUnlock" type="button">테스트용: 전체 열기</button></div>
+    </div>
+
+    <div class="overlay" id="ovHelp" hidden>
+      <h2>아이템</h2>
+      <div class="legend">
+        <b>🔴 추매</b> 자동 · 개미 ×3<br>
+        <b>💰 배당</b> 자동 · +500점<br>
+        <b>🔵 공매도</b> 자동(피하세요) · 개미 절반<br>
+        <b>🟠 신용 한도</b> 인벤토리 · 패들 1.6배 10초<br>
+        <b>⚡ 어닝 서프라이즈</b> 인벤토리 · 패들에서 매수 로켓 발사, 처음 닿는 벽돌 주변 5×5 폭파<br>
+        <b>🟣 테마주</b> 인벤토리 · 반반. 개미 ×5 아니면 절반<br>
+        인벤토리는 종류당 3개까지, 넘치면 +300점으로 전환.<br>
+        <b>🔒 회색 벽</b>은 보호예수 물량, 깨지지 않아요. 개미를 전부 잃으면 상장폐지.
+      </div>
+      <button class="btn ghost" id="helpBack" type="button">닫기</button>
+    </div>
+
+    <div class="overlay" id="ovPause" hidden>
+      <h2>거래 정지</h2><p>일시정지 중</p>
+      <div class="row"><button class="btn" id="resumeBtn" type="button">거래 재개</button><button class="btn ghost" id="quitBtn" type="button">스테이지 선택</button><button class="btn ghost" id="quitRunBtn2" type="button">여기서 끝내기</button></div>
+    </div>
+
+    <div class="overlay" id="ovEnd" hidden>
+      <img class="mascot" id="m2" alt="">
+      <h2 id="endTitle">상한가 🎉</h2>
+      <div class="stars" id="endStars"></div>
+      <p id="endSub"></p>
+      <div class="result" id="resultGrid"></div>
+      <p id="endRun" style="color:var(--brand);font-weight:700"></p>
+      <div class="row"><button class="btn" id="nextBtn" type="button">다음 스테이지</button><button class="btn ghost" id="retryBtn" type="button">다시 매수</button><button class="btn ghost" id="endSelBtn" type="button">스테이지 선택</button><button class="btn ghost" id="quitRunBtn" type="button">여기서 끝내기</button><button class="btn" id="recordBtn" type="button">기록 남기기</button></div>
+    </div>
+
+    <div class="overlay" id="ovName" hidden>
+      <h2>기록 등록</h2>
+      <div class="bigscore" id="nameScore">0</div>
+      <p id="nameSub"></p>
+      <input class="arcade" type="text" id="nick" maxlength="8" placeholder="닉네임" autocomplete="off" spellcheck="false">
+      <div class="row"><button class="btn" id="saveBtn" type="button">등록</button><button class="btn ghost" id="skipBtn" type="button">등록 안 함</button></div>
+    </div>
+
+    <div class="overlay" id="ovRank" hidden>
+      <h2>🏆 랭킹</h2>
+      <p>도전 모드 누적 점수 순. 이 기기에만 저장됩니다.</p>
+      <table class="rank"><thead><tr><th>#</th><th>닉네임</th><th class="n">점수</th><th class="n">도달</th></tr></thead><tbody id="rankBody"></tbody></table>
+      <button class="btn ghost" id="rankBack" type="button">닫기</button>
+    </div>
+
+    <div class="overlay" id="ovRec" hidden>
+      <h2>📒 내 기록</h2>
+      <p id="recSummary"></p>
+      <div class="grid" id="recGrid"></div>
+      <button class="btn ghost" id="recBack" type="button">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const MASCOT='data:image/jpeg;base64,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';
+const STAGES=[{"name": "깔때기", "gap": 8, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "#..............................#", "############........############"]}, {"name": "상승 캔들", "gap": 6, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBB..BBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBB..BBBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBB##BBB..BB###BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB###......###BBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#############......#############"]}, {"name": "원화", "gap": 6, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BB....BBBBBBB....BBBBBBB....BB#", "#BB.....BBBBB......BBBBBB....BB#", "###.....#####......#####.....###", "##............................##", "##............................##", "###......###........###......###", "####.....###........###.....####", "##............................##", "##............................##", "#####....###...##....##.....####", "#BBB#.....#....##....##....##BB#", "#BBB#.....#....BBB...#.....#BBB#", "#BBB#.....#..........#.....#BBB#", "#BBB##.....................#BBB#", "#BBBBB....................BBBBB#", "#BBBBB....................BBBBB#", "#BBBBB.......#....#.......BBBBB#", "#BBBBB.......#....#.......BBBBB#", "#BBBBBB......#....#......BBBBBB#", "#BBBBBB.....BB....BB.....BBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#############......#############"]}, {"name": "화살표", "gap": 5, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBB.BBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBB..BBBBBBBBBBBBBB#", "#BBBBBBBBBBBBB...BBBBBBBBBBBBBB#", "#BBBBBBBBBBBBB....BBBBBBBBBBBBB#", "#BBBBBBBBBBB#.....##BBBBBBBBBBB#", "#BBBBBBBBBB##......#BBBBBBBBBBB#", "#BBBBBBBBBB#.......##BBBBBBBBBB#", "#BBBBBBBBB##........#BBBBBBBBBB#", "#BBBBBBBBB#.........##BBBBBBBBB#", "#BBBBBBBB##..........#BBBBBBBBB#", "#BBBBBBBB#...........##BBBBBBBB#", "#BBBBBBB##............#BBBBBBBB#", "#BBBBBBB#.............##BBBBBBB#", "#BBBBBB##..............#BBBBBBB#", "#BBBBBB#...............##BBBBBB#", "#BBBBB##................#BBBBBB#", "#BBBBB#.................##BBBBB#", "#BBBB##..................#BBBBB#", "#BBBB#...................##BBBB#", "#BBB##....................#BBBB#", "#BBB#.....................##BBB#", "#BB##......................#BBB#", "#BB#.......................##BB#", "#BB#........................#BB#", "#BB##########.....###########BB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#BBBBBBBBBBB#.....#BBBBBBBBBBBB#", "#############.....##############"]}, {"name": "자물쇠", "gap": 4, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBB......BBBBBBBBBBBB#", "#BBBBBBBBBB..........BBBBBBBBBB#", "#BBBBBBBB##..........##BBBBBBBB#", "#BBBBBBBB#............#BBBBBBBB#", "#BBBBBBBB#............#BBBBBBBB#", "#BBBBBBBB#............#BBBBBBBB#", "#BBBBBBBB#............#BBBBBBBB#", "#BBBBBBBB#............#BBBBBBBB#", "#BBBBBBBB#............#BBBBBBBB#", "#BBBBBBBB##..........##BBBBBBBB#", "#BBBBBBBBB#..........#BBBBBBBBB#", "#BBBBBBBBB###......###BBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB#......#BBBBBBBBBBB#", "#BBBBBBBBBBB##....##BBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "##############....##############"]}, {"name": "상한가 30", "gap": 4, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#B#.........##BBBB##.......##BB#", "#B#..........##BB##.........##B#", "#B#...........#BB#...........###", "#B#######.....#B##....###.....##", "#BBBBBBB##....#B#.....####....##", "#BBB#####.....#B#....#####....##", "#BBB#........##B#....#####....##", "#BBB#.......##BB#....#####....##", "#BBB#........##B#....#####....##", "#BBB#####.....#B#....#####....##", "#BBBBBBB##....#B#....#####....##", "####BBBBB#....#B#.....####....##", "##.#######....#B##....###.....##", "#B............#BB#...........BB#", "#B...........##BB##.........BBB#", "#B..........B#BBBB#B.......BBBB#", "#BBBBB...BBBBBBBBBBBBBB...BBBBB#", "#BBBBB...BBBBBBBBBBBBBB...BBBBB#", "#BBBBB...BBBBBBBBBBBBBB...BBBBB#", "#BBBBB...BBBBBBBBB#BBBB...BBBBB#", "#BBB........................BBB#", "#BBB........................BBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "#BBBBBBBBBBBB#....#BBBBBBBBBBBB#", "##############....##############"]}, {"name": "격자 매도벽", "gap": 3, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "###BBBB#########################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "########################BBBB####", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "###BBBB#########################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "########################BBBB####", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "###BBBB#########################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "########################BBBB####", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "##############...###############"]}, {"name": "개미", "gap": 3, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BBB..BBBBBBBBBBBBBBBBBBBB..BBB#", "#BBB...BBBBBBBBBBBBBBBBBB...BBB#", "#BBBB....BBBBBBBBBBBBBB....BBBB#", "#BBB##....##BBBBBBBB##....##BBB#", "#BBBB##....##BBBBBB##....##BBBB#", "#BBBBB##....#BBBBB##....##BBBBB#", "#BBBBBB###............###BBBBBB#", "#BBBBBBBB##..........##BBBBBBBB#", "#BBBBBBB##............##BBBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBB##..............##BBBBBB#", "#BBBBBB#................#BBBBBB#", "#BBBBBB#....##....##....#BBBBBB#", "#BBBBBB#....##....##....#BBBBBB#", "#BBBBBB#................#BBBBBB#", "#BBBBBB#................#BBBBBB#", "#BBBBBB#................#BBBBBB#", "#BBBBBB##..............##BBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBBB##............##BBBBBBB#", "#BBBBBBBB##..........##BBBBBBBB#", "#BBBBBBBBB###......###BBBBBBBBB#", "#BBBBBBBBBBB##...###BBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "#BBBBBBBBBBBB#...#BBBBBBBBBBBBB#", "##############...###############"]}, {"name": "하락 캔들", "gap": 2, "rows": ["################################", "#BBBBBBBBBBBBB##################", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBB#####..###########..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBB#..........#BBBBB#..##", "#BBBBBBBBBB..........BBBBBB#..##", "#BBBBBBBBBB..........BBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBBBBBBBBBBBB#..##", "#BBBBBBBBBBBBBBBB###########..##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#...............##", "#BBBBBBBBBBBBB#..###############", "#BBBBBBBBBBBBB#..###############", "#BBBBBBBBBBBBB#..###############", "###############..###############"]}, {"name": "황소", "gap": 2, "rows": ["################################", "#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB#", "#BB..BBBBBBBBBBBBBBBBBBBBBB..BB#", "#BB...BBBBBBBBBBBBBBBBBBBB...BB#", "#BBB...BBBBBBBBBBBBBBBBBB...BBB#", "#BB#...##BBBBBBBBBBBBBB##...#BB#", "#BB##...##BBBBBBBBBBBB##...##BB#", "#BBB##...##BBBBBBBBBB##...##BBB#", "#BBBB##...#BBBBBBBBBB#...##BBBB#", "#BBBBB#...############...#BBBBB#", "#BBBBB##...#........#...##BBBBB#", "#BBBBBB##..............##BBBBBB#", "#BBBBBBB##............##BBBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBBB#...##....##...#BBBBBBB#", "#BBBBBBB#...##....##...#BBBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBBB#..............#BBBBBBB#", "#BBBBBBB#......###.....#BBBBBBB#", "#BBBBBBB##.....BB#....##BBBBBBB#", "#BBBBBBBB##..........##BBBBBBBB#", "#BBBBBBBBB##........##BBBBBBBBB#", "#BBBBBBBBBB####..####BBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "#BBBBBBBBBBBBB#..#BBBBBBBBBBBBB#", "###############..###############"]}];
+document.getElementById('m1').src=MASCOT;document.getElementById('m2').src=MASCOT;
+
+const COLS=32,ROWS=36,BASE_PRICE=10000,LIMIT=0.30,MAX_BALLS=600,CLEAR_RATIO=0.98,INV_MAX=3;
+const DROP={buy:0.03,div:0.01,short:0.005,credit:0.01,earn:0.01,theme:0.007};
+const ITEM={buy:{c:'#F04452',g:'×3'},div:{c:'#F5B400',g:'₩'},short:{c:'#3182F6',g:'공'},credit:{c:'#FF8A00',g:'신'},earn:{c:'#FFE94D',g:'⚡'},theme:{c:'#B06CFF',g:'테'}};
+const STAR_T=[60,90,120],RUN_SEEDS=3,RANK_MAX=20;
+const PADDLE_CELLS=[9.5,9,8.5,8,7.5,7,6.5,6.5,6,6]; // 스테이지별 패들 폭(칸). 초반은 넓게, 뒤로 갈수록 좁게
+const SAVE_KEY='ant_break_save_v1',MUTE_KEY='ant_break_mute';
+
+const $=id=>document.getElementById(id);
+const cv=$('c'),ctx=cv.getContext('2d'),wrap=$('wrap');
+const ui={stage:$('hudStage'),seed:$('hudSeed'),hscore:$('hudScore'),price:$('price'),chg:$('chg'),balls:$('balls'),time:$('time'),fx:$('fx'),inv:$('inv'),
+  ovTitle:$('ovTitle'),ovSelect:$('ovSelect'),ovHelp:$('ovHelp'),ovPause:$('ovPause'),ovEnd:$('ovEnd'),ovRec:$('ovRec'),ovName:$('ovName'),ovRank:$('ovRank'),endRun:$('endRun'),retryBtn:$('retryBtn'),quitRunBtn:$('quitRunBtn'),recordBtn:$('recordBtn'),endSelBtn:$('endSelBtn'),nameScore:$('nameScore'),nameSub:$('nameSub'),nick:$('nick'),rankBody:$('rankBody'),quitRunBtn2:$('quitRunBtn2'),quitBtn:$('quitBtn'),
+  endTitle:$('endTitle'),endStars:$('endStars'),endSub:$('endSub'),resultGrid:$('resultGrid'),nextBtn:$('nextBtn'),stageGrid:$('stageGrid'),recGrid:$('recGrid'),recSummary:$('recSummary'),pauseBtn:$('pauseBtn')};
+
+// ---------- save ----------
+let save={best:{},unlocked:1,rank:[],nick:''};
+let run=null; // 도전 모드: {score,seeds,reached}
+try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s)save=Object.assign(save,s)}catch(e){}
+function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}}
+
+// ---------- audio ----------
+let muted=false;try{muted=localStorage.getItem(MUTE_KEY)==='1'}catch(e){}
+let ac=null,lastHitSnd=0;
+function tone(f,d,type,vol){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
+  const o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=vol||0.035;
+  o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.start(t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.stop(t+d)}catch(e){}}
+const sfx={brick:()=>{const n=performance.now();if(n-lastHitSnd<45)return;lastHitSnd=n;tone(560+Math.random()*200,0.05,'square',0.025)},
+  wall:()=>{const n=performance.now();if(n-lastHitSnd<60)return;lastHitSnd=n;tone(170,0.05,'triangle',0.03)},
+  paddle:()=>tone(330,0.06,'triangle'),good:()=>{tone(523,0.08);setTimeout(()=>tone(784,0.12),70)},
+  mult:()=>[523,659,784].forEach((f,i)=>setTimeout(()=>tone(f,0.1,'triangle',0.05),i*60)),
+  bad:()=>{tone(392,0.1,'sawtooth',0.03);setTimeout(()=>tone(262,0.16,'sawtooth',0.03),100)},
+  fail:()=>{tone(220,0.2,'sawtooth',0.04);setTimeout(()=>tone(150,0.35,'sawtooth',0.04),180)},
+  clear:()=>[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'triangle',0.05),i*110)),
+  rocket:()=>tone(200,0.25,'sawtooth',0.03),boom:()=>tone(90,0.3,'sawtooth',0.06)};
+
+// ---------- geometry ----------
+const G={cw:360,ch:600,cell:11,bx:0,by:6,bw:352,bh:396,py:520,pw:66,ph:10,r:3,speed:660,dpr:1};
+function layout(){const rect=wrap.getBoundingClientRect();G.cw=Math.max(240,rect.width);G.ch=Math.max(320,rect.height);
+  G.dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(G.cw*G.dpr);cv.height=Math.round(G.ch*G.dpr);ctx.setTransform(G.dpr,0,0,G.dpr,0,0);
+  G.cell=Math.floor(Math.min(G.cw/COLS,(G.ch*0.70)/ROWS)*2)/2;G.bw=G.cell*COLS;G.bh=G.cell*ROWS;G.bx=Math.round((G.cw-G.bw)/2);G.by=6;
+  G.py=G.ch-82;G.ph=Math.max(9,G.cell*0.9);G.r=Math.max(2.4,G.cell*0.24);G.speed=G.ch*1.1;boardDirty=true}
+
+// ---------- state ----------
+let S=null,mode='title',raf=0,last=0,boardDirty=true,boardCv=document.createElement('canvas');
+let hud={price:null,balls:null,time:null,inv:'',score:null};
+function newGame(idx){
+  const st=STAGES[idx];const grid=st.rows.map(r=>r.split(''));let total=0;grid.forEach(r=>r.forEach(c=>{if(c==='B')total++}));
+  S={idx,grid,total,cleared:0,score:0,time:0,started:false,aiming:true,aim:null,
+     paddle:{x:G.cw/2,w:G.cell*PADDLE_CELLS[idx],base:PADDLE_CELLS[idx],wMul:1},peak:1,balls:[],items:[],rockets:[],booms:[],particles:[],inv:{credit:0,earn:0,theme:0},credit:0,finished:false};
+  G.pw=S.paddle.w;S.balls.push({x:S.paddle.x,y:G.py-G.r-1,vx:0,vy:0});
+  boardDirty=true;hud={price:null,balls:null,time:null,inv:'',score:null};renderInv();updateHUD(true)}
+
+// ---------- helpers ----------
+function cellAt(px,py){const c=Math.floor((px-G.bx)/G.cell),r=Math.floor((py-G.by)/G.cell);if(c<0||c>=COLS||r<0||r>=ROWS)return null;return {c,r,ch:S.grid[r][c]}}
+function flash(text,cls){ui.fx.textContent=text;ui.fx.className='fx show '+(cls||'');clearTimeout(flash.t);flash.t=setTimeout(()=>ui.fx.className='fx',1000)}
+function buyRate(){const n=S.balls.length;return n<3?0.25:n<30?0.10:n<200?0.04:0.02} // 개미가 적을수록 추매가 잘 나와 눈덩이가 빨리 굴러감
+function rollDrop(x,y){const q=Math.random();let acc=0;for(const k in DROP){acc+=(k==='buy'?buyRate():DROP[k]);if(q<acc){S.items.push({x,y,type:k,vy:G.ch*0.28});return}}}
+function breakBrick(r,c,drop){S.grid[r][c]='.';S.cleared++;S.score+=10;boardDirty=true;
+  const x=G.bx+(c+0.5)*G.cell,y=G.by+(r+0.5)*G.cell;if(drop)rollDrop(x,y);
+  if(Math.random()<0.25)S.particles.push({x,y,vx:(Math.random()-0.5)*120,vy:-40-Math.random()*80,life:0.35})}
+function addBalls(mult){const cur=S.balls.length;const target=Math.min(MAX_BALLS,cur*mult);const add=target-cur;if(add<=0)return;
+  for(let i=0;i<add;i++){const src=S.balls[i%cur];const a=Math.atan2(src.vy,src.vx)+(Math.random()-0.5)*1.2;S.balls.push({x:src.x,y:src.y,vx:Math.cos(a),vy:Math.sin(a)})}S.peak=Math.max(S.peak,S.balls.length)}
+function halveBalls(){const keep=Math.max(1,Math.floor(S.balls.length/2));S.balls.length=keep}
+function gainInv(k){if(S.inv[k]>=INV_MAX){S.score+=300;flash('인벤토리 가득 → +300점','gold');sfx.good();return}S.inv[k]++;renderInv();sfx.good();
+  flash({credit:'🟠 신용 한도 획득',earn:'⚡ 어닝 서프라이즈 획득',theme:'🟣 테마주 획득'}[k],'gold')}
+function applyItem(t){switch(t){
+  case 'buy':addBalls(3);flash('추매! 개미 ×3','up');sfx.mult();break;
+  case 'div':S.score+=500;flash('배당금 +500','gold');sfx.good();break;
+  case 'short':halveBalls();flash('공매도 공격! 개미 절반','down');sfx.bad();break;
+  default:gainInv(t)}}
+function useInv(k){if(mode!=='play'||S.aiming||S.inv[k]<=0)return;S.inv[k]--;renderInv();
+  if(k==='credit'){S.credit=10;S.paddle.wMul=1.6;flash('신용 한도 확대! 패들 1.6배','up');sfx.good()}
+  else if(k==='earn'){S.rockets.push({x:S.paddle.x,y:G.py-4});flash('매수 로켓 발사!','gold');sfx.rocket()}
+  else{if(Math.random()<0.5){addBalls(5);flash('테마주 급등! 개미 ×5','theme');sfx.mult()}else{halveBalls();flash('테마주 급락… 개미 절반','theme');sfx.bad()}}}
+function renderInv(){const key=S?`${S.inv.credit}${S.inv.earn}${S.inv.theme}`:'';if(key===hud.inv)return;hud.inv=key;
+  ui.inv.querySelectorAll('button').forEach(b=>{const k=b.dataset.use;const n=S?S.inv[k]:0;b.querySelector('.n').textContent=n;b.disabled=n<=0})}
+ui.inv.querySelectorAll('button').forEach(b=>{b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',()=>useInv(b.dataset.use))});
+
+// ---------- physics ----------
+function step(dt){
+  if(S.finished)return;
+  if(S.started)S.time+=dt;
+  if(S.credit>0){S.credit-=dt;if(S.credit<=0){S.credit=0;S.paddle.wMul=1}}
+  const targetW=G.cell*S.paddle.base*S.paddle.wMul;S.paddle.w+=(targetW-S.paddle.w)*Math.min(1,dt*10);
+  S.paddle.x=Math.max(G.bx+S.paddle.w/2,Math.min(G.bx+G.bw-S.paddle.w/2,S.paddle.x));
+  const py=G.py,r=G.r;
+  if(S.aiming){const b=S.balls[0];b.x=S.paddle.x;b.y=py-r-1}
+  else{
+    const sp=G.speed,n=Math.max(2,Math.ceil(sp*dt/(G.cell*0.45))),sdt=dt/n;
+    for(const b of S.balls){
+      b.idle=(b.idle||0)+dt;if(b.idle>5){b.idle=0;const a=Math.atan2(b.vy,b.vx)+(Math.random()-0.5);b.vx=Math.cos(a);b.vy=Math.sin(a)}
+      for(let k=0;k<n;k++){
+        // x move
+        let nx=b.x+b.vx*sp*sdt;
+        if(nx<G.bx+r){nx=G.bx+r;b.vx=Math.abs(b.vx)}else if(nx>G.bx+G.bw-r){nx=G.bx+G.bw-r;b.vx=-Math.abs(b.vx)}
+        let cc=cellAt(nx+Math.sign(b.vx)*r,b.y);
+        if(cc&&cc.ch!=='.'){if(cc.ch==='B'){breakBrick(cc.r,cc.c,true);sfx.brick();b.idle=0}else sfx.wall();b.vx=-b.vx}else b.x=nx;
+        // y move
+        let ny=b.y+b.vy*sp*sdt;
+        if(ny<r){ny=r;b.vy=Math.abs(b.vy)}
+        cc=cellAt(b.x,ny+Math.sign(b.vy)*r);
+        if(cc&&cc.ch!=='.'){if(cc.ch==='B'){breakBrick(cc.r,cc.c,true);sfx.brick();b.idle=0}else sfx.wall();b.vy=-b.vy}else b.y=ny;
+        // paddle
+        if(b.vy>0&&b.y+r>=py&&b.y-r<=py+G.ph&&Math.abs(b.x-S.paddle.x)<=S.paddle.w/2+r){
+          const off=Math.max(-1,Math.min(1,(b.x-S.paddle.x)/(S.paddle.w/2)));const a=(-90+off*65+(Math.random()*10-5))*Math.PI/180;b.vx=Math.cos(a);b.vy=Math.sin(a);b.y=py-r;sfx.paddle()}
+        if(Math.abs(b.vy)<0.2||Math.abs(b.vx)<0.02){if(Math.abs(b.vy)<0.2)b.vy=b.vy<0?-0.2:0.2;if(Math.abs(b.vx)<0.02)b.vx=(b.vx<0?-1:1)*0.02;const l=Math.hypot(b.vx,b.vy);b.vx/=l;b.vy/=l}
+      }
+    }
+    S.balls=S.balls.filter(b=>b.y-r<G.ch+8);
+    if(S.balls.length===0){if(S.peak<=1){S.balls=[{x:S.paddle.x,y:py-r-1,vx:0,vy:0}];S.aiming=true;S.aim=null;flash('개미 한 마리 복귀, 다시 조준','gold');sfx.bad()}else{endGame(false);return}}
+  }
+  // items
+  const pr={x:S.paddle.x-S.paddle.w/2,y:py,w:S.paddle.w};
+  S.items=S.items.filter(it=>{it.y+=it.vy*dt;if(it.y>G.ch+12)return false;
+    if(it.x+10>pr.x&&it.x-10<pr.x+pr.w&&it.y+9>pr.y&&it.y-9<pr.y+G.ph+8){applyItem(it.type);return false}return true});
+  // rockets
+  S.rockets=S.rockets.filter(rk=>{rk.y-=G.ch*1.0*dt;if(rk.y<G.by-10)return false;
+    const cc=cellAt(rk.x,rk.y);if(cc&&cc.ch==='B'){let n=0;for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){const rr=cc.r+dr,c2=cc.c+dc;
+      if(rr>=0&&rr<ROWS&&c2>=0&&c2<COLS&&S.grid[rr][c2]==='B'){breakBrick(rr,c2,Math.random()<0.5);n++}}
+      S.booms.push({x:rk.x,y:rk.y,life:0.4});flash(`어닝 서프라이즈! 벽돌 ${n}개 폭파`,'gold');sfx.boom();return false}return true});
+  S.booms=S.booms.filter(b=>(b.life-=dt)>0);
+  S.particles=S.particles.filter(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;return p.life>0});
+  if(S.cleared>=S.total*CLEAR_RATIO){for(let rr=0;rr<ROWS;rr++)for(let c=0;c<COLS;c++)if(S.grid[rr][c]==='B')breakBrick(rr,c,false);endGame(true)}
+}
+
+// ---------- drawing ----------
+function renderBoard(){boardCv.width=Math.round(G.bw*G.dpr);boardCv.height=Math.round(G.bh*G.dpr);const b=boardCv.getContext('2d');b.setTransform(G.dpr,0,0,G.dpr,0,0);
+  const cs=G.cell,gap=Math.max(0.6,cs*0.1);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const ch=S.grid[r][c];if(ch==='.')continue;
+    if(ch==='#'){b.fillStyle='#8E8A82';b.fillRect(c*cs+gap/2,r*cs+gap/2,cs-gap,cs-gap);b.fillStyle='rgba(255,255,255,.18)';b.fillRect(c*cs+gap/2,r*cs+gap/2,cs-gap,1)}
+    else{b.fillStyle=((r+c)%2)?'#3182F6':'#3B8CFF';b.fillRect(c*cs+gap/2,r*cs+gap/2,cs-gap,cs-gap)}}
+  boardDirty=false}
+const antSprite=document.createElement('canvas');
+function makeSprite(){const d=Math.ceil(G.r*2*G.dpr)+4;antSprite.width=antSprite.height=d;const a=antSprite.getContext('2d');a.setTransform(G.dpr,0,0,G.dpr,0,0);
+  const cx=d/G.dpr/2,cy=cx;a.beginPath();a.arc(cx,cy,G.r,0,Math.PI*2);a.fillStyle='#F04452';a.fill();a.beginPath();a.arc(cx-G.r*0.3,cy-G.r*0.3,G.r*0.35,0,Math.PI*2);a.fillStyle='#FF9AA3';a.fill()}
+function draw(){
+  ctx.fillStyle='#0F1A2E';ctx.fillRect(0,0,G.cw,G.ch);
+  if(!S)return;
+  if(boardDirty)renderBoard();
+  ctx.drawImage(boardCv,G.bx,G.by,G.bw,G.bh);
+  // paddle zone line
+  ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(0,G.by+G.bh,G.cw,1);
+  // items
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(const it of S.items){const d=ITEM[it.type];ctx.fillStyle=d.c;ctx.beginPath();ctx.arc(it.x,it.y,10,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=it.type==='earn'?'#2B2500':'#fff';ctx.font='bold 10px "Noto Sans KR", sans-serif';ctx.fillText(d.g,it.x,it.y+0.5)}
+  // rockets & booms
+  for(const rk of S.rockets){ctx.fillStyle='#FFE94D';ctx.beginPath();ctx.moveTo(rk.x,rk.y-10);ctx.lineTo(rk.x-5,rk.y+4);ctx.lineTo(rk.x+5,rk.y+4);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,138,0,.6)';ctx.fillRect(rk.x-2,rk.y+4,4,12)}
+  for(const bm of S.booms){const rr=G.cell*2.5*(1-bm.life/0.4)+G.cell;ctx.strokeStyle=`rgba(255,233,77,${bm.life/0.4})`;ctx.lineWidth=3;ctx.beginPath();ctx.arc(bm.x,bm.y,rr,0,Math.PI*2);ctx.stroke()}
+  for(const p of S.particles){ctx.fillStyle=`rgba(120,180,255,${Math.max(0,p.life/0.35)})`;ctx.fillRect(p.x-1.5,p.y-1.5,3,3)}
+  // aim line
+  if(S.aiming&&S.aim){const b=S.balls[0];const dx=S.aim.x-b.x,dy=S.aim.y-b.y;const l=Math.hypot(dx,dy)||1;ctx.setLineDash([3,7]);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x+dx/l*Math.min(l,G.ch*0.45),b.y+dy/l*Math.min(l,G.ch*0.45));ctx.stroke();ctx.setLineDash([])}
+  // paddle
+  const pw=S.paddle.w,px=S.paddle.x-pw/2;ctx.fillStyle=S.credit>0?'#FF8A00':'#FFE94D';
+  ctx.beginPath();ctx.roundRect?ctx.roundRect(px,G.py,pw,G.ph,G.ph/2):ctx.rect(px,G.py,pw,G.ph);ctx.fill();
+  // balls
+  const sd=antSprite.width/G.dpr;for(const b of S.balls)ctx.drawImage(antSprite,b.x-sd/2,b.y-sd/2,sd,sd);
+  if(S.aiming&&mode==='play'){ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='13px "Noto Sans KR", sans-serif';ctx.fillText('보낼 곳을 누른 채 겨누고 놓으세요',G.cw/2,G.py-40)}
+}
+function fmt(n){return n.toLocaleString('ko-KR')}
+function fmtTime(t){t=Math.floor(t);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
+function updateHUD(force){if(!S)return;
+  const pct=S.cleared/S.total*LIMIT,price=Math.round(BASE_PRICE*(1+pct));
+  if(force||price!==hud.price){hud.price=price;ui.price.textContent=fmt(price);const done=pct>=LIMIT-1e-9;
+    ui.chg.textContent=done?'▲30.00% 상한가':(pct>0?'▲':'')+(pct*100).toFixed(2)+'%';ui.chg.className='chg '+(done?'limit':pct>0?'':'flat')}
+  const nb=S.balls.length;if(force||nb!==hud.balls){hud.balls=nb;ui.balls.textContent='🐜 '+nb}
+  const t=Math.floor(S.time);if(force||t!==hud.time){hud.time=t;ui.time.textContent=fmtTime(t)}
+  const sc=run?run.score+(S.finished?0:S.score):S.score;if(force||sc!==hud.score){hud.score=sc;ui.hscore.textContent=fmt(sc)}
+  if(force){ui.stage.textContent=(S.idx+1)+' · '+STAGES[S.idx].name;ui.seed.textContent=run?'시드 '+'💰'.repeat(run.seeds):'연습'}}
+
+function frame(ts){raf=requestAnimationFrame(frame);const dt=Math.min(0.033,(ts-last)/1000||0);last=ts;if(mode==='play')step(dt);draw();if(mode==='play')updateHUD(false)}
+
+// ---------- flow ----------
+function show(which){[ui.ovTitle,ui.ovSelect,ui.ovHelp,ui.ovPause,ui.ovEnd,ui.ovRec,ui.ovName,ui.ovRank].forEach(o=>o.hidden=true);if(which)which.hidden=false;
+  const inPlay=which===null;ui.inv.hidden=!inPlay;ui.pauseBtn.hidden=!inPlay}
+function startStage(idx){layout();makeSprite();newGame(idx);mode='play';show(null);last=performance.now()}
+function endGame(cleared){S.finished=true;mode='end';updateHUD(true);const t=Math.floor(S.time);
+  const stars=cleared?(t<=STAR_T[0]?3:t<=STAR_T[1]?2:t<=STAR_T[2]?1:0):0;
+  const timeBonus=cleared?Math.max(0,180-t)*20:0,clearBonus=cleared?3000:0,total=S.score+timeBonus+clearBonus;
+  ui.endTitle.textContent=cleared?'상한가 🎉':'상장폐지 💀';ui.endStars.textContent=cleared?'★'.repeat(stars)+'☆'.repeat(3-stars):'';
+  ui.endSub.textContent=cleared?`${STAGES[S.idx].name} 스테이지를 ${fmtTime(t)} 만에 돌파했어요.`:`개미를 모두 잃었어요. 매도벽 ${Math.round(S.cleared/S.total*100)}% 정리.`;
+  ui.resultGrid.innerHTML=[['벽돌 점수',S.score],['클리어 보너스',clearBonus],['시간 보너스',timeBonus],['최종 점수',total]].map(([k,v],i)=>`<span${i===3?' style="font-weight:700"':''}>${k}</span><b>${fmt(v)}</b>`).join('');
+  if(cleared){sfx.clear();const key=String(S.idx);const b=save.best[key]||{};const nb={time:b.time==null?t:Math.min(b.time,t),score:Math.max(b.score||0,total),stars:Math.max(b.stars||0,stars)};
+    save.best[key]=nb;save.unlocked=Math.max(save.unlocked,Math.min(STAGES.length,S.idx+2));persist()}else sfx.fail();
+  const last=S.idx+1>=STAGES.length;
+  if(run){if(cleared){run.score+=total;run.reached=S.idx+1}else run.seeds--;
+    ui.endRun.textContent=`누적 ${fmt(run.score)}점 · 시드 ${'💰'.repeat(run.seeds)||'없음'}`;
+    const over=(!cleared&&run.seeds<=0)||(cleared&&last);
+    ui.nextBtn.hidden=!(cleared&&!last);ui.retryBtn.hidden=!(!cleared&&run.seeds>0);ui.retryBtn.textContent=`다시 매수 (시드 ${run.seeds})`;
+    ui.endSelBtn.hidden=true;ui.quitRunBtn.hidden=over;ui.recordBtn.hidden=!over;
+    if(cleared&&last)ui.endSub.textContent='10스테이지 전부 돌파! 전설의 개미입니다.'}
+  else{ui.endRun.textContent='';ui.nextBtn.hidden=!(cleared&&!last);ui.retryBtn.hidden=false;ui.retryBtn.textContent='다시 매수';ui.endSelBtn.hidden=false;ui.quitRunBtn.hidden=true;ui.recordBtn.hidden=true}
+  updateHUD(true);
+  setTimeout(()=>{if(mode==='end')show(ui.ovEnd)},cleared?700:400)}
+// ---------- run (도전) & ranking ----------
+function startRun(){run={score:0,seeds:RUN_SEEDS,reached:0};startStage(0)}
+function finishRun(){if(!run)return;mode='name';ui.nameScore.textContent=fmt(run.score);
+  ui.nameSub.textContent=run.reached>=STAGES.length?'10스테이지 올클리어':run.reached>0?`${run.reached}스테이지까지 돌파`:'첫 스테이지 돌파 전';
+  ui.nick.value=save.nick||'';show(ui.ovName);setTimeout(()=>ui.nick.focus(),50)}
+function renderRank(mine){const list=save.rank||[];ui.rankBody.innerHTML=list.length?list.map((r,i)=>`<tr${mine&&r.ts===mine?' class="me"':''}><td>${i+1}</td><td class="name">${esc(r.name)}</td><td class="n">${fmt(r.score)}</td><td class="n">${r.reached>=STAGES.length?'ALL':r.reached+'단계'}</td></tr>`).join('')
+  :'<tr><td colspan="4" style="text-align:center;color:var(--muted)">아직 기록이 없어요. 도전 모드로 첫 기록을 남겨보세요.</td></tr>'}
+function esc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+$('saveBtn').addEventListener('click',()=>{if(!run)return;const name=(ui.nick.value.trim()||'개미').slice(0,8);save.nick=name;
+  const rec={name,score:run.score,reached:run.reached,ts:Date.now()};save.rank=(save.rank||[]).concat(rec).sort((a,b)=>b.score-a.score||b.reached-a.reached||a.ts-b.ts).slice(0,RANK_MAX);persist();
+  run=null;renderRank(rec.ts);show(ui.ovRank);mode='rank'});
+ui.nick.addEventListener('keydown',e=>{if(e.key==='Enter')$('saveBtn').click()});
+$('skipBtn').addEventListener('click',()=>{run=null;show(ui.ovTitle);mode='title'});
+$('rankBtn').addEventListener('click',()=>{renderRank();show(ui.ovRank);mode='rank'});
+$('rankBack').addEventListener('click',()=>{show(ui.ovTitle);mode='title'});
+$('runBtn').addEventListener('click',startRun);
+ui.quitRunBtn.addEventListener('click',finishRun);ui.recordBtn.addEventListener('click',finishRun);ui.quitRunBtn2.addEventListener('click',finishRun);
+function renderSelect(){ui.stageGrid.innerHTML=STAGES.map((st,i)=>{const b=save.best[String(i)];const locked=i+1>save.unlocked;
+  return `<button class="card" type="button" data-i="${i}" ${locked?'disabled':''}><span class="t">${i+1}. ${st.name}</span><span class="m">입구 ${st.gap}칸${locked?' · 🔒 잠김':''}</span><span class="s">${b?'★'.repeat(b.stars)+'☆'.repeat(3-b.stars)+' '+fmtTime(b.time):'미클리어'}</span></button>`}).join('');
+  ui.stageGrid.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>startStage(+b.dataset.i)))}
+function renderRec(){const keys=Object.keys(save.best);const stars=keys.reduce((a,k)=>a+(save.best[k].stars||0),0),score=keys.reduce((a,k)=>a+(save.best[k].score||0),0);
+  ui.recSummary.textContent=`클리어 ${keys.length}/${STAGES.length} · 별 ${stars}/${STAGES.length*3} · 누적 최고 점수 ${fmt(score)}`;
+  ui.recGrid.innerHTML=STAGES.map((st,i)=>{const b=save.best[String(i)];return `<div class="card"><span class="t">${i+1}. ${st.name}</span><span class="s">${b?'★'.repeat(b.stars)+'☆'.repeat(3-b.stars):'—'}</span><span class="m">${b?'최고 '+fmtTime(b.time)+' · '+fmt(b.score)+'점':'기록 없음'}</span></div>`}).join('')}
+$('playBtn').addEventListener('click',()=>{run=null;renderSelect();show(ui.ovSelect);mode='select'});
+$('selBack').addEventListener('click',()=>{show(ui.ovTitle);mode='title'});
+$('devUnlock').addEventListener('click',()=>{save.unlocked=STAGES.length;persist();renderSelect()});
+$('helpBtn').addEventListener('click',()=>{show(ui.ovHelp);mode='help'});$('helpBack').addEventListener('click',()=>{show(ui.ovTitle);mode='title'});
+$('recBtn').addEventListener('click',()=>{renderRec();show(ui.ovRec);mode='rec'});$('recBack').addEventListener('click',()=>{show(ui.ovTitle);mode='title'});
+$('retryBtn').addEventListener('click',()=>startStage(S.idx));ui.nextBtn.addEventListener('click',()=>startStage(S.idx+1));
+$('endSelBtn').addEventListener('click',()=>{renderSelect();show(ui.ovSelect);mode='select'});
+function pause(){if(mode!=='play')return;mode='pause';show(ui.ovPause);ui.quitBtn.hidden=!!run;ui.quitRunBtn2.hidden=!run}
+function resume(){if(mode!=='pause')return;mode='play';show(null);last=performance.now()}
+ui.pauseBtn.addEventListener('click',pause);$('resumeBtn').addEventListener('click',resume);
+$('quitBtn').addEventListener('click',()=>{run=null;renderSelect();show(ui.ovSelect);mode='select'});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
+
+// ---------- input ----------
+function toXY(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*G.cw,y:(e.clientY-r.top)/r.height*G.ch}}
+let dragging=false,dragStartX=0,paddleAtStart=0,activeId=null;
+wrap.addEventListener('pointerdown',e=>{if(mode!=='play'||e.target.closest('button'))return;activeId=e.pointerId;try{wrap.setPointerCapture(e.pointerId)}catch(err){}
+  const p=toXY(e);if(S.aiming){S.aim=p}else{dragging=true;dragStartX=e.clientX;paddleAtStart=S.paddle.x;if(e.pointerType==='mouse')S.paddle.x=p.x}});
+wrap.addEventListener('pointermove',e=>{if(mode!=='play'||e.pointerId!==activeId)return;const p=toXY(e);
+  if(S.aiming){if(S.aim)S.aim=p;return}
+  if(!dragging)return;if(e.pointerType==='mouse')S.paddle.x=p.x;else{const r=cv.getBoundingClientRect();S.paddle.x=paddleAtStart+(e.clientX-dragStartX)/r.width*G.cw*1.4}});
+function pointerEnd(e){if(e.pointerId!==activeId)return;activeId=null;dragging=false;if(mode!=='play'||!S.aiming||!S.aim)return;
+  const b=S.balls[0];const dx=S.aim.x-b.x,dy=S.aim.y-b.y;S.aim=null;if(dy>-10&&Math.abs(dx)<10)return;
+  let a=Math.atan2(dy,dx);const minA=-Math.PI+0.2,maxA=-0.2;if(a>maxA&&a<Math.PI/2)a=maxA;else if(a>=Math.PI/2||a<minA)a=minA;
+  b.vx=Math.cos(a);b.vy=Math.sin(a);S.aiming=false;S.started=true;S.peak=1}
+wrap.addEventListener('pointerup',pointerEnd);wrap.addEventListener('pointercancel',e=>{activeId=null;dragging=false;if(S)S.aim=null});
+wrap.addEventListener('mousemove',e=>{if(mode==='play'&&S&&!S.aiming&&!dragging&&e.buttons===0)S.paddle.x=toXY(e).x});
+const keys={};
+window.addEventListener('keydown',e=>{if(e.target===ui.nick)return;keys[e.key]=true;if(e.key==='p'||e.key==='Escape'){mode==='play'?pause():resume()}
+  if(mode==='play'&&S.aiming&&(e.key===' '||e.key==='ArrowUp')){e.preventDefault();const b=S.balls[0];const a=(-90+(Math.random()*40-20))*Math.PI/180;b.vx=Math.cos(a);b.vy=Math.sin(a);S.aiming=false;S.started=true;S.peak=1}
+  if(mode==='play'&&e.key>='1'&&e.key<='3')useInv(['credit','earn','theme'][+e.key-1])});
+window.addEventListener('keyup',e=>{keys[e.key]=false});
+setInterval(()=>{if(mode!=='play'||!S||S.aiming)return;if(keys.ArrowLeft)S.paddle.x-=9;if(keys.ArrowRight)S.paddle.x+=9},16);
+
+// ---------- resize ----------
+window.addEventListener('resize',()=>{if(!S){layout();return}const ow=G.cw,oh=G.ch;layout();makeSprite();const sx=G.cw/ow,sy=G.ch/oh;
+  S.balls.forEach(b=>{b.x*=sx;b.y*=sy});S.items.forEach(i=>{i.x*=sx;i.y*=sy});S.paddle.x*=sx});
+
+// ---------- boot ----------
+function boot(){layout();makeSprite();mode='title';show(ui.ovTitle);raf=requestAnimationFrame(frame)}
+window.__antDbg=()=>({S,G,mode});
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot();
+})();
+</script>

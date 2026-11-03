@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>리밸런싱 계산기(포트폴리오 비중 계산기)</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== 리밸런싱 계산기 (No.107) : 크림/베이지 시스템 ===== */
+.nct-rebal{
+  --nct-bg:#FAF7F0; --nct-card:#FFFDF7; --nct-line:#E8E0D0;
+  --nct-ink:#3D3529; --nct-sub:#8A7F6C; --nct-accent:#8B6F47;
+  --nct-loss:#C0563A; --nct-gain:#5B8A5B; --nct-warn:#C79A3B;
+  max-width:600px; margin:0 auto; padding:20px 16px 32px;
+  background:var(--nct-bg); color:var(--nct-ink);
+  font-family:'Noto Sans KR',sans-serif; line-height:1.6;
+  border-radius:18px; box-sizing:border-box;
+}
+.nct-rebal *{box-sizing:border-box;}
+.nct-rebal .nct-num{font-family:'JetBrains Mono',monospace;}
+
+.nct-rebal .nct-title{font-size:24px; font-weight:900; letter-spacing:-.5px; margin:0 0 6px;}
+.nct-rebal .nct-sub{font-size:13.5px; color:var(--nct-sub); margin:0 0 18px;}
+
+.nct-rebal .nct-rows{margin-bottom:10px;}
+.nct-rebal .nct-row{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:13px;
+  padding:13px 13px; margin-bottom:9px;
+}
+.nct-rebal .nct-rowtop{display:flex; gap:8px; align-items:center; margin-bottom:9px;}
+.nct-rebal .nct-nameinput{
+  flex:1; padding:10px 12px; font-size:14.5px; font-weight:700;
+  border:1.5px solid var(--nct-line); border-radius:10px; background:#fff; outline:none;
+  transition:border-color .15s;
+}
+.nct-rebal .nct-nameinput:focus{border-color:var(--nct-accent);}
+.nct-rebal .nct-delbtn{
+  flex-shrink:0; width:34px; height:34px; border-radius:10px; cursor:pointer;
+  background:#fff; border:1.5px solid var(--nct-line); color:var(--nct-sub);
+  font-size:15px; display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.nct-rebal .nct-delbtn:active{background:#FBF0EC; border-color:var(--nct-loss); color:var(--nct-loss);}
+.nct-rebal .nct-rowfields{display:flex; gap:8px;}
+.nct-rebal .nct-rfield{flex:1;}
+.nct-rebal .nct-rlabel{font-size:11px; font-weight:700; color:var(--nct-sub); margin-bottom:4px; display:block;}
+.nct-rebal .nct-rinwrap{position:relative;}
+.nct-rebal .nct-rinput{
+  width:100%; padding:10px 30px 10px 10px; font-size:14px; font-weight:700;
+  font-family:'JetBrains Mono',monospace; text-align:right;
+  border:1.5px solid var(--nct-line); border-radius:9px; background:#fff; outline:none;
+  transition:border-color .15s;
+}
+.nct-rebal .nct-rinput:focus{border-color:var(--nct-accent);}
+.nct-rebal .nct-runit{
+  position:absolute; right:9px; top:50%; transform:translateY(-50%);
+  font-size:11.5px; color:var(--nct-sub); pointer-events:none;
+}
+
+.nct-rebal .nct-addbtn{
+  width:100%; padding:12px; cursor:pointer; margin-bottom:14px;
+  background:#fff; color:var(--nct-accent); border:1.5px dashed var(--nct-accent);
+  border-radius:12px; font-size:14px; font-weight:700;
+  font-family:'Noto Sans KR',sans-serif; transition:all .15s;
+}
+.nct-rebal .nct-addbtn:active{background:#F6F0E4;}
+
+.nct-rebal .nct-sumcheck{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 14px; border-radius:11px; margin-bottom:14px; font-size:13px; font-weight:700;
+  background:var(--nct-card); border:1.5px solid var(--nct-line);
+}
+.nct-rebal .nct-sumcheck.ok{border-color:var(--nct-gain); color:var(--nct-gain); background:#F1F7F1;}
+.nct-rebal .nct-sumcheck.bad{border-color:var(--nct-warn); color:var(--nct-warn); background:#FBF5E6;}
+
+.nct-rebal .nct-go{
+  width:100%; padding:15px; cursor:pointer;
+  background:var(--nct-accent); color:#fff; border:none; border-radius:12px;
+  font-size:16px; font-weight:900; font-family:'Noto Sans KR',sans-serif;
+  letter-spacing:-.3px; transition:opacity .15s;
+}
+.nct-rebal .nct-go:active{opacity:.8;}
+
+.nct-rebal .nct-result{display:none; margin-top:16px;}
+.nct-rebal .nct-result.show{display:block; animation:nctFade .3s ease;}
+@keyframes nctFade{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:none;}}
+
+.nct-rebal .nct-totalcard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px;
+  padding:16px; text-align:center; margin-bottom:12px;
+}
+.nct-rebal .nct-totallabel{font-size:12.5px; font-weight:700; color:var(--nct-sub); margin-bottom:4px;}
+.nct-rebal .nct-totalval{font-size:22px; font-weight:900;}
+
+.nct-rebal .nct-resultrow{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:13px;
+  padding:14px 15px; margin-bottom:9px;
+}
+.nct-rebal .nct-resultrow.buy{border-color:var(--nct-gain);}
+.nct-rebal .nct-resultrow.sell{border-color:var(--nct-loss);}
+.nct-rebal .nct-rrtop{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+.nct-rebal .nct-rrname{font-size:14.5px; font-weight:800;}
+.nct-rebal .nct-rrtag{
+  font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:20px;
+}
+.nct-rebal .nct-rrtag.buy{background:#F1F7F1; color:var(--nct-gain);}
+.nct-rebal .nct-rrtag.sell{background:#FBF0EC; color:var(--nct-loss);}
+.nct-rebal .nct-rrtag.keep{background:#F3EEE3; color:var(--nct-sub);}
+.nct-rebal .nct-rrbars{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+.nct-rebal .nct-rrbarwrap{flex:1; height:8px; border-radius:5px; background:#EBE4D6; overflow:hidden; position:relative;}
+.nct-rebal .nct-rrbarcur{position:absolute; top:0; left:0; height:100%; background:var(--nct-sub); border-radius:5px;}
+.nct-rebal .nct-rrbartgt{position:absolute; top:-2px; width:2px; height:12px; background:var(--nct-accent);}
+.nct-rebal .nct-rrpct{font-size:11.5px; color:var(--nct-sub); font-weight:700; white-space:nowrap;}
+.nct-rebal .nct-rramt{font-size:15px; font-weight:900;}
+.nct-rebal .nct-rramt.buy{color:var(--nct-gain);}
+.nct-rebal .nct-rramt.sell{color:var(--nct-loss);}
+
+.nct-rebal .nct-copy{
+  width:100%; padding:13px; cursor:pointer; margin-top:4px; margin-bottom:16px;
+  background:#fff; color:var(--nct-accent); border:1.5px solid var(--nct-accent);
+  border-radius:12px; font-size:14.5px; font-weight:700;
+  font-family:'Noto Sans KR',sans-serif; transition:all .15s;
+}
+.nct-rebal .nct-copy:active{background:#F6F0E4;}
+.nct-rebal .nct-copy.done{background:var(--nct-accent); color:#fff;}
+
+.nct-rebal .nct-disc{
+  font-size:12px; color:var(--nct-sub); line-height:1.7;
+  background:#F3EEE3; border-radius:10px; padding:12px 14px; margin-top:16px; margin-bottom:12px;
+}
+.nct-rebal .nct-foot{font-size:11.5px; color:var(--nct-sub); text-align:center;}
+
+@media (max-width:480px){
+  .nct-rebal{padding:16px 12px 26px;}
+  .nct-rebal .nct-title{font-size:21px;}
+  .nct-rebal .nct-rowfields{flex-wrap:wrap;}
+  .nct-rebal .nct-rfield{min-width:calc(50% - 4px);}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="nct-rebal" id="nctRebal">
+<div class="nct-title">⚖️ 리밸런싱 계산기</div>
+<div class="nct-sub">목표 비중을 정하면 종목별로 얼마를 사고 팔아야 하는지 계산해 드려요.</div>
+<div class="nct-rows" id="nctRows"></div>
+<button class="nct-addbtn" id="nctAdd">➕ 종목 추가하기</button>
+<div class="nct-sumcheck" id="nctSumCheck">목표 비중 합계 0%</div>
+<button class="nct-go" id="nctGo">리밸런싱 계산하기 ⚖️</button>
+<div class="nct-result" id="nctResult">
+<div class="nct-totalcard">
+<div class="nct-totallabel">현재 포트폴리오 총액</div>
+<div class="nct-totalval nct-num" id="nctTotalVal">0원</div>
+</div>
+<div id="nctResultRows"></div>
+<button class="nct-copy" id="nctCopy">📋 결과 복사하기</button>
+</div>
+<div class="nct-disc">
+    이 계산은 매수·매도 수수료와 세금을 반영하지 않은 단순 금액 기준이에요. 실제 매매 시에는 종목당 최소 매매 단위(주 단위)에 따라
+    금액이 정확히 맞아떨어지지 않을 수 있어요. 투자 참고용이며 특정 종목의 매수나 매도를 추천하지 않습니다.
+  </div>
+<div class="nct-foot">stockchild.com · 주소남 투자도구 · 리밸런싱 계산기</div>
+</div>
+<details class="app-faq"><summary>자주 묻는 질문</summary><div class="rank-math-block" id="rank-math-faq">
+<div class="rank-math-list">
+<div class="rank-math-list-item" id="faq-question-1786195810845">
+<h3 class="rank-math-question"><strong>Q1. 리밸런싱이 정확히 뭔가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 시간이 지나며 흐트러진 포트폴리오 비중을 원래 계획한 비중으로 되돌리는 작업이에요. 많이 오른 자산은 일부 팔고, 비중이 작아진 자산은 더 사서 균형을 맞춥니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786195819994">
+<h3 class="rank-math-question"><strong>Q2. 종목을 몇 개까지 추가할 수 있나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 제한이 따로 없어요. 종목 추가하기 버튼으로 필요한 만큼 계속 추가하실 수 있어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786195827388">
+<h3 class="rank-math-question"><strong>Q3. 목표 비중 합계가 100퍼센트가 안 되면 어떻게 되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 계산은 되지만 화면에 경고 표시가 나와요. 정확한 계산을 위해서는 목표 비중 합계를 100퍼센트로 맞춰주시는 게 좋아요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786195835219">
+<h3 class="rank-math-question"><strong>Q4. 계산된 금액 그대로 사고팔면 되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 참고용으로 봐주세요. 실제로는 주식을 소수점 단위로 살 수 없어서 정확히 맞아떨어지지 않을 수 있고, 수수료와 세금도 반영되지 않았어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786195849316">
+<h3 class="rank-math-question"><strong>Q5. 리밸런싱은 얼마나 자주 해야 하나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 정해진 답은 없어요. 분기나 반기마다 정기적으로 하는 방법과, 목표 비중에서 일정 폭 이상 벗어났을 때만 하는 방법이 흔히 쓰입니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1786195857859">
+<h3 class="rank-math-question"><strong>Q6. 입력한 종목명이나 금액이 저장되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니에요. 모든 계산은 브라우저 안에서만 이뤄지고 저장되거나 전송되지 않습니다.</p>
+</div>
+</div>
+</div>
+</div></details>
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%eb%a6%ac%eb%b0%b8%eb%9f%b0%ec%8b%b1-%ea%b3%84%ec%82%b0%ea%b8%b0%ed%8f%ac%ed%8a%b8%ed%8f%b4%eb%a6%ac%ec%98%a4-%eb%b9%84%ec%a4%91-%ea%b3%84%ec%82%b0%ea%b8%b0/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/rebalancing-calculator.js"></script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

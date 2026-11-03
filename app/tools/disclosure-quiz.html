@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>공시 골든벨 오늘의 문제</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+.nct-goldbell{
+  --nct-bg:#FAF7F0; --nct-card:#FFFDF7; --nct-line:#E8E0D0; --nct-ink:#3D3529; --nct-sub:#8A7F6C;
+  --nct-accent:#8B6F47; --nct-loss:#C0563A; --nct-gain:#5B8A5B; --nct-warn:#C79A3B;
+  max-width:580px; margin:0 auto; padding:20px 16px 32px; background:var(--nct-bg); color:var(--nct-ink);
+  font-family:'Noto Sans KR',sans-serif; line-height:1.6; border-radius:18px; box-sizing:border-box;
+}
+.nct-goldbell *{box-sizing:border-box;}
+.nct-goldbell .nct-num{font-family:'JetBrains Mono',monospace;}
+.nct-goldbell .nct-title{font-size:23px; font-weight:900; letter-spacing:-.5px; margin:0 0 4px;}
+.nct-goldbell .nct-date{font-size:12.5px; font-weight:700; color:var(--nct-accent); margin-bottom:6px;}
+.nct-goldbell .nct-sub{font-size:13.5px; color:var(--nct-sub); margin:0 0 16px;}
+
+.nct-goldbell .nct-progresswrap{margin-bottom:14px;}
+.nct-goldbell .nct-progresslabel{display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-goldbell .nct-dots{display:flex; gap:6px;}
+.nct-goldbell .nct-dot{flex:1; height:8px; border-radius:5px; background:#EEE6D6;}
+.nct-goldbell .nct-dot.done{background:var(--nct-gain);}
+.nct-goldbell .nct-dot.wrong{background:var(--nct-loss);}
+.nct-goldbell .nct-dot.current{background:var(--nct-accent);}
+
+.nct-goldbell .nct-qcard{background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:16px; padding:20px 18px; margin-bottom:14px;}
+.nct-goldbell .nct-qnum{font-size:12px; font-weight:700; color:var(--nct-sub); margin-bottom:8px;}
+.nct-goldbell .nct-qtext{font-size:15.5px; font-weight:700; line-height:1.6; margin-bottom:16px;}
+.nct-goldbell .nct-choices{display:flex; flex-direction:column; gap:8px;}
+.nct-goldbell .nct-choice{padding:13px 15px; cursor:pointer; background:#fff; border:1.5px solid var(--nct-line); border-radius:12px; font-size:14px; font-weight:600; transition:all .12s;}
+.nct-goldbell .nct-choice:active{transform:scale(.99);}
+.nct-goldbell .nct-choice.correct{border-color:var(--nct-gain); background:#F1F7F1; color:#3d6b3d;}
+.nct-goldbell .nct-choice.wrong{border-color:var(--nct-loss); background:#FBF0EC; color:#96432a;}
+.nct-goldbell .nct-explain{font-size:12.5px; color:var(--nct-sub); background:#F3EEE3; border-radius:10px; padding:11px 13px; margin-top:12px; line-height:1.6; display:none;}
+.nct-goldbell .nct-explain.show{display:block;}
+.nct-goldbell .nct-nextbtn{width:100%; padding:14px; margin-top:12px; cursor:pointer; background:var(--nct-accent); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:800; display:none;}
+.nct-goldbell .nct-nextbtn.show{display:block;}
+
+.nct-goldbell .nct-finalcard{display:none; text-align:center; background:var(--nct-card); border:2px solid var(--nct-accent); border-radius:18px; padding:26px 20px; margin-bottom:14px;}
+.nct-goldbell .nct-finalcard.show{display:block; animation:nctFade .3s ease;}
+@keyframes nctFade{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:none;}}
+.nct-goldbell .nct-finalicon{font-size:40px; margin-bottom:8px;}
+.nct-goldbell .nct-finalscore{font-size:24px; font-weight:900; margin-bottom:6px;}
+.nct-goldbell .nct-finalgrade{font-size:14.5px; font-weight:700; color:var(--nct-accent); margin-bottom:10px;}
+.nct-goldbell .nct-finalmsg{font-size:13px; color:var(--nct-sub); margin-bottom:16px; line-height:1.6;}
+.nct-goldbell .nct-copybtn{width:100%; padding:13px; cursor:pointer; background:#fff; color:var(--nct-accent); border:1.5px solid var(--nct-accent); border-radius:12px; font-size:14px; font-weight:700;}
+.nct-goldbell .nct-copybtn.done{background:var(--nct-accent); color:#fff;}
+
+.nct-goldbell .nct-disc{
+  font-size:12px; color:var(--nct-sub); line-height:1.7;
+  background:#F3EEE3; border-radius:10px; padding:12px 14px; margin-top:6px; margin-bottom:12px;
+}
+.nct-goldbell .nct-foot{font-size:11.5px; color:var(--nct-sub); text-align:center;}
+
+@media (max-width:480px){
+  .nct-goldbell{padding:16px 12px 26px;}
+  .nct-goldbell .nct-title{font-size:20px;}
+  .nct-goldbell .nct-qtext{font-size:14.5px;}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="nct-goldbell" id="nctGoldbell">
+<div class="nct-title">🔔 공시 골든벨</div>
+<div class="nct-date" id="nctDateShow"></div>
+<div class="nct-sub">오늘의 공시 5문제, 매일 새로운 문제로 바뀌어요.</div>
+<div class="nct-progresswrap">
+<div class="nct-progresslabel"><span>진행 상황</span><span id="nctProgressText">0 / 5</span></div>
+<div class="nct-dots" id="nctDots"></div>
+</div>
+<div class="nct-qcard" id="nctQcard">
+<div class="nct-qnum" id="nctQnum">문제 1</div>
+<div class="nct-qtext" id="nctQtext"></div>
+<div class="nct-choices" id="nctChoices"></div>
+<div class="nct-explain" id="nctExplain"></div>
+<button class="nct-nextbtn" id="nctNext">다음 문제 →</button>
+</div>
+<div class="nct-finalcard" id="nctFinal">
+<div class="nct-finalicon" id="nctFinalIcon">🔔</div>
+<div class="nct-finalscore" id="nctFinalScore"></div>
+<div class="nct-finalgrade" id="nctFinalGrade"></div>
+<div class="nct-finalmsg" id="nctFinalMsg"></div>
+<button class="nct-copybtn" id="nctCopy">결과 복사하기</button>
+</div>
+<div class="nct-disc">
+    오늘의 문제는 날짜를 기준으로 정해져서, 같은 날에는 누가 풀어도 같은 5문제가 나와요. 자정이 지나면 새로운 문제로 바뀝니다. 공시 유형 이름과 설명은 이해를 돕기 위한 일반적인 정의이며, 실제 공시 해석 시에는 원문을 직접 확인하세요.
+  </div>
+<div class="nct-foot">stockchild.com · 주소남 투자도구 · 공시 골든벨</div>
+</div>
+<details class="app-faq"><summary>자주 묻는 질문</summary><div class="rank-math-block" id="rank-math-faq">
+<div class="rank-math-list">
+<div class="rank-math-list-item" id="faq-question-1787063869345">
+<h3 class="rank-math-question"><strong>Q1. 문제는 매일 바뀌나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 네, 날짜를 기준으로 오늘의 문제가 정해져요. 자정이 지나면 새로운 다섯 문제로 바뀝니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787063876646">
+<h3 class="rank-math-question"><strong>Q2. 같은 날 여러 번 풀면 문제가 바뀌나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니요, 같은 날짜라면 몇 번을 다시 풀어도 항상 같은 다섯 문제가 나와요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787063882663">
+<h3 class="rank-math-question"><strong>Q3. 문제 난이도는 어느 정도인가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 투자를 처음 시작하는 분도 풀 수 있는 수준이에요. 어려운 법률 용어 대신 실제 상황을 쉬운 말로 풀어서 설명합니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787063899590">
+<h3 class="rank-math-question"><strong>Q4. 몇 문제나 풀 수 있나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 문제은행에 서른 개의 공시 유형이 있고, 매일 그중 다섯 개가 무작위로 출제돼요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787063906700">
+<h3 class="rank-math-question"><strong>Q5. 입력한 정보가 저장되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니요, 브라우저 안에서만 진행되고 저장되지 않아요. 새로고침하면 처음부터 다시 시작됩니다.</p>
+</div>
+</div>
+</div>
+</div></details>
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%ea%b3%b5%ec%8b%9c-%ea%b3%a8%eb%93%a0%eb%b2%a8-%ec%98%a4%eb%8a%98%ec%9d%98-%eb%ac%b8%ec%a0%9c/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+(function(){
+  var root = document.getElementById('nctGoldbell');
+  function $(id){ return document.getElementById(id); }
+
+  var BANK = [
+    { term:'유상증자', desc:'회사가 새로운 주식을 발행해서 투자자에게 돈을 받고 파는 것을 무엇이라고 할까요?', wrong:['무상증자','자기주식취득','액면분할'] },
+    { term:'무상증자', desc:'회사가 이익잉여금 등을 자본으로 옮기면서, 주주에게 대가 없이 새 주식을 나눠주는 것을 무엇이라고 할까요?', wrong:['유상증자','유상감자','주식소각'] },
+    { term:'무상감자', desc:'주주에게 아무런 보상 없이 회사의 자본금과 발행주식수를 줄이는 것을 무엇이라고 할까요?', wrong:['유상감자','무상증자','액면병합'] },
+    { term:'전환사채', desc:'일정 조건에 따라 주식으로 바꿀 수 있는 권리가 붙은 회사채를 무엇이라고 할까요?', wrong:['신주인수권부사채','교환사채','일반사채'] },
+    { term:'신주인수권부사채', desc:'채권은 그대로 두고, 미리 정한 가격에 새 주식을 살 수 있는 권리가 별도로 붙은 회사채를 무엇이라고 할까요?', wrong:['전환사채','교환사채','자기주식'] },
+    { term:'자기주식취득', desc:'회사가 자기 회사 주식을 시장에서 다시 사들이는 결정을 무엇이라고 할까요?', wrong:['자기주식처분','유상감자','주식소각'] },
+    { term:'자기주식처분', desc:'회사가 보유하고 있던 자기 회사 주식을 다시 시장에 파는 결정을 무엇이라고 할까요?', wrong:['자기주식취득','유상증자','무상증자'] },
+    { term:'주식소각', desc:'회사가 보유한 자기주식을 완전히 없애서 발행주식수를 줄이는 것을 무엇이라고 할까요?', wrong:['무상감자','액면분할','유상감자'] },
+    { term:'액면분할', desc:'주식 한 주의 액면가를 낮추고 그만큼 주식 수를 늘리는 것을 무엇이라고 할까요?', wrong:['액면병합','무상증자','주식소각'] },
+    { term:'액면병합', desc:'여러 주의 액면가를 합쳐서 주식 수를 줄이고 한 주당 가격을 높이는 것을 무엇이라고 할까요?', wrong:['액면분할','무상감자','유상감자'] },
+    { term:'최대주주변경', desc:'회사의 최대주주 지위가 다른 사람이나 법인으로 바뀌는 것을 알리는 공시를 무엇이라고 할까요?', wrong:['주요주주변경','대표이사변경','최대주주등소유주식변동'] },
+    { term:'회사분할', desc:'하나의 회사가 사업 부문을 나눠서 별도의 회사로 쪼개는 결정을 무엇이라고 할까요?', wrong:['회사합병','영업양도','영업양수'] },
+    { term:'회사합병', desc:'두 개 이상의 회사가 하나로 합쳐지는 결정을 무엇이라고 할까요?', wrong:['회사분할','영업양수','타법인주식취득'] },
+    { term:'영업양수', desc:'다른 회사의 특정 사업 부문을 통째로 사들이는 결정을 무엇이라고 할까요?', wrong:['영업양도','회사합병','타법인주식취득'] },
+    { term:'영업양도', desc:'회사가 자기 사업의 일부나 전부를 다른 회사에 넘기는 결정을 무엇이라고 할까요?', wrong:['영업양수','회사분할','자기주식처분'] },
+    { term:'관리종목지정', desc:'상장폐지 우려가 있는 종목에 거래소가 투자주의를 주기 위해 붙이는 지정을 무엇이라고 할까요?', wrong:['상장폐지결정','불성실공시법인지정','거래정지'] },
+    { term:'상장폐지', desc:'거래소가 특정 종목의 상장 자격을 완전히 취소하는 것을 무엇이라고 할까요?', wrong:['관리종목지정','거래정지','불성실공시법인지정'] },
+    { term:'불성실공시법인지정', desc:'공시 의무를 어기거나 늦게 공시한 기업에 거래소가 내리는 제재를 무엇이라고 할까요?', wrong:['관리종목지정','상장폐지','감사의견거절'] },
+    { term:'감사의견거절', desc:'외부 감사인이 회사의 재무제표에 대해 의견 자체를 낼 수 없다고 판단하는 감사의견을 무엇이라고 할까요?', wrong:['감사의견한정','감사의견부적정','감사의견적정'] },
+    { term:'감사의견한정', desc:'외부 감사인이 일부 사항을 제외하면 재무제표가 대체로 적정하다고 판단하는 감사의견을 무엇이라고 할까요?', wrong:['감사의견거절','감사의견부적정','감사의견적정'] },
+    { term:'횡령배임', desc:'회사의 임직원이 회사 자금이나 재산을 부당하게 유용한 혐의를 알리는 공시를 무엇이라고 할까요?', wrong:['불성실공시법인지정','타법인주식취득','채무보증'] },
+    { term:'채무보증', desc:'다른 회사가 갚아야 할 빚을 대신 갚아주기로 약속하는 결정을 무엇이라고 할까요?', wrong:['담보제공','타법인출자','유상증자'] },
+    { term:'담보제공', desc:'회사가 보유한 자산을 다른 회사나 개인의 채무를 위한 담보로 제공하는 결정을 무엇이라고 할까요?', wrong:['채무보증','타법인출자','자기주식취득'] },
+    { term:'타법인주식취득', desc:'다른 회사의 주식이나 출자증권을 사들이는 결정을 무엇이라고 할까요?', wrong:['타법인주식처분','영업양수','자기주식취득'] },
+    { term:'타법인주식처분', desc:'보유하고 있던 다른 회사의 주식이나 출자증권을 파는 결정을 무엇이라고 할까요?', wrong:['타법인주식취득','자기주식처분','영업양도'] },
+    { term:'현금배당결정', desc:'회사가 이익의 일부를 주주에게 현금으로 나눠주기로 하는 결정을 무엇이라고 할까요?', wrong:['무상증자','유상감자','주식배당결정'] },
+    { term:'주식배당결정', desc:'회사가 이익을 현금 대신 새로운 주식으로 주주에게 나눠주는 결정을 무엇이라고 할까요?', wrong:['현금배당결정','무상증자','액면분할'] },
+    { term:'대표이사변경', desc:'회사의 대표이사가 다른 사람으로 바뀌는 것을 알리는 공시를 무엇이라고 할까요?', wrong:['최대주주변경','본점소재지변경','상호변경'] },
+    { term:'상호변경', desc:'회사의 이름 자체가 바뀌는 것을 알리는 공시를 무엇이라고 할까요?', wrong:['대표이사변경','사업목적변경','본점소재지변경'] },
+    { term:'사업목적변경', desc:'정관에 있는 회사의 사업 목적을 새로 추가하거나 바꾸는 것을 알리는 공시를 무엇이라고 할까요?', wrong:['상호변경','대표이사변경','회사분할'] }
+  ];
+
+  var QUIZ_LEN = 5;
+  var quiz = [];
+  var current = 0;
+  var results = [];
+
+  function todayStr(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function todayDisplay(){
+    var d=new Date(); var w=['일','월','화','수','목','금','토'][d.getDay()];
+    return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+w+') 오늘의 공시 골든벨';
+  }
+  $('nctDateShow').textContent = todayDisplay();
+
+  function hashStr(str){
+    var h=1779033703^str.length;
+    for(var i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19); }
+    h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); h^=h>>>16; return h>>>0;
+  }
+  function mulberry32(seed){
+    var a=seed;
+    return function(){ a|=0; a=(a+0x6D2B79F5)|0; var t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; };
+  }
+  function shuffleWithRng(arr, rng){
+    var a=arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(rng()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+
+  function buildTodayQuiz(){
+    var rng = mulberry32(hashStr(todayStr()+'::goldbell'));
+    var picked = shuffleWithRng(BANK, rng).slice(0, QUIZ_LEN);
+    return picked.map(function(item){
+      var choices = shuffleWithRng([item.term].concat(item.wrong), rng);
+      return { desc:item.desc, answer:item.term, choices:choices };
+    });
+  }
+
+  function buildDots(){
+    var wrap = $('nctDots');
+    wrap.innerHTML = '';
+    for(var i=0;i<QUIZ_LEN;i++){
+      var d = document.createElement('div');
+      d.className = 'nct-dot';
+      wrap.appendChild(d);
+    }
+  }
+  function updateDots(){
+    var dots = root.querySelectorAll('.nct-dot');
+    dots.forEach(function(d, i){
+      d.className = 'nct-dot';
+      if(results[i]===true){ d.classList.add('done'); }
+      else if(results[i]===false){ d.classList.add('wrong'); }
+      else if(i===current){ d.classList.add('current'); }
+    });
+    $('nctProgressText').textContent = results.length + ' / ' + QUIZ_LEN;
+  }
+
+  function renderQuestion(){
+    var q = quiz[current];
+    $('nctQnum').textContent = '문제 ' + (current+1);
+    $('nctQtext').textContent = q.desc;
+    $('nctExplain').classList.remove('show');
+    $('nctNext').classList.remove('show');
+
+    var wrap = $('nctChoices');
+    wrap.innerHTML = '';
+    q.choices.forEach(function(choice){
+      var el = document.createElement('div');
+      el.className = 'nct-choice';
+      el.textContent = choice;
+      el.addEventListener('click', function(){
+        if(results[current] !== undefined) return;
+        var isCorrect = choice === q.answer;
+        results[current] = isCorrect;
+        if(isCorrect){ el.classList.add('correct'); }
+        else {
+          el.classList.add('wrong');
+          wrap.querySelectorAll('.nct-choice').forEach(function(c){
+            if(c.textContent === q.answer) c.classList.add('correct');
+          });
+        }
+        $('nctExplain').textContent = '정답 : ' + q.answer;
+        $('nctExplain').classList.add('show');
+        $('nctNext').classList.add('show');
+        updateDots();
+      });
+      wrap.appendChild(el);
+    });
+    updateDots();
+  }
+
+  $('nctNext').addEventListener('click', function(){
+    current++;
+    if(current >= QUIZ_LEN){ showFinal(); return; }
+    renderQuestion();
+  });
+
+  function showFinal(){
+    $('nctQcard').style.display = 'none';
+    $('nctFinal').classList.add('show');
+
+    var correctCount = results.filter(function(r){ return r===true; }).length;
+    $('nctFinalScore').textContent = correctCount + ' / ' + QUIZ_LEN + ' 문제 정답';
+
+    var gradeIcon, gradeText, msg;
+    if(correctCount===QUIZ_LEN){ gradeIcon='🏆'; gradeText='골든벨 울렸어요!'; msg='오늘의 공시 유형을 완벽하게 아셨네요. 내일 또 새로운 문제로 만나요.'; }
+    else if(correctCount>=3){ gradeIcon='🔔'; gradeText='꽤 잘 아시네요'; msg='공시 용어에 꽤 익숙하신 것 같아요. 내일 도전하면 골든벨도 노려보세요.'; }
+    else if(correctCount>=1){ gradeIcon='📖'; gradeText='조금 더 익숙해지면 좋겠어요'; msg='공시 유형은 자주 보다 보면 금방 익숙해져요. 내일 다시 도전해보세요.'; }
+    else { gradeIcon='🌱'; gradeText='오늘은 씨앗을 심었어요'; msg='공시 용어가 낯설게 느껴지셨을 수 있어요. 내일부터 하나씩 알아가 보세요.'; }
+
+    $('nctFinalIcon').textContent = gradeIcon;
+    $('nctFinalGrade').textContent = gradeText;
+    $('nctFinalMsg').textContent = msg;
+
+    root.dataset.copytext = '🔔 공시 골든벨 (' + todayStr() + ')\n' + correctCount + ' / ' + QUIZ_LEN + ' 문제 정답 · ' + gradeText + '\nstockchild.com';
+  }
+
+  $('nctCopy').addEventListener('click', function(){
+    var t = root.dataset.copytext || ''; if(!t) return;
+    var btn = $('nctCopy');
+    function ok(){ btn.classList.add('done'); btn.textContent='복사했어요!'; }
+    if(navigator.clipboard){
+      if(navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(ok).catch(function(){fallback(t);ok();}); return; }
+    }
+    fallback(t); ok();
+  });
+  function fallback(t){
+    var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta);
+  }
+
+  quiz = buildTodayQuiz();
+  buildDots();
+  renderQuestion();
+})();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

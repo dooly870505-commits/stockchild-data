@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>은퇴 인출 시뮬레이터(노후자금 몇 년 버틸까)</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+.nct-withdraw{
+  --nct-bg:#FAF7F0; --nct-card:#FFFDF7; --nct-line:#E8E0D0; --nct-ink:#3D3529; --nct-sub:#8A7F6C;
+  --nct-accent:#8B6F47; --nct-loss:#C0563A; --nct-gain:#5B8A5B; --nct-warn:#C79A3B;
+  max-width:600px; margin:0 auto; padding:20px 16px 32px; background:var(--nct-bg); color:var(--nct-ink);
+  font-family:'Noto Sans KR',sans-serif; line-height:1.6; border-radius:18px; box-sizing:border-box;
+}
+.nct-withdraw *{box-sizing:border-box;}
+.nct-withdraw .nct-num{font-family:'JetBrains Mono',monospace;}
+.nct-withdraw .nct-title{font-size:24px; font-weight:900; letter-spacing:-.5px; margin:0 0 6px;}
+.nct-withdraw .nct-sub{font-size:13.5px; color:var(--nct-sub); margin:0 0 16px;}
+
+.nct-withdraw .nct-presetlabel{font-size:13px; font-weight:700; color:var(--nct-sub); margin-bottom:8px;}
+.nct-withdraw .nct-presets{display:flex; gap:8px; margin-bottom:14px;}
+.nct-withdraw .nct-preset{flex:1; text-align:center; padding:11px 6px; cursor:pointer; background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:12px; transition:all .15s;}
+.nct-withdraw .nct-preset.on{border-color:var(--nct-accent); background:#F6F0E4; box-shadow:0 2px 8px rgba(139,111,71,.12);}
+.nct-withdraw .nct-pname{font-size:12.5px; font-weight:800;}
+.nct-withdraw .nct-prate{font-size:11px; color:var(--nct-sub); margin-top:2px;}
+
+.nct-withdraw .nct-inputcard{background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px; padding:18px 16px; margin-bottom:14px;}
+.nct-withdraw .nct-field{margin-bottom:13px;} .nct-withdraw .nct-field:last-of-type{margin-bottom:0;}
+.nct-withdraw .nct-label{display:block; font-size:13px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-withdraw .nct-inwrap{position:relative;}
+.nct-withdraw .nct-input{width:100%; padding:13px 44px 13px 14px; font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; border:1.5px solid var(--nct-line); border-radius:11px; background:#fff; color:var(--nct-ink); text-align:right; outline:none;}
+.nct-withdraw .nct-input:focus{border-color:var(--nct-accent);}
+.nct-withdraw .nct-unit{position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--nct-sub); pointer-events:none;}
+.nct-withdraw .nct-go{width:100%; padding:15px; margin-top:5px; cursor:pointer; background:var(--nct-accent); color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:900; letter-spacing:-.3px;}
+.nct-withdraw .nct-go:active{opacity:.8;}
+
+.nct-withdraw .nct-result{display:none;} .nct-withdraw .nct-result.show{display:block;}
+.nct-withdraw .nct-hero{border:2px solid var(--nct-line); border-radius:16px; padding:22px 18px; text-align:center; margin-bottom:14px; background:var(--nct-card);}
+.nct-withdraw .nct-hero.good{border-color:var(--nct-gain); background:#F1F7F1;}
+.nct-withdraw .nct-hero.bad{border-color:var(--nct-loss); background:#FBF0EC;}
+.nct-withdraw .nct-hicon{font-size:40px; margin-bottom:4px;}
+.nct-withdraw .nct-hlabel{font-size:13.5px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-withdraw .nct-hbig{font-size:24px; font-weight:900; letter-spacing:-.5px;}
+.nct-withdraw .nct-hsub{font-size:13px; color:var(--nct-sub); margin-top:6px;}
+
+.nct-withdraw .nct-summary{background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px; padding:6px 16px; margin-bottom:14px;}
+.nct-withdraw .nct-srow{display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--nct-line); font-size:14px;}
+.nct-withdraw .nct-srow:last-child{border-bottom:none;}
+.nct-withdraw .nct-sk{color:var(--nct-sub);} .nct-withdraw .nct-sv{font-weight:900; font-family:'JetBrains Mono',monospace;}
+
+.nct-withdraw .nct-chartcard{background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px; padding:16px 14px 10px; margin-bottom:14px;}
+.nct-withdraw .nct-charthead{font-size:12.5px; font-weight:700; color:var(--nct-sub); margin-bottom:12px;}
+.nct-withdraw .nct-chartbars{display:flex; align-items:flex-end; gap:5px; height:130px; margin-bottom:8px;}
+.nct-withdraw .nct-barcol{flex:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; min-width:0;}
+.nct-withdraw .nct-bar{width:100%; background:var(--nct-accent); border-radius:4px 4px 0 0; transition:height .3s ease;}
+.nct-withdraw .nct-bar.zero{background:var(--nct-loss);}
+.nct-withdraw .nct-barlabel{font-size:9px; color:var(--nct-sub); text-align:center; margin-top:5px;}
+
+.nct-withdraw .nct-notice{background:#FBF5E6; border:1.5px solid var(--nct-warn); border-radius:12px; padding:13px 15px; margin-bottom:14px; font-size:13px; font-weight:600; line-height:1.7;}
+
+.nct-withdraw .nct-disc{font-size:12px; color:var(--nct-sub); line-height:1.7; background:#F3EEE3; border-radius:10px; padding:12px 14px; margin-bottom:12px;}
+.nct-withdraw .nct-foot{font-size:11.5px; color:var(--nct-sub); text-align:center;}
+@media (max-width:480px){.nct-withdraw{padding:16px 12px 26px;} .nct-withdraw .nct-title{font-size:20px;} .nct-withdraw .nct-hbig{font-size:20px;}}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="nct-withdraw" id="nctWithdraw">
+<div class="nct-title">🏖️ 은퇴 인출 시뮬레이터</div>
+<div class="nct-sub">은퇴 후 매년 얼마씩 꺼내 쓰면 자산이 몇 년까지 버티는지 계산해 드려요.</div>
+<div class="nct-presetlabel">인출할 계좌 유형 (세금 반영)</div>
+<div class="nct-presets" id="nctAcctPresets"></div>
+<div class="nct-inputcard">
+<div class="nct-field">
+<label class="nct-label">은퇴 시점 자산</label>
+<div class="nct-inwrap"><input class="nct-input" id="nctAsset" inputmode="numeric" placeholder="0" type="text"/><span class="nct-unit">원</span></div>
+</div>
+<div class="nct-field">
+<label class="nct-label">첫해 연간 인출액 (오늘 기준 금액)</label>
+<div class="nct-inwrap"><input class="nct-input" id="nctWithdrawAmt" inputmode="numeric" placeholder="0" type="text"/><span class="nct-unit">원</span></div>
+</div>
+<div class="nct-field">
+<label class="nct-label">예상 연 수익률 (세전)</label>
+<div class="nct-inwrap"><input class="nct-input" id="nctReturn" inputmode="numeric" placeholder="5" type="text"/><span class="nct-unit">%</span></div>
+</div>
+<div class="nct-field">
+<label class="nct-label">물가상승률 (인출액이 매년 이만큼 늘어나요)</label>
+<div class="nct-inwrap"><input class="nct-input" id="nctInflation" inputmode="numeric" placeholder="2.5" type="text"/><span class="nct-unit">%</span></div>
+</div>
+<div class="nct-field">
+<label class="nct-label">몇 년 동안 인출할 계획인가요</label>
+<div class="nct-inwrap"><input class="nct-input" id="nctYears" inputmode="numeric" placeholder="30" type="text"/><span class="nct-unit">년</span></div>
+</div>
+<button class="nct-go" id="nctGo">시뮬레이션 하기 🏖️</button>
+</div>
+<div class="nct-result" id="nctResult">
+<div class="nct-hero" id="nctHero">
+<div class="nct-hicon" id="nctHIcon">🏖️</div>
+<div class="nct-hlabel">시뮬레이션 결과</div>
+<div class="nct-hbig" id="nctHBig"></div>
+<div class="nct-hsub" id="nctHSub"></div>
+</div>
+<div class="nct-summary" id="nctSummary"></div>
+<div class="nct-chartcard">
+<div class="nct-charthead">연도별 남은 자산</div>
+<div class="nct-chartbars" id="nctChartBars"></div>
+</div>
+<div class="nct-notice" id="nctNotice"></div>
+</div>
+<div class="nct-disc">
+    이 계산은 매년 일정한 수익률과 물가상승률이 유지되고, 세율이 매년 동일하게 적용된다는 가정의 단순 시뮬레이션이에요.
+    실제 시장은 매년 오르내림이 크고, 세법과 세율도 변경될 수 있어요. 계좌 유형별 세율은 대표값으로 단순화했으니 실제와 다를 수 있습니다.
+    투자 참고용이며 특정 상품이나 인출 전략을 권유하지 않습니다.
+  </div>
+<div class="nct-foot">stockchild.com · 주소남 투자도구 · 은퇴 인출 시뮬레이터</div>
+</div>
+<details class="app-faq"><summary>자주 묻는 질문</summary><div class="rank-math-block" id="rank-math-faq">
+<div class="rank-math-list">
+<div class="rank-math-list-item" id="faq-question-1787153367627">
+<h3 class="rank-math-question"><strong>Q1. 4% 룰이 정확히 뭔가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 은퇴 자산의 4%를 매년 인출해도 자산이 오래 유지된다는 경험칙이에요. 다만 세금과 물가상승률 가정에 따라 실제 결과는 달라질 수 있어서, 이 계산기로 본인 상황에 맞게 검증해보시는 걸 권해요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787153376151">
+<h3 class="rank-math-question"><strong>Q2. 왜 계좌 유형마다 다른 세율을 쓰나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 일반계좌는 배당소득세 15.4%, ISA 계좌는 분리과세 9.9%, 연금계좌는 낮은 연금소득세율이 적용되기 때문이에요. 같은 조건이라도 어떤 계좌에서 인출하느냐에 따라 자산이 버티는 기간이 달라질 수 있어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787153393454">
+<h3 class="rank-math-question"><strong>Q3. 연금계좌 세율 4.4%는 정확한 수치인가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니요, 대표값으로 단순화한 수치예요. 실제 연금소득세율은 나이와 연금 수령액에 따라 3.3% ~ 5.5% 사이로 세분화되어 있어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787153399447">
+<h3 class="rank-math-question"><strong>Q4. 시뮬레이션에서 자산이 일찍 소진된다고 나오면 어떻게 하나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 인출액을 줄이거나, 은퇴 시점 자산을 늘리거나, 예상 수익률 가정을 다시 점검해보세요. 물가상승률 가정을 낮게 잡아보는 것도 방법이에요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787153405798">
+<h3 class="rank-math-question"><strong>Q5. 실제 은퇴 후에도 이 결과가 그대로 맞나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 이 시뮬레이션은 매년 똑같은 수익률을 가정해요. 실제로는 시장이 매년 다르게 움직이고, 특히 은퇴 초반에 큰 하락장을 만나면 결과가 크게 달라질 수 있어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787153412016">
+<h3 class="rank-math-question"><strong>Q6. 입력한 정보가 저장되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니에요. 모든 계산은 브라우저 안에서만 이뤄지고 저장되거나 전송되지 않습니다.</p>
+</div>
+</div>
+</div>
+</div></details>
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%ec%9d%80%ed%87%b4-%ec%9d%b8%ec%b6%9c-%ec%8b%9c%eb%ae%ac%eb%a0%88%ec%9d%b4%ed%84%b0%eb%85%b8%ed%9b%84%ec%9e%90%ea%b8%88-%eb%aa%87-%eb%85%84-%eb%b2%84%ed%8b%b8%ea%b9%8c/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+(function(){
+  var root = document.getElementById('nctWithdraw');
+  function $(id){ return document.getElementById(id); }
+
+  var ACCOUNTS = [
+    { key:'general', name:'일반계좌', rate:15.4, note:'배당소득세' },
+    { key:'isa', name:'ISA 계좌', rate:9.9, note:'분리과세' },
+    { key:'pension', name:'연금계좌', rate:4.4, note:'연금소득세(대표값)' }
+  ];
+  var activeTax = 15.4;
+
+  function buildPresets(){
+    var wrap = $('nctAcctPresets');
+    wrap.innerHTML = '';
+    ACCOUNTS.forEach(function(a){
+      var el = document.createElement('div');
+      el.className = 'nct-preset' + (a.rate===activeTax ? ' on' : '');
+      el.innerHTML = '<div class="nct-pname">'+a.name+'</div><div class="nct-prate">세율 '+a.rate+'%</div>';
+      el.addEventListener('click', function(){
+        activeTax = a.rate;
+        root.querySelectorAll('.nct-preset').forEach(function(x){ x.classList.remove('on'); });
+        el.classList.add('on');
+      });
+      wrap.appendChild(el);
+    });
+  }
+  buildPresets();
+
+  function attachComma(el){
+    el.addEventListener('input', function(){
+      var v = el.value.replace(/[^0-9]/g,'');
+      el.value = v ? Number(v).toLocaleString('ko-KR') : '';
+    });
+  }
+  ['nctAsset','nctWithdrawAmt'].forEach(function(id){ attachComma($(id)); });
+  ['nctReturn','nctInflation','nctYears'].forEach(function(id){
+    $(id).addEventListener('input', function(){ this.value = this.value.replace(/[^0-9.]/g,''); });
+  });
+
+  function n(id){ return Number(($(id).value||'').replace(/[^0-9]/g,'')) || 0; }
+  function won(v){ return Math.round(v).toLocaleString('ko-KR')+'원'; }
+  function eok(v){
+    if(v < 100000000){ return won(v); }
+    var e = v / 100000000;
+    return e.toFixed(e<10?2:1) + '억원';
+  }
+
+  $('nctGo').addEventListener('click', function(){
+    var asset = n('nctAsset');
+    var withdrawFirst = n('nctWithdrawAmt');
+    var returnRate = parseFloat($('nctReturn').value) || 0;
+    var inflation = parseFloat($('nctInflation').value) || 0;
+    var years = Math.min(parseInt($('nctYears').value) || 0, 60);
+
+    if(asset<=0 || withdrawFirst<=0 || years<=0){ $('nctResult').classList.remove('show'); return; }
+
+    var balance = asset;
+    var withdrawThisYear = withdrawFirst;
+    var yearData = [];
+    var depletedYear = 0;
+
+    for(var y=1; y<=years; y++){
+      var growth = balance * (returnRate/100);
+      var tax = growth * (activeTax/100);
+      if(tax < 0){ tax = 0; }
+      balance = balance + growth - tax - withdrawThisYear;
+      if(balance < 0){ balance = 0; }
+      yearData.push({ year:y, balance:balance });
+      if(balance <= 0){
+        if(depletedYear === 0){ depletedYear = y; }
+      }
+      withdrawThisYear = withdrawThisYear * (1 + inflation/100);
+    }
+
+    var hero = $('nctHero');
+    var survived = depletedYear === 0;
+
+    if(survived){
+      hero.className = 'nct-hero good';
+      $('nctHIcon').textContent = '✅';
+      $('nctHBig').textContent = years+'년 동안 자산 유지 가능';
+      $('nctHSub').textContent = years+'년 후 남은 자산: '+eok(balance);
+    } else {
+      hero.className = 'nct-hero bad';
+      $('nctHIcon').textContent = '⚠️';
+      $('nctHBig').textContent = depletedYear+'년 차에 자산 소진';
+      $('nctHSub').textContent = '계획한 '+years+'년보다 '+(years-depletedYear)+'년 일찍 자산이 바닥나요';
+    }
+
+    $('nctSummary').innerHTML =
+      '<div class="nct-srow"><span class="nct-sk">은퇴 시점 자산</span><span class="nct-sv">'+eok(asset)+'</span></div>'+
+      '<div class="nct-srow"><span class="nct-sk">첫해 인출액</span><span class="nct-sv">'+won(withdrawFirst)+'</span></div>'+
+      '<div class="nct-srow"><span class="nct-sk">초기 인출률</span><span class="nct-sv">'+((withdrawFirst/asset)*100).toFixed(2)+'%</span></div>'+
+      '<div class="nct-srow"><span class="nct-sk">적용 세율</span><span class="nct-sv">'+activeTax+'%</span></div>';
+
+    var step = Math.ceil(yearData.length/15);
+    var displayData = yearData.filter(function(d){ return d.year % step === 0 || d.year === yearData.length; });
+    var maxBalance = Math.max(asset, Math.max.apply(null, displayData.map(function(d){return d.balance;})));
+
+    var chartHtml = '';
+    displayData.forEach(function(d){
+      var h = maxBalance>0 ? (d.balance/maxBalance)*100 : 0;
+      var isZero = d.balance <= 0;
+      chartHtml += '<div class="nct-barcol"><div class="nct-bar'+(isZero?' zero':'')+'" style="height:'+Math.max(h,2)+'%;"></div><div class="nct-barlabel">'+d.year+'년</div></div>';
+    });
+    $('nctChartBars').innerHTML = chartHtml;
+
+    var noticeText = '💡 초기 인출률이 4% 근처면 흔히 말하는 4% 룰에 해당해요. ';
+    if(survived===false){
+      noticeText += '지금 조건으로는 자산이 계획보다 일찍 소진돼요. 인출액을 줄이거나 은퇴 시점 자산을 늘리거나, 예상 수익률 가정을 다시 점검해보세요.';
+    } else {
+      noticeText += '다만 이 결과는 매년 똑같은 수익률을 가정한 것이라, 실제로는 초반에 큰 하락장을 만나면 결과가 달라질 수 있어요.';
+    }
+    $('nctNotice').textContent = noticeText;
+
+    $('nctResult').classList.add('show');
+    setTimeout(function(){ $('nctResult').scrollIntoView({behavior:'smooth', block:'nearest'}); }, 60);
+  });
+})();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

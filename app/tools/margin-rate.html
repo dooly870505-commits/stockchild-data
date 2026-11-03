@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>신용융자 이자율 비교 2026</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== 신용융자 이자율 비교기 (No.77) : 크림/베이지 시스템 ===== */
+.nct-rate{
+  --nct-bg:#FAF7F0; --nct-card:#FFFDF7; --nct-line:#E8E0D0;
+  --nct-ink:#3D3529; --nct-sub:#8A7F6C; --nct-accent:#8B6F47;
+  --nct-loss:#C0563A; --nct-gain:#5B8A5B; --nct-gold:#C79A3B;
+  max-width:600px; margin:0 auto; padding:20px 16px 32px;
+  background:var(--nct-bg); color:var(--nct-ink);
+  font-family:'Noto Sans KR',sans-serif; line-height:1.6;
+  border-radius:18px; box-sizing:border-box;
+}
+.nct-rate *{box-sizing:border-box;}
+.nct-rate .nct-num{font-family:'JetBrains Mono',monospace;}
+
+.nct-rate .nct-title{font-size:24px; font-weight:900; letter-spacing:-.5px; margin:0 0 6px;}
+.nct-rate .nct-sub{font-size:13.5px; color:var(--nct-sub); margin:0 0 6px;}
+.nct-rate .nct-asof{font-size:11.5px; color:var(--nct-sub); margin-bottom:16px;}
+
+/* 비교 테이블 */
+.nct-rate .nct-tablecard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:15px;
+  padding:6px 16px; margin-bottom:14px;
+}
+.nct-rate .nct-tablehead{
+  display:flex; justify-content:space-between; padding:12px 0; font-size:12px; font-weight:700; color:var(--nct-sub);
+  border-bottom:1.5px solid var(--nct-line);
+}
+.nct-rate .nct-trow{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:13px 0; border-bottom:1px solid var(--nct-line); font-size:14px;
+}
+.nct-rate .nct-trow:last-child{border-bottom:none;}
+.nct-rate .nct-trow.best{background:#F6F0E4; margin:0 -16px; padding:13px 16px; border-radius:10px;}
+.nct-rate .nct-tname{font-weight:700; display:flex; align-items:center; gap:6px;}
+.nct-rate .nct-tmedal{font-size:14px;}
+.nct-rate .nct-trate{font-weight:900; font-family:'JetBrains Mono',monospace; font-size:15px;}
+.nct-rate .nct-tnote{font-size:10.5px; color:var(--nct-sub); margin-top:2px;}
+
+/* 키움 구간표 */
+.nct-rate .nct-tierlabel{font-size:13px; font-weight:700; color:var(--nct-sub); margin:16px 0 8px;}
+.nct-rate .nct-tiercard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px;
+  padding:6px 16px; margin-bottom:14px;
+}
+.nct-rate .nct-tierrow{
+  display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--nct-line); font-size:13.5px;
+}
+.nct-rate .nct-tierrow:last-child{border-bottom:none;}
+.nct-rate .nct-tierrate{font-weight:800; font-family:'JetBrains Mono',monospace;}
+
+/* 계산기 */
+.nct-rate .nct-calclabel{font-size:13px; font-weight:700; color:var(--nct-sub); margin:16px 0 8px;}
+.nct-rate .nct-inputcard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line);
+  border-radius:14px; padding:18px 16px; margin-bottom:14px;
+}
+.nct-rate .nct-field{margin-bottom:13px;}
+.nct-rate .nct-field:last-of-type{margin-bottom:0;}
+.nct-rate .nct-label{display:block; font-size:13px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-rate .nct-inwrap{position:relative;}
+.nct-rate .nct-input{
+  width:100%; padding:13px 44px 13px 14px; font-size:16px;
+  font-family:'JetBrains Mono',monospace; font-weight:700;
+  border:1.5px solid var(--nct-line); border-radius:11px;
+  background:#fff; color:var(--nct-ink); text-align:right; outline:none;
+  transition:border-color .15s;
+}
+.nct-rate .nct-input:focus{border-color:var(--nct-accent);}
+.nct-rate .nct-unit{
+  position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  font-size:13px; color:var(--nct-sub); font-weight:500; pointer-events:none;
+}
+.nct-rate .nct-select{
+  width:100%; padding:13px 14px; font-size:14.5px; font-weight:700;
+  border:1.5px solid var(--nct-line); border-radius:11px; background:#fff; color:var(--nct-ink);
+  outline:none; appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238A7F6C'%3E%3Cpath d='M5.23 7.21a.75.75 0 011.06.02L10 11.13l3.71-3.9a.75.75 0 111.08 1.04l-4.25 4.47a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center; background-size:16px;
+}
+.nct-rate .nct-go{
+  width:100%; padding:15px; margin-top:5px; cursor:pointer;
+  background:var(--nct-accent); color:#fff; border:none; border-radius:12px;
+  font-size:16px; font-weight:900; font-family:'Noto Sans KR',sans-serif;
+  letter-spacing:-.3px; transition:opacity .15s;
+}
+.nct-rate .nct-go:active{opacity:.8;}
+
+.nct-rate .nct-result{display:none;}
+.nct-rate .nct-result.show{display:block; animation:nctFade .3s ease;}
+@keyframes nctFade{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:none;}}
+
+.nct-rate .nct-hero{
+  border:2px solid var(--nct-accent); border-radius:16px; background:#F6F0E4;
+  padding:20px 18px; text-align:center; margin-bottom:14px;
+}
+.nct-rate .nct-hlabel{font-size:13px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-rate .nct-hbig{font-size:26px; font-weight:900; letter-spacing:-1px; color:var(--nct-accent);}
+.nct-rate .nct-hsub{font-size:12.5px; color:var(--nct-sub); margin-top:6px;}
+
+.nct-rate .nct-disc{
+  font-size:12px; color:var(--nct-sub); line-height:1.7;
+  background:#F3EEE3; border-radius:10px; padding:12px 14px; margin-top:6px; margin-bottom:12px;
+}
+.nct-rate .nct-foot{font-size:11.5px; color:var(--nct-sub); text-align:center;}
+
+@media (max-width:480px){
+  .nct-rate{padding:16px 12px 26px;}
+  .nct-rate .nct-title{font-size:20px;}
+  .nct-rate .nct-trate{font-size:13.5px;}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="nct-rate" id="nctRate">
+<div class="nct-title">💳 신용융자 이자율 비교기</div>
+<div class="nct-sub">증권사 7곳의 신용융자 이자율을 비교하고 예상 이자도 계산해 드려요.</div>
+<div class="nct-asof">1~7일 구간 기준, 2026년 1월 언론 보도(금융투자협회 공시자료 인용) 및 각사 공식 페이지 확인</div>
+<div class="nct-tablecard">
+<div class="nct-tablehead"><span>증권사</span><span>1~7일 구간 이자율</span></div>
+<div id="nctTableBody"></div>
+</div>
+<div class="nct-tierlabel">📌 키움증권 전체 구간별 이자율 (일반 고객, 공식 페이지 확인)</div>
+<div class="nct-tiercard" id="nctTierCard"></div>
+<div class="nct-calclabel">🧮 내 신용융자 이자, 얼마나 나올까</div>
+<div class="nct-inputcard">
+<div class="nct-field">
+<label class="nct-label">증권사 선택 (1~7일 구간 금리 기준)</label>
+<select class="nct-select" id="nctBrokerSelect"></select>
+</div>
+<div class="nct-field">
+<label class="nct-label">융자 금액</label>
+<div class="nct-inwrap">
+<input class="nct-input" id="nctAmount" inputmode="numeric" placeholder="0" type="text"/>
+<span class="nct-unit">원</span>
+</div>
+</div>
+<div class="nct-field">
+<label class="nct-label">사용 예정 일수</label>
+<div class="nct-inwrap">
+<input class="nct-input" id="nctDays" inputmode="numeric" placeholder="7" type="text"/>
+<span class="nct-unit">일</span>
+</div>
+</div>
+<button class="nct-go" id="nctGo">예상 이자 계산하기 🧮</button>
+</div>
+<div class="nct-result" id="nctResult">
+<div class="nct-hero">
+<div class="nct-hlabel">예상 이자 (단순 계산)</div>
+<div class="nct-hbig nct-num" id="nctInterestVal">0원</div>
+<div class="nct-hsub" id="nctInterestSub"></div>
+</div>
+</div>
+<div class="nct-disc">
+    이 표에 나온 이자율은 각 증권사의 1~7일 구간 금리이며, 실제 적용 이자율은 대면·비대면 여부, 고객 등급, 이벤트 우대 여부에 따라 달라질 수 있어요.
+    구간별(8~15일, 16~90일, 90일 초과) 세부 금리와 최신 금리는 반드시 이용 중인 증권사의 공식 페이지에서 다시 확인하세요.
+    이자 계산은 금융투자협회 표준 계산식(융자금액 × 이자율 × 경과일수 ÷ 365)을 사용한 단순 참고용 수치입니다. 투자 참고용이며 특정 증권사 이용을 권유하지 않습니다.
+  </div>
+<div class="nct-foot">stockchild.com · 주소남 투자도구 · 신용융자 이자율 비교기</div>
+</div>
+<details class="app-faq"><summary>자주 묻는 질문</summary><div class="rank-math-block" id="rank-math-faq">
+<div class="rank-math-list">
+<div class="rank-math-list-item" id="faq-question-1787031895312">
+<h3 class="rank-math-question"><strong>Q1. 신용융자 이자율이 가장 낮은 증권사는 어디인가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 확인된 1~7일 구간 기준으로는 한국투자증권과 메리츠증권이 4.9%로 가장 낮았어요. 다만 금리는 주기적으로 바뀌니 최신 금리는 각사 공식 페이지에서 확인하시는 게 정확해요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787034192706">
+<h3 class="rank-math-question"><strong>Q2. 신용융자 이자는 어떻게 계산하나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 융자금액에 이자율을 곱하고, 경과일수를 곱한 뒤 365로 나누면 돼요. 이 계산기에 금액과 일수만 넣으시면 자동으로 계산됩니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787034198633">
+<h3 class="rank-math-question"><strong>Q3. 키움증권 신용융자 이자율은 얼마인가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 공식 페이지 기준으로 1~7일 5.4퍼센트, 8~15일 7.7퍼센트, 16~90일 8.5퍼센트, 90일 초과 9.1퍼센트예요. 국내 신용거래융자금 규모 1위 증권사입니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787034202566">
+<h3 class="rank-math-question"><strong>Q4. 소급방식이 뭔가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 신용융자 이자를 부과할 때, 매수 시점부터 상환 시점까지 전체 보유 기간에 최종 구간의 이자율을 적용하는 방식이에요. 짧게 쓸 생각이었다가 기간이 길어지면 이자 부담이 예상보다 커질 수 있어요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787034214345">
+<h3 class="rank-math-question"><strong>Q5. 표에 나온 금리가 지금도 정확한가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 신용융자 금리는 시장 상황에 따라 주기적으로 조정돼요. 이 표는 특정 시점에 확인된 자료를 기준으로 하니, 실제 신청 전에는 반드시 이용하실 증권사의 최신 공지를 확인하세요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787034222417">
+<h3 class="rank-math-question"><strong>Q6. 입력한 정보가 저장되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니에요. 모든 계산은 브라우저 안에서만 이뤄지고 저장되거나 전송되지 않습니다.</p>
+</div>
+</div>
+</div>
+</div></details>
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%ec%8b%a0%ec%9a%a9%ec%9c%b5%ec%9e%90-%ec%9d%b4%ec%9e%90%ec%9c%a8-%eb%b9%84%ea%b5%90-2026/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+(function(){
+  var root = document.getElementById('nctRate');
+  function $(id){ return document.getElementById(id); }
+
+  // 1~7일 구간 이자율 (검증된 데이터: 2026년 1월 언론보도 및 공식 페이지 확인)
+  var BROKERS = [
+    { name:'한국투자증권', rate:4.90, note:'비대면·대면 동일' },
+    { name:'메리츠증권', rate:4.90, note:'비대면 기준' },
+    { name:'NH투자증권', rate:5.40, note:'비대면 기준' },
+    { name:'키움증권', rate:5.40, note:'비대면 기준' },
+    { name:'KB증권', rate:5.50, note:'비대면 기준' },
+    { name:'삼성증권', rate:5.60, note:'비대면 기준' },
+    { name:'미래에셋증권', rate:7.00, note:'비대면 기준' }
+  ];
+
+  var KIWOOM_TIERS = [
+    { period:'1~7일', rate:5.4 },
+    { period:'8~15일', rate:7.7 },
+    { period:'16~90일', rate:8.5 },
+    { period:'90일 초과', rate:9.1 }
+  ];
+
+  function renderTable(){
+    var sorted = BROKERS.slice().sort(function(a,b){ return a.rate-b.rate; });
+    var minRate = sorted[0].rate;
+    var wrap = $('nctTableBody');
+    wrap.innerHTML = '';
+    sorted.forEach(function(b, i){
+      var row = document.createElement('div');
+      row.className = 'nct-trow' + (b.rate===minRate ? ' best' : '');
+      var medal = i===0 ? '🥇' : (i===1 ? '🥈' : (i===2 ? '🥉' : ''));
+      row.innerHTML =
+        '<div class="nct-tname"><span class="nct-tmedal">' + medal + '</span>' + b.name + '</div>' +
+        '<div style="text-align:right;"><div class="nct-trate">연 ' + b.rate.toFixed(2) + '%</div><div class="nct-tnote">' + b.note + '</div></div>';
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderTiers(){
+    var wrap = $('nctTierCard');
+    wrap.innerHTML = KIWOOM_TIERS.map(function(t){
+      return '<div class="nct-tierrow"><span>' + t.period + '</span><span class="nct-tierrate">연 ' + t.rate.toFixed(1) + '%</span></div>';
+    }).join('');
+  }
+
+  function renderBrokerSelect(){
+    var sel = $('nctBrokerSelect');
+    sel.innerHTML = '';
+    BROKERS.slice().sort(function(a,b){return a.rate-b.rate;}).forEach(function(b){
+      var opt = document.createElement('option');
+      opt.value = b.rate;
+      opt.textContent = b.name + ' (연 ' + b.rate.toFixed(2) + '%)';
+      sel.appendChild(opt);
+    });
+  }
+
+  renderTable();
+  renderTiers();
+  renderBrokerSelect();
+
+  function attachComma(el){
+    el.addEventListener('input', function(){
+      var v = el.value.replace(/[^0-9]/g,'');
+      el.value = v ? Number(v).toLocaleString('ko-KR') : '';
+    });
+  }
+  attachComma($('nctAmount'));
+  $('nctDays').addEventListener('input', function(){ this.value = this.value.replace(/[^0-9]/g,''); });
+
+  function n(id){ return Number(($(id).value||'').replace(/[^0-9]/g,'')) || 0; }
+  function won(v){ return Math.round(v).toLocaleString('ko-KR') + '원'; }
+
+  $('nctGo').addEventListener('click', function(){
+    var amount = n('nctAmount');
+    var days = n('nctDays');
+    var rate = parseFloat($('nctBrokerSelect').value) || 0;
+    var brokerName = $('nctBrokerSelect').options[$('nctBrokerSelect').selectedIndex].textContent;
+
+    if(amount<=0 || days<=0){
+      $('nctResult').classList.remove('show');
+      return;
+    }
+
+    var interest = amount * (rate/100) * (days/365);
+
+    $('nctInterestVal').textContent = won(interest);
+    $('nctInterestSub').textContent = brokerName.split(' (')[0] + ' · 연 ' + rate.toFixed(2) + '% · ' + days + '일 사용 기준';
+
+    $('nctResult').classList.add('show');
+    setTimeout(function(){ $('nctResult').scrollIntoView({behavior:'smooth', block:'nearest'}); }, 60);
+  });
+})();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>

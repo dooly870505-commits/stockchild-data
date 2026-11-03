@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>그때 팔았으면 vs 존버(그때 팔지 말걸 계산기)</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== 그때 팔았으면 vs 존버 (No.122) : 크림/베이지 시스템 ===== */
+.nct-regret{
+  --nct-bg:#FAF7F0; --nct-card:#FFFDF7; --nct-line:#E8E0D0;
+  --nct-ink:#3D3529; --nct-sub:#8A7F6C; --nct-accent:#8B6F47;
+  --nct-loss:#C0563A; --nct-gain:#5B8A5B; --nct-gold:#C79A3B;
+  max-width:560px; margin:0 auto; padding:20px 16px 32px;
+  background:var(--nct-bg); color:var(--nct-ink);
+  font-family:'Noto Sans KR',sans-serif; line-height:1.6;
+  border-radius:18px; box-sizing:border-box;
+}
+.nct-regret *{box-sizing:border-box;}
+.nct-regret .nct-num{font-family:'JetBrains Mono',monospace;}
+
+.nct-regret .nct-title{font-size:24px; font-weight:900; letter-spacing:-.5px; margin:0 0 6px;}
+.nct-regret .nct-sub{font-size:13.5px; color:var(--nct-sub); margin:0 0 18px;}
+
+.nct-regret .nct-inputcard{
+  background:var(--nct-card); border:1.5px solid var(--nct-line);
+  border-radius:14px; padding:18px 16px; margin-bottom:14px;
+}
+.nct-regret .nct-field{margin-bottom:13px;}
+.nct-regret .nct-field:last-of-type{margin-bottom:0;}
+.nct-regret .nct-label{display:block; font-size:13px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-regret .nct-input{
+  width:100%; padding:13px 14px; font-size:16px; font-weight:600;
+  border:1.5px solid var(--nct-line); border-radius:11px;
+  background:#fff; color:var(--nct-ink); outline:none; transition:border-color .15s;
+}
+.nct-regret .nct-inwrap{position:relative;}
+.nct-regret .nct-input.num{
+  font-family:'JetBrains Mono',monospace; font-weight:700; text-align:right; padding-right:44px;
+}
+.nct-regret .nct-unit{
+  position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  font-size:13px; color:var(--nct-sub); font-weight:500; pointer-events:none;
+}
+.nct-regret .nct-go{
+  width:100%; padding:15px; margin-top:5px; cursor:pointer;
+  background:var(--nct-accent); color:#fff; border:none; border-radius:12px;
+  font-size:16px; font-weight:900; font-family:'Noto Sans KR',sans-serif;
+  letter-spacing:-.3px; transition:opacity .15s;
+}
+.nct-regret .nct-go:active{opacity:.8;}
+
+/* 결과 */
+.nct-regret .nct-result{display:none;}
+.nct-regret .nct-result.show{display:block; animation:nctFade .3s ease;}
+@keyframes nctFade{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:none;}}
+
+/* 대결 카드 */
+.nct-regret .nct-vscard{
+  display:flex; gap:10px; margin-bottom:14px;
+}
+.nct-regret .nct-vsbox{
+  flex:1; border:2px solid var(--nct-line); border-radius:14px; background:var(--nct-card);
+  padding:16px 12px; text-align:center;
+}
+.nct-regret .nct-vsbox.win{border-color:var(--nct-gain); background:#F1F7F1;}
+.nct-regret .nct-vslabel{font-size:12px; font-weight:700; color:var(--nct-sub); margin-bottom:6px;}
+.nct-regret .nct-vsicon{font-size:26px; margin-bottom:4px;}
+.nct-regret .nct-vsval{font-size:18px; font-weight:900; letter-spacing:-.5px;}
+.nct-regret .nct-vsval.loss{color:var(--nct-loss);}
+.nct-regret .nct-vsval.gain{color:var(--nct-gain);}
+.nct-regret .nct-vspct{font-size:11.5px; color:var(--nct-sub); margin-top:3px; font-weight:600;}
+.nct-regret .nct-vsvs{
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:var(--nct-sub);
+  width:24px; flex-shrink:0;
+}
+
+/* 결론 히어로 */
+.nct-regret .nct-hero{
+  border:2px solid var(--nct-line); border-radius:16px; background:var(--nct-card);
+  padding:22px 18px; text-align:center; margin-bottom:14px;
+}
+.nct-regret .nct-hero.good{border-color:var(--nct-gain); background:#F1F7F1;}
+.nct-regret .nct-hero.mid{border-color:var(--nct-gold); background:#FBF5E6;}
+.nct-regret .nct-hero.bad{border-color:var(--nct-loss); background:#FBF0EC;}
+.nct-regret .nct-hicon{font-size:42px; margin-bottom:4px;}
+.nct-regret .nct-hgrade{font-size:23px; font-weight:900; letter-spacing:-.5px; margin-bottom:8px;}
+.nct-regret .nct-hline{font-size:14px; font-weight:600; line-height:1.6;}
+
+.nct-regret .nct-summary{
+  background:var(--nct-card); border:1.5px solid var(--nct-line); border-radius:14px;
+  padding:6px 16px; margin-bottom:14px;
+}
+.nct-regret .nct-srow{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--nct-line); font-size:14px;
+}
+.nct-regret .nct-srow:last-child{border-bottom:none;}
+.nct-regret .nct-sk{color:var(--nct-sub); font-weight:500;}
+.nct-regret .nct-sv{font-weight:900; font-family:'JetBrains Mono',monospace;}
+
+.nct-regret .nct-copy{
+  width:100%; padding:13px; cursor:pointer; margin-bottom:16px;
+  background:#fff; color:var(--nct-accent); border:1.5px solid var(--nct-accent);
+  border-radius:12px; font-size:14.5px; font-weight:700;
+  font-family:'Noto Sans KR',sans-serif; transition:all .15s;
+}
+.nct-regret .nct-copy:active{background:#F6F0E4;}
+.nct-regret .nct-copy.done{background:var(--nct-accent); color:#fff;}
+
+.nct-regret .nct-disc{
+  font-size:12px; color:var(--nct-sub); line-height:1.7;
+  background:#F3EEE3; border-radius:10px; padding:12px 14px; margin-bottom:12px;
+}
+.nct-regret .nct-foot{font-size:11.5px; color:var(--nct-sub); text-align:center;}
+
+@media (max-width:480px){
+  .nct-regret{padding:16px 12px 26px;}
+  .nct-regret .nct-title{font-size:21px;}
+  .nct-regret .nct-hgrade{font-size:19px;}
+  .nct-regret .nct-vsval{font-size:15px;}
+}
+</style><style>
+/* =========================================
+   함께 보면 좋을 포스팅 v2 (모션 버전)
+   붙여넣을 위치: 외모 > 사용자 정의하기 > 추가 CSS
+   ========================================= */
+.kkojae-related-wrap {
+  --kr-gold: #d4a017;
+  --kr-gold-dark: #b8860b;
+  --kr-gold-light: #e8c547;
+  --kr-card-bg: #fffdf4;
+  --kr-line: #e8ddb8;
+  --kr-ink: #2c2c2c;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 2.5rem 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+.kkojae-related-wrap *,
+.kkojae-related-wrap *::before,
+.kkojae-related-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* 워드프레스 자동 줄바꿈(<br>, 빈 <p>) 무력화 */
+.kkojae-related-wrap br,
+.kkojae-related-wrap p:empty {
+  display: none !important;
+}
+
+/* ---------- 헤더: 숨 쉬는 양봉 캔들 ---------- */
+.kkojae-related-wrap .kr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.kkojae-related-wrap .kr-header-bar {
+  position: relative;
+  flex-shrink: 0;
+  width: 8px;
+  height: 26px;
+  background: none;
+  border-radius: 0;
+}
+/* 꼬리(심지) */
+.kkojae-related-wrap .kr-header-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kr-gold-dark);
+  border-radius: 1px;
+}
+/* 몸통 */
+.kkojae-related-wrap .kr-header-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 18px;
+  margin-top: -9px;
+  background: linear-gradient(180deg, var(--kr-gold-light), var(--kr-gold));
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  animation: kr-candle 2.6s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kr-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+.kkojae-related-wrap .kr-header-title span {
+  color: var(--kr-gold-dark);
+}
+
+/* ---------- 그리드 ---------- */
+.kkojae-related-wrap .kr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 카드 공통 ---------- */
+.kkojae-related-wrap .kr-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--kr-card-bg);
+  border: 1px solid var(--kr-line);
+  border-left: 3px solid var(--kr-gold);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none !important;
+  box-shadow: none;
+  transition: transform 0.25s cubic-bezier(.2, .8, .2, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 호버 시 왼쪽에서 금빛이 차오르는 효과 */
+.kkojae-related-wrap .kr-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(232, 197, 71, 0.30), rgba(232, 197, 71, 0) 85%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+}
+.kkojae-related-wrap .kr-card:hover,
+.kkojae-related-wrap .kr-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--kr-gold-dark);
+  box-shadow: 0 8px 20px rgba(180, 140, 20, 0.16);
+}
+.kkojae-related-wrap .kr-card:focus-visible {
+  outline: 2px solid var(--kr-gold-dark);
+  outline-offset: 2px;
+}
+.kkojae-related-wrap .kr-card:hover::before,
+.kkojae-related-wrap .kr-card:focus-visible::before {
+  transform: scaleX(1);
+}
+/* 모바일 탭 피드백 */
+.kkojae-related-wrap .kr-card:active {
+  transform: scale(0.98);
+}
+
+.kkojae-related-wrap .kr-card-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.kkojae-related-wrap .kr-card:hover .kr-card-icon {
+  animation: kr-wiggle 0.5s ease;
+}
+.kkojae-related-wrap .kr-card-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--kr-ink);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* ---------- 대표 카드(첫 번째 카드): 빛이 지나가는 효과 ---------- */
+.kkojae-related-wrap .kr-grid > .kr-card:first-child,
+.kkojae-related-wrap .kr-card--featured {
+  grid-column: 1 / -1;
+  min-height: 62px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, #fff6cc 0%, #fffbe6 55%, #fff1bd 100%);
+  border-color: #e9dc5c;
+  border-left-color: var(--kr-gold);
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child::before,
+.kkojae-related-wrap .kr-card--featured::before {
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  transform: translateX(-120%) skewX(-18deg);
+  animation: kr-shine 3.8s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-icon,
+.kkojae-related-wrap .kr-card--featured .kr-card-icon {
+  font-size: 1.35rem;
+  animation: kr-float 2.4s ease-in-out infinite;
+}
+.kkojae-related-wrap .kr-grid > .kr-card:first-child .kr-card-text,
+.kkojae-related-wrap .kr-card--featured .kr-card-text {
+  font-size: 0.9rem;
+}
+.kkojae-related-wrap .kr-card-text b {
+  font-weight: 800;
+  color: #8a6500;
+}
+
+/* ---------- 스크롤로 내려오면 카드가 차례로 떠오름 ---------- */
+/* 지원 브라우저(크롬, 삼성인터넷, 최신 사파리)에서만 작동, 미지원 브라우저는 그냥 보임 */
+@supports (animation-timeline: view()) {
+  .kkojae-related-wrap .kr-card {
+    animation: kr-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 15% entry 85%;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 540px) {
+  .kkojae-related-wrap .kr-grid {
+    grid-template-columns: 1fr;
+  }
+  .kkojae-related-wrap .kr-grid > a.kr-card:nth-of-type(2n+3) {
+    animation-range: entry 5% entry 75%;
+  }
+}
+
+/* ---------- 움직임 최소화 설정한 사용자 배려 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kkojae-related-wrap *,
+  .kkojae-related-wrap *::before,
+  .kkojae-related-wrap *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- 키프레임 ---------- */
+@keyframes kr-candle {
+  0%, 100% { transform: scaleY(0.45); }
+  40%      { transform: scaleY(1); }
+  70%      { transform: scaleY(0.7); }
+}
+@keyframes kr-shine {
+  0%        { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+@keyframes kr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes kr-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  30%      { transform: rotate(-14deg) scale(1.18); }
+  65%      { transform: rotate(9deg) scale(1.1); }
+}
+@keyframes kr-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+</style>
+<style>
+:root{color-scheme:light}
+html,body{margin:0;background:#fff;color:#16181D;font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.entry-content img{max-width:100%;height:auto}
+.app-faq{margin-top:20px;border:1px solid #E6E8EB;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6}
+.app-faq summary{cursor:pointer;font-weight:700}
+.app-foot{margin-top:18px;font-size:11.5px;color:#9AA0A8;line-height:1.6}
+.app-foot a{color:#6B7280}
+</style>
+</head>
+<body><div class="app-wrap"><div class="entry-content">
+<div class="nct-regret" id="nctRegret">
+<div class="nct-title">⚖️ 그때 팔았으면 vs 존버</div>
+<div class="nct-sub">이미 판 종목, 안 팔고 존버했으면 지금 어땠을지 비교해봐요.</div>
+<div class="nct-inputcard">
+<div class="nct-field">
+<label class="nct-label">종목명 (선택)</label>
+<input class="nct-input" id="nctStockName" placeholder="예: 그때 판 종목" type="text"/>
+</div>
+<div class="nct-field">
+<label class="nct-label">매수가</label>
+<div class="nct-inwrap">
+<input class="nct-input num" id="nctBuy" inputmode="numeric" placeholder="0" type="text"/>
+<span class="nct-unit">원</span>
+</div>
+</div>
+<div class="nct-field">
+<label class="nct-label">그때 판 가격</label>
+<div class="nct-inwrap">
+<input class="nct-input num" id="nctSell" inputmode="numeric" placeholder="0" type="text"/>
+<span class="nct-unit">원</span>
+</div>
+</div>
+<div class="nct-field">
+<label class="nct-label">판매 수량</label>
+<div class="nct-inwrap">
+<input class="nct-input num" id="nctQty" inputmode="numeric" placeholder="0" type="text"/>
+<span class="nct-unit">주</span>
+</div>
+</div>
+<div class="nct-field">
+<label class="nct-label">현재가</label>
+<div class="nct-inwrap">
+<input class="nct-input num" id="nctNow" inputmode="numeric" placeholder="0" type="text"/>
+<span class="nct-unit">원</span>
+</div>
+</div>
+<button class="nct-go" id="nctGo">비교해보기 ⚖️</button>
+</div>
+
+<div class="nct-result" id="nctResult">
+<div class="nct-vscard" id="nctVsCard"></div>
+<div class="nct-hero" id="nctHero">
+<div class="nct-hicon" id="nctHIcon">⚖️</div>
+<div class="nct-hgrade" id="nctHGrade"></div>
+<div class="nct-hline" id="nctHLine"></div>
+</div>
+<div class="nct-summary" id="nctSummary"></div>
+<button class="nct-copy" id="nctCopy">📋 결과 복사하기</button>
+</div>
+<div class="nct-disc">
+    이 계산은 그때 판 수량을 팔지 않고 지금까지 그대로 들고 있었다는 가정의 단순 비교예요. 수수료와 세금은 반영되지 않았습니다.
+    과거의 매도 판단이 틀렸다는 뜻이 아니라, 결과를 재미로 되돌아보는 도구예요. 투자 참고용이며 특정 종목의 매수나 매도를 추천하지 않습니다.
+  </div>
+<div class="nct-foot">stockchild.com · 주소남 투자도구 · 그때 팔았으면 vs 존버</div>
+</div>
+<details class="app-faq"><summary>자주 묻는 질문</summary><div class="rank-math-block" id="rank-math-faq">
+<div class="rank-math-list">
+<div class="rank-math-list-item" id="faq-question-1787150498177">
+<h3 class="rank-math-question"><strong>Q1. 이 계산기는 정확히 뭘 비교하나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 그때 실제로 판 가격 기준의 실현 손익과, 팔지 않고 지금까지 들고 있었다는 가정의 평가손익을 비교해요. 어느 쪽이 더 나은 선택이었는지 숫자로 보여줍니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787150505852">
+<h3 class="rank-math-question"><strong>Q2. 결과가 나쁘게 나오면 그때 판단이 틀렸다는 뜻인가요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니에요. 결과는 사후적으로만 알 수 있는 정보예요. 그 당시에는 최선이라고 판단한 선택이었을 거예요. 이 도구는 과거를 심판하는 게 아니라 재미로 되돌아보는 용도입니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787150517116">
+<h3 class="rank-math-question"><strong>Q3. 수량을 나눠서 팔았어도 계산할 수 있나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 이 계산기는 한 번에 한 가격, 한 수량으로 계산해요. 여러 번 나눠 파셨다면 평균 매도가와 총 수량으로 입력하시면 근사치로 계산됩니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787150520491">
+<h3 class="rank-math-question"><strong>Q4. 세금이나 수수료도 반영되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니요. 단순화를 위해 반영하지 않았어요. 실제 실현 손익은 여기 나온 금액보다 세금과 수수료만큼 낮을 수 있습니다.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787150528755">
+<h3 class="rank-math-question"><strong>Q5. 아직 안 판 종목도 계산할 수 있나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 이 도구는 이미 판 종목을 대상으로 만들어졌어요. 아직 보유 중인 종목의 매도 여부 판단에는 사용하지 않으시길 권해요.</p>
+</div>
+</div>
+<div class="rank-math-list-item" id="faq-question-1787150532492">
+<h3 class="rank-math-question"><strong>Q6. 입력한 정보가 저장되나요?</strong></h3>
+<div class="rank-math-answer">
+<p>A. 아니에요. 모든 계산은 브라우저 안에서만 이뤄지고 저장되거나 전송되지 않습니다.</p>
+</div>
+</div>
+</div>
+</div></details>
+<div class="app-foot">투자 참고용이며 매수·매도 추천이 아닙니다. 원문: <a href="https://stockchild.com/%ea%b7%b8%eb%95%8c-%ed%8c%94%ec%95%98%ec%9c%bc%eb%a9%b4-vs-%ec%a1%b4%eb%b2%84%ea%b7%b8%eb%95%8c-%ed%8c%94%ec%a7%80-%eb%a7%90%ea%b1%b8-%ea%b3%84%ec%82%b0%ea%b8%b0/" target="_blank" rel="noopener">stockchild.com</a></div>
+</div></div>
+<script>
+
+(function(){
+  var root = document.getElementById('nctRegret');
+  function $(id){ return document.getElementById(id); }
+
+  function attachComma(el){
+    el.addEventListener('input', function(){
+      var v = el.value.replace(/[^0-9]/g,'');
+      el.value = v ? Number(v).toLocaleString('ko-KR') : '';
+    });
+  }
+  ['nctBuy','nctSell','nctQty','nctNow'].forEach(function(id){ attachComma($(id)); });
+
+  function n(id){ return Number(($(id).value||'').replace(/[^0-9]/g,'')) || 0; }
+  function won(v){ return (v<0?'-':'') + Math.abs(Math.round(v)).toLocaleString('ko-KR') + '원'; }
+
+  function render(){
+    var name = ($('nctStockName').value || '').trim();
+    var buy = n('nctBuy'), sell = n('nctSell'), qty = n('nctQty'), now = n('nctNow');
+
+    if(buy<=0 || sell<=0 || qty<=0 || now<=0){
+      $('nctResult').classList.remove('show');
+      return;
+    }
+
+    var realized = (sell - buy) * qty;
+    var holdValue = (now - buy) * qty;
+    var diff = holdValue - realized; // 양수면 존버가 더 좋았음(후회), 음수면 판 게 나았음
+    var investment = buy * qty;
+    var realizedPct = (realized/investment)*100;
+    var holdPct = (holdValue/investment)*100;
+
+    // 대결 카드
+    var sellWin = realized >= holdValue;
+    $('nctVsCard').innerHTML =
+      '<div class="nct-vsbox' + (sellWin?' win':'') + '">' +
+        '<div class="nct-vslabel">그때 판 결과</div>' +
+        '<div class="nct-vsicon">💰</div>' +
+        '<div class="nct-vsval ' + (realized>=0?'gain':'loss') + '">' + won(realized) + '</div>' +
+        '<div class="nct-vspct">' + (realizedPct>=0?'+':'') + realizedPct.toFixed(1) + '%</div>' +
+      '</div>' +
+      '<div class="nct-vsvs">VS</div>' +
+      '<div class="nct-vsbox' + (!sellWin?' win':'') + '">' +
+        '<div class="nct-vslabel">존버했다면</div>' +
+        '<div class="nct-vsicon">🧘</div>' +
+        '<div class="nct-vsval ' + (holdValue>=0?'gain':'loss') + '">' + won(holdValue) + '</div>' +
+        '<div class="nct-vspct">' + (holdPct>=0?'+':'') + holdPct.toFixed(1) + '%</div>' +
+      '</div>';
+
+    var diffPct = (diff/investment)*100;
+    var hero = $('nctHero');
+    var icon, grade, line, heroClass;
+
+    if(diff > 0){
+      // 존버가 더 좋았음 (후회)
+      var ad = Math.abs(diffPct);
+      if(ad < 5){ heroClass='mid'; icon='🤏'; grade='오차 범위, 잘 파신 거예요'; line='존버했어도 큰 차이 없었어요. 판 선택이 나쁘지 않았습니다.'; }
+      else if(ad < 20){ heroClass='mid'; icon='😅'; grade='살짝 아쉬운 타이밍'; line='조금 더 들고 계셨으면 좋았겠지만, 그 정도는 누구나 겪는 일이에요.'; }
+      else if(ad < 50){ heroClass='bad'; icon='😩'; grade='이건 좀 뼈아프네요'; line='그래도 그때는 그때 나름의 이유가 있으셨을 거예요. 결과만 보고 자책하지 마세요.'; }
+      else { heroClass='bad'; icon='😱'; grade='밤에 잠이 안 올 각'; line='숫자로는 아쉽지만, 그때의 나는 지금 아는 걸 몰랐을 뿐이에요.'; }
+    } else {
+      // 판 게 더 좋았음
+      var ad2 = Math.abs(diffPct);
+      if(ad2 < 5){ heroClass='mid'; icon='👌'; grade='나쁘지 않은 타이밍'; line='존버했어도 결과는 비슷했을 거예요. 무난한 매도였습니다.'; }
+      else if(ad2 < 20){ heroClass='good'; icon='😊'; grade='잘 파셨어요'; line='그때 판 게 지금보다 나은 선택이었어요.'; }
+      else if(ad2 < 50){ heroClass='good'; icon='🎯'; grade='좋은 타이밍이었네요'; line='존버했다면 오히려 손해였을 상황이에요. 판단이 좋으셨습니다.'; }
+      else { heroClass='good'; icon='🔮'; grade='이 정도면 예언자 수준'; line='존버했다면 큰 손실이었을 거예요. 정말 신의 한 수였습니다.'; }
+    }
+
+    hero.className = 'nct-hero ' + heroClass;
+    $('nctHIcon').textContent = icon;
+    $('nctHGrade').textContent = grade;
+    $('nctHLine').textContent = line;
+
+    $('nctSummary').innerHTML =
+      '<div class="nct-srow"><span class="nct-sk">실현 손익</span><span class="nct-sv" style="color:' + (realized>=0?'var(--nct-gain)':'var(--nct-loss)') + ';">' + won(realized) + '</span></div>' +
+      '<div class="nct-srow"><span class="nct-sk">존버 시 평가손익</span><span class="nct-sv" style="color:' + (holdValue>=0?'var(--nct-gain)':'var(--nct-loss)') + ';">' + won(holdValue) + '</span></div>' +
+      '<div class="nct-srow"><span class="nct-sk">차이</span><span class="nct-sv" style="color:' + (diff>0?'var(--nct-loss)':'var(--nct-gain)') + ';">' + (diff>0?'+':'') + won(diff) + '</span></div>';
+
+    var copyLabel = diff>0 ? '존버했다면 더 좋았을 뻔' : '판 게 더 나았어요';
+    root.dataset.copytext = '⚖️ 그때 팔았으면 vs 존버\n' + (name?name+' : ':'') + icon + ' ' + grade + '\n그때 판 결과 ' + won(realized) + ' vs 존버 시 ' + won(holdValue) + '\n(' + copyLabel + ')\nstockchild.com';
+
+    $('nctResult').classList.add('show');
+    $('nctCopy').classList.remove('done');
+    $('nctCopy').textContent = '📋 결과 복사하기';
+  }
+
+  $('nctGo').addEventListener('click', function(){
+    render();
+    setTimeout(function(){ $('nctResult').scrollIntoView({behavior:'smooth', block:'nearest'}); }, 60);
+  });
+
+  $('nctCopy').addEventListener('click', function(){
+    var t = root.dataset.copytext || '';
+    if(!t) return;
+    var btn = $('nctCopy');
+    function ok(){ btn.classList.add('done'); btn.textContent = '✅ 복사됐어요'; }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(ok).catch(function(){ fallback(t); ok(); });
+    } else { fallback(t); ok(); }
+  });
+  function fallback(t){
+    var ta = document.createElement('textarea');
+    ta.value = t; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+  }
+})();
+
+</script>
+<script>
+(function () {
+  var bodyEl = document.getElementById('adrmBody');
+  var footEl = document.getElementById('adrmFooter');
+  if (!bodyEl || !footEl) return; // ADR 위젯이 없는 페이지에서는 조용히 종료
+
+  var CDN_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/adr-monitor.json';
+  var FALLBACK_URL = '';
+
+  var state = { items: [], updated: '', sort: 'abs' };
+
+  fetchData(CDN_URL).catch(function () {
+    if (FALLBACK_URL) return fetchData(FALLBACK_URL);
+    throw new Error('no fallback');
+  }).catch(function () {
+    bodyEl.innerHTML = '<div class="adrm-status">데이터를 불러오지 못했습니다.<br>잠시 후 새로고침해 주세요.</div>';
+  });
+
+  function fetchData(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (json) {
+      var items = cleanItems(json && json.items);
+      if (!items.length) throw new Error('empty');
+      state.items = items;
+      state.updated = String(json.updated || '');
+      render();
+    });
+  }
+
+  function cleanItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (it) {
+      if (!it) return null;
+      var adrUsd = Number(it.adrUsd);
+      var krPrice = Number(it.krPrice);
+      var fx = Number(it.fx);
+      var ratio = Number(it.ratio);
+      if (!isFinite(adrUsd) || !isFinite(krPrice) || !isFinite(ratio) || krPrice <= 0 || ratio <= 0) return null;
+      var converted = Number(it.converted);
+      if (!isFinite(converted) || converted <= 0) {
+        if (!isFinite(fx) || fx <= 0) return null;
+        converted = adrUsd * fx / ratio;
+      }
+      var gap = Number(it.gapPct);
+      if (!isFinite(gap)) gap = (converted - krPrice) / krPrice * 100;
+      return {
+        name: String(it.name || ''),
+        us: String(it.us || ''),
+        kr: String(it.kr || '').replace(/\D/g, '').slice(0, 6),
+        adrUsd: adrUsd,
+        krPrice: krPrice,
+        converted: Math.round(converted),
+        gapPct: Math.round(gap * 100) / 100,
+        ratio: ratio,
+        adrDate: normDate(it.adrDate),
+        krDate: normDate(it.krDate)
+      };
+    }).filter(function (x) { return x !== null; });
+  }
+
+  function normDate(v) {
+    var s = String(v || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  }
+
+  function fmtWon(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function fmtUsd(n) { return '$' + n.toFixed(2); }
+  function gapCls(g) { return g >= 0 ? 'up' : 'down'; }
+  function gapTxt(g) { return (g >= 0 ? '+' : '') + g.toFixed(2) + '%'; }
+  function ratioTxt(r) { return 'ADR 1주 = 원주 ' + r + '주'; }
+  function shortDate(d) { return d ? d.slice(5) : '?'; }
+
+  function gaugeHtml(gap, maxAbs) {
+    var pct = Math.min(Math.abs(gap) / maxAbs, 1) * 50;
+    var cls = gapCls(gap);
+    return '<div class="adrm-gauge"><div class="adrm-gauge-zero"></div>' +
+      '<div class="adrm-gauge-bar ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+      '<div class="adrm-gauge-scale"><span>-' + maxAbs + '%</span><span>0</span><span>+' + maxAbs + '%</span></div>';
+  }
+
+  function dateWarn(it) {
+    if (it.adrDate.length > 0) {
+      if (it.krDate.length > 0) {
+        if (it.adrDate !== it.krDate) {
+          return '<div class="adrm-warn">⚠️ 기준일 다름: ADR ' + shortDate(it.adrDate) +
+            ' / 원주 ' + shortDate(it.krDate) + ' (휴장 영향)</div>';
+        }
+      }
+    }
+    return '';
+  }
+
+  function render() {
+    var items = state.items.slice();
+    var hero = null;
+    items = items.filter(function (it) {
+      if (it.us === 'SKHY') {
+        if (hero === null) { hero = it; return false; }
+      }
+      return true;
+    });
+
+    if (state.sort === 'abs') {
+      items.sort(function (a, b) { return Math.abs(b.gapPct) - Math.abs(a.gapPct); });
+    } else {
+      items.sort(function (a, b) { return b.gapPct - a.gapPct; });
+    }
+
+    var all = hero ? [hero].concat(items) : items;
+    var maxAbs = Math.max(10, Math.ceil(Math.max.apply(null, all.map(function (it) {
+      return Math.abs(it.gapPct);
+    })) / 5) * 5);
+
+    var html = '';
+
+    if (hero) {
+      html += '<div class="adrm-hero">' +
+        '<div class="adrm-hero-top">' +
+        '<span class="adrm-hero-name">' + hero.name + '</span>' +
+        '<span class="adrm-badge-new">나스닥 신규 상장</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + hero.kr + '</span>' +
+        '<span class="adrm-chip">US ' + hero.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-grid">' +
+        cell('ADR 가격', fmtUsd(hero.adrUsd)) +
+        cell('원화 환산가', fmtWon(hero.converted)) +
+        cell('국내 원주가', fmtWon(hero.krPrice)) +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(hero.ratio) + '</span>' +
+        '<span class="adrm-gap adrm-gap-big ' + gapCls(hero.gapPct) + '">' + gapTxt(hero.gapPct) + '</span></div>' +
+        gaugeHtml(hero.gapPct, maxAbs) +
+        dateWarn(hero) +
+        '</div>';
+    }
+
+    html += '<div class="adrm-sorts">' +
+      sortBtn('abs', '괴리율 크기순') +
+      sortBtn('desc', '프리미엄 높은순') +
+      '</div>';
+
+    items.forEach(function (it) {
+      html += '<div class="adrm-card">' +
+        '<div class="adrm-card-head">' +
+        '<span class="adrm-card-name">' + it.name + '</span>' +
+        '<span class="adrm-chips"><span class="adrm-chip">KR ' + it.kr + '</span>' +
+        '<span class="adrm-chip">US ' + it.us + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row">' +
+        '<span>ADR <span class="adrm-price">' + fmtUsd(it.adrUsd) + '</span>' +
+        ' <span class="adrm-muted">→ 환산 ' + fmtWon(it.converted) + '</span></span>' +
+        '<span>원주 <span class="adrm-price">' + fmtWon(it.krPrice) + '</span></span>' +
+        '</div>' +
+        '<div class="adrm-card-row"><span class="adrm-muted">' + ratioTxt(it.ratio) + '</span>' +
+        '<span class="adrm-gap ' + gapCls(it.gapPct) + '">' + gapTxt(it.gapPct) + '</span></div>' +
+        gaugeHtml(it.gapPct, maxAbs) +
+        dateWarn(it) +
+        '</div>';
+    });
+
+    bodyEl.innerHTML = html;
+    footEl.textContent = '출처: Yahoo Finance, 네이버금융 | 기준: ' + state.updated + ' (하루 1회 갱신)';
+
+    Array.prototype.forEach.call(bodyEl.querySelectorAll('.adrm-sort-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.sort = btn.getAttribute('data-sort');
+        render();
+      });
+    });
+  }
+
+  function cell(label, value) {
+    return '<div class="adrm-cell"><div class="adrm-cell-label">' + label +
+      '</div><div class="adrm-cell-value">' + value + '</div></div>';
+  }
+
+  function sortBtn(key, label) {
+    return '<button type="button" class="adrm-sort-btn' + (state.sort === key ? ' active' : '') +
+      '" data-sort="' + key + '">' + label + '</button>';
+  }
+})();
+</script>
+</body></html>
