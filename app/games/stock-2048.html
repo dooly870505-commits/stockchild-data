@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>주식 2048</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#0F1A2E;--bg2:#15233D;--fg:#F3F4F8;--muted:#8E9AB5;--line:#2A3A5C;--brand:#FFE94D;--brand-ink:#2B2500;--up:#F04452;--down:#3182F6;--display:'Jua','Noto Sans KR',system-ui,sans-serif;--body:'Noto Sans KR',system-ui,-apple-system,sans-serif;color-scheme:dark}
+[hidden]{display:none!important}*{box-sizing:border-box}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;padding:0 max(0px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(0px,env(safe-area-inset-left))}
+.app{height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:12px 16px}
+.top{width:100%;display:flex;justify-content:space-between;align-items:flex-end}
+.top h1{font-family:var(--display);font-weight:400;font-size:24px;margin:0}.top .s{font-size:12px;color:var(--muted)}
+.sc{display:flex;gap:8px}.sc div{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:70px;text-align:center}.sc .k{font-size:10px;color:var(--muted)}.sc .v{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+.board{position:relative;width:min(100%,420px);aspect-ratio:1;margin-top:14px;background:#1B2A47;border-radius:16px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:8px}
+.cell{background:rgba(255,255,255,.05);border-radius:12px}
+.tile{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;font-family:var(--display);transition:transform .12s ease,left .12s ease,top .12s ease;color:#fff;text-align:center;line-height:1.05}
+.tile .e{font-size:clamp(18px,6vw,30px)}.tile .n{font-size:clamp(10px,3.1vw,15px);margin-top:2px;padding:0 2px}
+.tile.new{animation:pop .15s ease}.tile.merged{animation:bump .18s ease}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}@keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+.legend{width:100%;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.legend span{font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:3px 8px}
+.help{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+.row{display:flex;gap:8px;margin-top:10px}
+.btn{font:700 14px var(--body);border:1px solid var(--line);border-radius:12px;padding:10px 16px;cursor:pointer;color:var(--fg);background:var(--bg2)}.btn.brand{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.overlay{position:absolute;inset:0;background:rgba(15,26,46,.92);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;z-index:3}
+.overlay h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0}.overlay p{margin:0;color:var(--muted);font-size:13px}
+</style></head><body>
+<div class="app">
+  <div class="top"><div><h1>주식 2048</h1><div class="s">같은 등급을 합쳐 시총 1위까지</div></div><div class="sc"><div><div class="k">점수</div><div class="v" id="score">0</div></div><div><div class="k">최고</div><div class="v" id="best">0</div></div></div></div>
+  <div class="board" id="board">
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    <div class="overlay" id="ov" hidden><h2 id="ovT">상장폐지 💀</h2><p id="ovS"></p><div class="row"><button class="btn brand" id="again">다시 상장</button><button class="btn" id="cont" hidden>계속하기</button></div></div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="help">밀어서 합치세요 · 손가락 스와이프 또는 방향키</div>
+  <div class="row"><button class="btn" id="newBtn">새 게임</button></div>
+</div>
+<script>
+(function(){
+'use strict';
+const T=[null,
+ {e:'🪙',n:'동전주',c:'#5C6B8A'},{e:'📉',n:'잡주',c:'#6B7A99'},{e:'🔥',n:'테마주',c:'#C0392B'},{e:'🏭',n:'소형주',c:'#7D5A2F'},
+ {e:'🏢',n:'중형주',c:'#2F6FB5'},{e:'🏦',n:'대형주',c:'#1F8A5B'},{e:'📊',n:'코스피200',c:'#8E44AD'},{e:'🏛️',n:'10대 그룹',c:'#B9770E'},
+ {e:'💾',n:'반도체 투톱',c:'#C27C0E'},{e:'🥈',n:'시총 2위',c:'#9AA0A8'},{e:'👑',n:'시총 1위',c:'#F5B400'},{e:'🌍',n:'세계 1위',c:'#E67E22'},{e:'🚀',n:'우주 1위',c:'#FF5A1F'}];
+const KEY='ant_2048_v1';const $=id=>document.getElementById(id);const board=$('board');
+let G,score=0,best=0,won=false,tiles=[],idc=0;
+try{best=+localStorage.getItem(KEY)||0}catch(e){}
+$('legend').innerHTML=T.slice(1,8).map(t=>`<span>${t.e} ${t.n}</span>`).join('')+'<span>… 👑 시총 1위</span>';
+function empty(){return Array.from({length:4},()=>Array(4).fill(null))}
+function spawn(){const free=[];for(let r=0;r<4;r++)for(let c=0;c<4;c++)if(!G[r][c])free.push([r,c]);if(!free.length)return;const [r,c]=free[Math.floor(Math.random()*free.length)];G[r][c]={v:Math.random()<0.9?1:2,id:++idc,new:true}}
+function start(){G=empty();score=0;won=false;spawn();spawn();$('ov').hidden=true;render()}
+function slide(line){const vals=line.filter(Boolean);const out=[];let gained=0;for(let i=0;i<vals.length;i++){if(i+1<vals.length&&vals[i].v===vals[i+1].v){const nv=vals[i].v+1;out.push({v:nv,id:++idc,merged:true,from:[vals[i].id,vals[i+1].id]});gained+=Math.pow(2,nv);if(nv===11&&!won){won=true;setTimeout(()=>{$('ovT').textContent='시총 1위 달성 👑';$('ovS').textContent='여기서 멈춰도, 세계 1위를 노려도 좋아요.';$('cont').hidden=false;$('ov').hidden=false},200)}i++}else out.push(vals[i])}while(out.length<4)out.push(null);return {out,gained}}
+function move(dir){const old=JSON.stringify(G.map(r=>r.map(x=>x&&x.v)));let gained=0;const g=G.map(r=>r.map(x=>x?{...x,new:false,merged:false}:null));
+  const lines=[];for(let i=0;i<4;i++){let line=[];for(let j=0;j<4;j++){const [r,c]=dir==='L'?[i,j]:dir==='R'?[i,3-j]:dir==='U'?[j,i]:[3-j,i];line.push(g[r][c])}const {out,gained:ga}=slide(line);gained+=ga;for(let j=0;j<4;j++){const [r,c]=dir==='L'?[i,j]:dir==='R'?[i,3-j]:dir==='U'?[j,i]:[3-j,i];g[r][c]=out[j]}}
+  if(JSON.stringify(g.map(r=>r.map(x=>x&&x.v)))===old)return;G=g;score+=gained;spawn();render();if(!canMove()){setTimeout(()=>{$('ovT').textContent='상장폐지 💀';$('ovS').textContent=`더 합칠 수 없어요 · ${score.toLocaleString('ko-KR')}점 · 최고 등급 ${T[maxV()].e} ${T[maxV()].n}`;$('cont').hidden=true;$('ov').hidden=false},250)}}
+function maxV(){let m=1;G.forEach(r=>r.forEach(x=>{if(x&&x.v>m)m=x.v}));return m}
+function canMove(){for(let r=0;r<4;r++)for(let c=0;c<4;c++){const x=G[r][c];if(!x)return true;if(c<3&&G[r][c+1]&&G[r][c+1].v===x.v)return true;if(r<3&&G[r+1][c]&&G[r+1][c].v===x.v)return true}return false}
+function render(){board.querySelectorAll('.tile').forEach(t=>t.remove());const rect=board.getBoundingClientRect();const pad=8,gap=8;const size=(rect.width-pad*2-gap*3)/4;
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){const x=G[r][c];if(!x)continue;const t=T[Math.min(x.v,T.length-1)];const el=document.createElement('div');el.className='tile'+(x.new?' new':'')+(x.merged?' merged':'');el.style.cssText=`width:${size}px;height:${size}px;left:${pad+c*(size+gap)}px;top:${pad+r*(size+gap)}px;background:${t.c}`;el.innerHTML=`<div class="e">${t.e}</div><div class="n">${t.n}</div>`;board.appendChild(el)}
+  $('score').textContent=score.toLocaleString('ko-KR');if(score>best){best=score;try{localStorage.setItem(KEY,String(best))}catch(e){}}$('best').textContent=best.toLocaleString('ko-KR')}
+let sx=0,sy=0,sw=false;
+board.addEventListener('pointerdown',e=>{if(!$('ov').hidden)return;sx=e.clientX;sy=e.clientY;sw=true});
+window.addEventListener('pointerup',e=>{if(!sw)return;sw=false;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;move(Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U'))});
+window.addEventListener('keydown',e=>{const m={ArrowLeft:'L',ArrowRight:'R',ArrowUp:'U',ArrowDown:'D'}[e.key];if(m&&$('ov').hidden){e.preventDefault();move(m)}});
+$('again').addEventListener('click',start);$('newBtn').addEventListener('click',start);$('cont').addEventListener('click',()=>{$('ov').hidden=true});
+window.addEventListener('resize',render);start();
+})();
+</script></body></html>

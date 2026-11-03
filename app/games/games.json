@@ -1,0 +1,14 @@
+{
+  "updated": "2026-11-03",
+  "note": "차트 데이터 출처: 한국거래소 공개 시세(FinanceData/marcap)",
+  "games": [
+    {"id": "ant-break", "title": "개미 매도벽 돌파", "emoji": "", "file": "games/ant-break.html", "badge": "",
+     "desc": "개미가 매도벽 벽돌을 깨고 위로 돌파하는 벽돌깨기. 깔때기부터 상승 캔들까지 스테이지 10개."},
+    {"id": "chart-timemachine", "title": "차트 타임머신", "emoji": "📈", "file": "games/chart-timemachine.html", "badge": "NEW",
+     "desc": "종목과 날짜를 가린 실제 차트로 매수·매도 연습. 레벨을 올리면 레버리지와 공매도가 열려요."},
+    {"id": "chart-quiz", "title": "오늘의 차트 퀴즈", "emoji": "🧩", "file": "games/chart-quiz.html", "badge": "NEW",
+     "desc": "매일 같은 5문제. 차트가 오를지 내릴지, 무슨 종목인지 맞혀 보세요. 연속 참여 기록도 남아요."},
+    {"id": "stock-2048", "title": "주식 2048", "emoji": "🪙", "file": "games/stock-2048.html", "badge": "NEW",
+     "desc": "동전주끼리 합쳐서 시총 1위까지. 데이터 없이 바로 즐기는 퍼즐."}
+  ]
+}

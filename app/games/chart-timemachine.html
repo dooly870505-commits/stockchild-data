@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>차트 타임머신</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#0F1A2E;--bg2:#15233D;--fg:#F3F4F8;--muted:#8E9AB5;--line:#2A3A5C;--brand:#FFE94D;--brand-ink:#2B2500;--up:#F04452;--down:#3182F6;--gold:#F5B400;--display:'Jua','Noto Sans KR',system-ui,sans-serif;--body:'Noto Sans KR',system-ui,-apple-system,sans-serif;color-scheme:dark}
+[hidden]{display:none!important}*{box-sizing:border-box}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:0 max(0px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(0px,env(safe-area-inset-left))}
+.hud{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 14px 4px;font-variant-numeric:tabular-nums}
+.hud .k{font-size:10px;color:var(--muted);letter-spacing:.04em}.hud .v{font-family:var(--display);font-size:18px;line-height:1.1;white-space:nowrap}.hud .v.s{font-size:15px}
+.chart-wrap{position:relative;flex:1;min-height:0;margin:4px 10px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0B1426}
+canvas{display:block;width:100%;height:100%}
+.tag{position:absolute;left:10px;top:8px;font:700 11px var(--body);color:var(--muted);background:rgba(15,26,46,.8);padding:3px 8px;border-radius:6px}
+.pos{position:absolute;right:10px;top:8px;font:700 12px var(--body);padding:3px 8px;border-radius:6px;background:rgba(255,233,77,.15);color:var(--brand)}
+.fx{position:absolute;left:0;right:0;top:40%;text-align:center;pointer-events:none;font-family:var(--display);font-size:26px;text-shadow:0 2px 10px rgba(0,0,0,.6);opacity:0;transition:opacity .15s,transform .5s}.fx.show{opacity:1;transform:translateY(-10px)}.fx.up{color:#FF7A85}.fx.down{color:#6FA8FF}.fx.gold{color:var(--brand)}
+.panel{padding:8px 10px 10px;display:grid;gap:8px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-variant-numeric:tabular-nums}
+.stat div{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:6px 8px}.stat .k{font-size:10px;color:var(--muted)}.stat .v{font-family:var(--display);font-size:16px}
+.btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{font:700 15px var(--body);border:0;border-radius:12px;padding:13px 8px;cursor:pointer;color:#fff;background:var(--bg2);border:1px solid var(--line)}
+.btn:disabled{opacity:.35}.btn.buy{background:var(--up)}.btn.short{background:var(--down)}.btn.sell{background:var(--brand);color:var(--brand-ink)}.btn.next{background:#fff;color:#111}
+.btn.small{font-size:12px;padding:8px 6px}
+.lev{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}.lev button{font:700 12px var(--body);background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:999px;padding:5px 10px}.lev button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}.lev button:disabled{opacity:.3}
+.overlay{position:absolute;inset:0;background:rgba(15,26,46,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;overflow:auto;z-index:5}
+.overlay h2{font-family:var(--display);font-weight:400;font-size:30px;margin:0;line-height:1.15}
+.overlay p{margin:0;color:var(--muted);font-size:13px;line-height:1.55;max-width:34ch}
+.overlay .btn{padding:12px 22px}.overlay .btn.brand{background:var(--brand);color:var(--brand-ink)}
+.res{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;font-size:13px;text-align:left}.res b{font-family:var(--display);font-weight:400;font-size:16px}
+.big{font-family:var(--display);font-size:40px;line-height:1}
+.rank{width:100%;max-width:320px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}.rank td,.rank th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}.rank .n{text-align:right}.rank th{color:var(--muted);font-weight:500}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.note{font-size:11px;color:var(--muted)}
+.xp{height:6px;border-radius:999px;background:#223252;overflow:hidden}.xp i{display:block;height:100%;background:var(--brand)}
+</style></head><body>
+<div class="app">
+  <div class="hud">
+    <div><div class="k">자산</div><div class="v" id="asset">10,000,000원</div></div>
+    <div><div class="k">레벨 <span id="lvl">1</span></div><div class="xp" style="width:80px;margin-top:6px"><i id="xpbar" style="width:0%"></i></div></div>
+    <div><div class="k">라운드 · <button id="quitTop" style="background:none;border:0;color:var(--muted);font:inherit;font-size:10px;text-decoration:underline;cursor:pointer;padding:0">끝내기</button></div><div class="v s" id="round">1</div></div>
+  </div>
+  <div class="chart-wrap" id="wrap">
+    <canvas id="c"></canvas>
+    <div class="tag" id="tag">종목 ??? · 60일 차트</div>
+    <div class="pos" id="posTag" hidden></div>
+    <div class="fx" id="fx"></div>
+    <div class="overlay" id="ovStart">
+      <h2>차트 타임머신</h2>
+      <p>종목명과 날짜를 가린 <b>실제 차트</b>입니다. 60일을 보고 매수할지 정한 뒤, 하루씩 넘기며 언제 팔지 결정하세요. 30일이 지나면 자동 청산되고 정답이 공개됩니다.</p>
+      <p>레벨이 오르면 코스닥 소형주, 하락장, 2배 레버리지, 공매도가 열려요. 자산이 100만원 아래로 떨어지면 상장폐지.</p>
+      <div class="row"><button class="btn brand" id="startBtn">출발</button><button class="btn" id="rankBtn">🏆 랭킹</button></div>
+      <p class="note" id="loadMsg">차트 데이터 불러오는 중…</p>
+    </div>
+    <div class="overlay" id="ovReveal" hidden>
+      <div class="note" id="rvPeriod"></div>
+      <h2 id="rvName"></h2>
+      <div class="big" id="rvPnl"></div>
+      <div class="res" id="rvGrid"></div>
+      <p id="rvMsg"></p>
+      <div class="row"><button class="btn brand" id="nextRound">다음 라운드</button><button class="btn" id="quitBtn">여기서 끝내기</button></div>
+    </div>
+    <div class="overlay" id="ovEnd" hidden>
+      <h2 id="endTitle">상장폐지 💀</h2>
+      <div class="big" id="endAsset"></div>
+      <p id="endSub"></p>
+      <div class="row" id="nameBox"><input type="text" id="nick" maxlength="8" placeholder="닉네임" style="font:700 16px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--fg);width:150px;text-align:center"><button class="btn brand" id="saveBtn">랭킹 등록</button></div>
+      <div class="row"><button class="btn" id="restartBtn">처음부터</button><button class="btn" id="rankBtn2">🏆 랭킹</button></div>
+    </div>
+    <div class="overlay" id="ovRank" hidden>
+      <h2>🏆 랭킹</h2><p>끝낼 때의 자산 기준. 이 기기에만 저장됩니다.</p>
+      <table class="rank"><thead><tr><th>#</th><th>닉네임</th><th class="n">자산</th><th class="n">레벨</th></tr></thead><tbody id="rankBody"></tbody></table>
+      <button class="btn" id="rankClose">닫기</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="stat"><div><div class="k">현재가</div><div class="v" id="price">-</div></div><div><div class="k">보유 손익</div><div class="v" id="pnl">-</div></div><div><div class="k">남은 날</div><div class="v" id="left">-</div></div></div>
+    <div class="lev" id="lev">배수 <button data-l="1" class="on">1배</button><button data-l="2" disabled>2배 <span class="note">Lv5</span></button><button data-l="3" disabled>3배 <span class="note">Lv9</span></button><span class="note" id="hint"></span></div>
+    <div class="btns"><button class="btn buy" id="buyBtn">매수</button><button class="btn short" id="shortBtn" disabled>공매도</button><button class="btn next" id="nextBtn">다음 날 ▶</button></div>
+    <div class="btns"><button class="btn sell" id="sellBtn" disabled>청산 (매도)</button><button class="btn small" id="skipBtn">이 차트 건너뛰기</button><button class="btn small" id="fastBtn">끝까지 ⏩</button></div>
+  </div>
+</div>
+<script>
+(function(){
+'use strict';
+const KEY='ant_timemachine_v1', RANK='ant_timemachine_rank_v1';
+const $=id=>document.getElementById(id);
+const cv=$('c'),ctx=cv.getContext('2d'),wrap=$('wrap');
+let DATA=null,S=null,save={best:0,games:0,nick:''};
+try{Object.assign(save,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const pct=(x,d=2,sign=true)=>(sign&&x>0?'+':'')+(x*100).toFixed(d)+'%';
+const tone=x=>x>0?'up':x<0?'down':'';
+function flash(t,cls){const f=$('fx');f.textContent=t;f.className='fx show '+(cls||'');clearTimeout(flash.t);flash.t=setTimeout(()=>f.className='fx',1000)}
+
+// ---------- game state ----------
+function newGame(){S={cash:10000000,level:1,xp:0,round:0,rounds:[],used:new Set(),seg:null,cur:0,pos:null,lev:1,finished:false};nextRound()}
+function levelNeed(l){return 100+(l-1)*60}
+function pool(){const segs=DATA.segments;const lv=S.level;return segs.filter(s=>!S.used.has(s.id)&&(lv>=3||s.market==='KOSPI'))}
+function nextRound(){const p=pool();const seg=p[Math.floor(Math.random()*p.length)];S.used.add(seg.id);S.seg=seg;S.cur=DATA.meta.view;S.pos=null;S.round++;S.lev=1;
+  document.querySelectorAll('#lev button').forEach(b=>{const l=+b.dataset.l;b.disabled=(l===2&&S.level<5)||(l===3&&S.level<9);b.classList.toggle('on',l===1)});
+  $('shortBtn').disabled=S.level<7;$('hint').textContent=S.level<5?'Lv5에 2배, Lv7에 공매도, Lv9에 3배':S.level<7?'Lv7에 공매도':S.level<9?'Lv9에 3배':'';
+  $('tag').textContent=`종목 ??? · ${seg.market==='KOSPI'?'코스피':'코스닥'} · 60일 차트`;show(null);ui();draw()}
+function price(){return S.seg.d[S.cur-1][3]}
+function open(side){if(S.pos||S.cur>=DATA.meta.view+DATA.meta.play)return;S.pos={side,entry:price(),lev:S.lev,day:S.cur};flash(side==='long'?'매수 체결':'공매도 체결',side==='long'?'up':'down');ui();draw()}
+function posPnl(p=price()){if(!S.pos)return 0;const r=(p/S.pos.entry-1)*(S.pos.side==='long'?1:-1)*S.pos.lev;return S.cash*r}
+function close(forced){if(!S.pos)return;const pnl=posPnl();const r=pnl/S.cash;S.cash+=pnl;const rec={side:S.pos.side,lev:S.pos.lev,entry:S.pos.entry,exit:price(),ret:r,pnl};S.pos=null;S.lastTrade=rec;flash((pnl>=0?'+':'')+fmt(pnl)+'원 '+(forced?'자동 청산':'청산'),tone(pnl));ui();draw();return rec}
+function advance(){if(S.cur>=DATA.meta.view+DATA.meta.play){endRound();return}S.cur++;if(S.pos&&S.cash+posPnl()<=0){S.cash=0;S.pos=null;endRound();return}
+  if(S.cur>=DATA.meta.view+DATA.meta.play){if(S.pos)close(true);endRound();return}ui();draw()}
+function endRound(){S.cur=DATA.meta.view+DATA.meta.play;const t=S.lastTrade;const seg=S.seg;const base=seg.d[DATA.meta.view-1][3],end=seg.d[S.cur-1][3],after=seg.d[seg.d.length-1][3];
+  const ret=t?t.ret:0;const gain=Math.max(0,ret)*300+8;S.xp+=gain;while(S.xp>=levelNeed(S.level)){S.xp-=levelNeed(S.level);S.level++;flash('레벨 업! Lv'+S.level,'gold')}
+  S.rounds.push({name:seg.name,ret});S.lastTrade=null;
+  $('rvPeriod').textContent=`${seg.market==='KOSPI'?'코스피':'코스닥'} · ${seg.start.slice(0,7).replace('-','.')} ~ ${seg.end.slice(0,7).replace('-','.')}`;$('rvName').textContent=seg.name;
+  $('rvPnl').textContent=t?(t.pnl>=0?'+':'')+fmt(t.pnl)+'원':'관망';$('rvPnl').className='big '+(t?tone(t.pnl):'');
+  $('rvGrid').innerHTML=[['내 수익률',t?pct(t.ret):'0%'],['매매',t?(t.side==='long'?'매수':'공매도')+' '+t.lev+'배 · '+fmt(t.entry)+' → '+fmt(t.exit):'없음'],['구간 등락 (30일)',pct(end/base-1)],['그 뒤 30일 더',pct(after/end-1)],['경험치',`+${Math.round(gain)} XP`]].map(([k,v])=>`<span>${k}</span><b>${v}</b>`).join('');
+  $('rvMsg').textContent=S.cash<1000000?'자산이 100만원 아래로 떨어졌어요.':(t&&t.ret>0.1?'훌륭해요! 그 뒤 흐름도 확인해 보세요.':t&&t.ret<-0.1?'손절 타이밍을 복기해 보세요.':'');
+  draw(true);show($('ovReveal'));ui();$('nextRound').textContent=S.cash<1000000?'상장폐지 확인':'다음 라운드';$('nextRound').onclick=()=>{S.cash<1000000?endGame(false):nextRound()}}
+function endGame(voluntary){S.finished=true;save.games++;save.best=Math.max(save.best,S.cash);persist();$('endTitle').textContent=voluntary?'거래 종료 📈':'상장폐지 💀';
+  $('endAsset').textContent=fmt(S.cash)+'원';$('endAsset').className='big '+tone(S.cash-10000000);$('endSub').textContent=`${S.round-(voluntary?0:0)}라운드 · Lv${S.level} · 시작 1,000만원 대비 ${pct(S.cash/10000000-1)}`;$('nick').value=save.nick||'';$('nameBox').hidden=false;show($('ovEnd'))}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}}
+function loadRank(){try{return JSON.parse(localStorage.getItem(RANK)||'[]')}catch(e){return []}}
+function renderRank(mine){const l=loadRank();$('rankBody').innerHTML=l.length?l.map((r,i)=>`<tr${r.ts===mine?' style="background:rgba(255,233,77,.18)"':''}><td>${i+1}</td><td>${r.name.replace(/[<>&]/g,'')}</td><td class="n">${fmt(r.asset)}</td><td class="n">Lv${r.level}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--muted)">아직 기록이 없어요</td></tr>'}
+function show(o){[$('ovStart'),$('ovReveal'),$('ovEnd'),$('ovRank')].forEach(x=>x.hidden=true);if(o)o.hidden=false}
+
+// ---------- ui ----------
+function ui(){$('asset').textContent=fmt(S.cash+(S.pos?posPnl():0))+'원';$('lvl').textContent=S.level;$('xpbar').style.width=Math.min(100,S.xp/levelNeed(S.level)*100)+'%';$('round').textContent=S.round;
+  const p=price();$('price').textContent=fmt(p)+'원';const pn=S.pos?posPnl():0;$('pnl').textContent=S.pos?(pn>=0?'+':'')+fmt(pn)+'원 ('+pct(pn/S.cash)+')':'-';$('pnl').className='v '+tone(pn);
+  const left=DATA.meta.view+DATA.meta.play-S.cur;$('left').textContent=left+'일';
+  const over=left<=0;$('buyBtn').disabled=!!S.pos||over;$('shortBtn').disabled=!!S.pos||over||S.level<7;$('sellBtn').disabled=!S.pos;$('nextBtn').disabled=over;$('fastBtn').disabled=over;$('skipBtn').disabled=!!S.pos||S.cur!==DATA.meta.view;
+  $('posTag').hidden=!S.pos;if(S.pos)$('posTag').textContent=(S.pos.side==='long'?'매수':'공매도')+' '+S.pos.lev+'배 @'+fmt(S.pos.entry)}
+
+// ---------- chart ----------
+function fit(){const r=wrap.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);cv._w=r.width;cv._h=r.height}
+function draw(reveal){if(!S)return;const W=cv._w,H=cv._h;ctx.clearRect(0,0,W,H);const d=S.seg.d;const n=reveal?d.length:S.cur;const total=DATA.meta.view+DATA.meta.play+(reveal?30:0);
+  const padR=58,padT=14,volH=Math.round(H*0.16),padB=volH+10;const cw=(W-padR-8)/total;
+  const shown=d.slice(0,n);let lo=Infinity,hi=-Infinity,vmax=0;shown.forEach(x=>{lo=Math.min(lo,x[2]);hi=Math.max(hi,x[1]);vmax=Math.max(vmax,x[4])});const span=hi-lo||1;lo-=span*0.05;hi+=span*0.05;
+  const y=p=>padT+(hi-p)/(hi-lo)*(H-padT-padB);const x=i=>8+i*cw+cw/2;
+  // grid + axis
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;ctx.fillStyle='#8E9AB5';ctx.font='10px "Noto Sans KR",sans-serif';ctx.textAlign='left';
+  for(let k=0;k<=4;k++){const p=lo+(hi-lo)*k/4,yy=y(p);ctx.beginPath();ctx.moveTo(8,yy);ctx.lineTo(W-padR,yy);ctx.stroke();ctx.fillText(fmt(p),W-padR+4,yy+3)}
+  // view/play boundary
+  const bx=8+DATA.meta.view*cw;ctx.strokeStyle='rgba(255,233,77,.35)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(bx,padT);ctx.lineTo(bx,H-padB);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,233,77,.7)';ctx.font='10px "Noto Sans KR",sans-serif';ctx.fillText('▶ 플레이',bx+3,padT+28);
+  if(reveal){const ex=8+(DATA.meta.view+DATA.meta.play)*cw;ctx.strokeStyle='rgba(255,255,255,.25)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(ex,padT);ctx.lineTo(ex,H-padB);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText('그 뒤 30일',ex+3,padT+28)}
+  // MA20
+  ctx.strokeStyle='rgba(255,233,77,.6)';ctx.lineWidth=1;ctx.beginPath();for(let i=19;i<n;i++){let s=0;for(let k=i-19;k<=i;k++)s+=d[k][3];const yy=y(s/20);if(i===19)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+  // candles + volume
+  const bw=Math.max(1.5,cw*0.66);
+  for(let i=0;i<n;i++){const [o,h,l,c,v]=d[i];const up=c>=o;const col=up?'#F04452':'#3182F6';const dim=reveal&&i>=DATA.meta.view+DATA.meta.play;ctx.globalAlpha=dim?0.45:1;
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x(i),y(h));ctx.lineTo(x(i),y(l));ctx.stroke();
+    const yo=y(o),yc=y(c);ctx.fillRect(x(i)-bw/2,Math.min(yo,yc),bw,Math.max(1,Math.abs(yc-yo)));
+    ctx.globalAlpha=(dim?0.25:0.5);ctx.fillRect(x(i)-bw/2,H-10-(v/vmax)*volH,bw,(v/vmax)*volH);ctx.globalAlpha=1}
+  // entry line
+  if(S.pos){const yy=y(S.pos.entry);ctx.strokeStyle=S.pos.side==='long'?'#FF7A85':'#6FA8FF';ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(8,yy);ctx.lineTo(W-padR,yy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=S.pos.side==='long'?'#FF7A85':'#6FA8FF';ctx.fillText((S.pos.side==='long'?'매수':'공매도')+' '+fmt(S.pos.entry),W-padR-70,yy-4)}
+  // last price marker
+  const lp=d[n-1][3];ctx.fillStyle=lp>=d[n-2][3]?'#F04452':'#3182F6';ctx.fillRect(W-padR+1,y(lp)-8,padR-2,16);ctx.fillStyle='#fff';ctx.font='bold 10px "Noto Sans KR",sans-serif';ctx.fillText(fmt(lp),W-padR+4,y(lp)+4)}
+
+// ---------- events ----------
+$('buyBtn').addEventListener('click',()=>open('long'));$('shortBtn').addEventListener('click',()=>open('short'));$('sellBtn').addEventListener('click',()=>close(false));
+$('nextBtn').addEventListener('click',advance);$('fastBtn').addEventListener('click',()=>{let g=0;while(S.cur<DATA.meta.view+DATA.meta.play&&g++<40)advance()});
+$('skipBtn').addEventListener('click',()=>{if(!S.pos&&S.cur===DATA.meta.view)nextRound()});
+$('lev').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(!b||b.disabled)return;S.lev=+b.dataset.l;document.querySelectorAll('#lev button').forEach(x=>x.classList.toggle('on',x===b))});
+$('startBtn').addEventListener('click',()=>{if(DATA)newGame()});$('restartBtn').addEventListener('click',newGame);
+$('quitBtn').addEventListener('click',()=>endGame(true));$('quitTop').addEventListener('click',()=>{if(S&&!S.finished){if(S.pos)close(false);endGame(true)}});
+$('saveBtn').addEventListener('click',()=>{const name=($('nick').value.trim()||'개미').slice(0,8);save.nick=name;persist();const l=loadRank();const rec={name,asset:Math.round(S.cash),level:S.level,ts:Date.now()};l.push(rec);l.sort((a,b)=>b.asset-a.asset);localStorage.setItem(RANK,JSON.stringify(l.slice(0,20)));$('nameBox').hidden=true;renderRank(rec.ts);show($('ovRank'));$('rankClose').onclick=()=>show($('ovEnd'))});
+$('rankBtn').addEventListener('click',()=>{renderRank();show($('ovRank'));$('rankClose').onclick=()=>show($('ovStart'))});
+$('rankBtn2').addEventListener('click',()=>{renderRank();show($('ovRank'));$('rankClose').onclick=()=>show($('ovEnd'))});
+window.addEventListener('keydown',e=>{if(!S||S.finished)return;if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();if(!$('nextBtn').disabled)advance()}if(e.key==='b')open('long');if(e.key==='s')close(false)});
+window.addEventListener('resize',()=>{fit();draw()});
+fit();
+fetch('chart-game.json',{cache:'force-cache'}).then(r=>r.json()).then(j=>{DATA=j;$('loadMsg').textContent=`${j.meta.count}개 실제 차트 · 출처: ${j.meta.source}`}).catch(()=>{$('loadMsg').textContent='차트 데이터를 불러오지 못했어요. 새로고침해 주세요.'});
+})();
+</script></body></html>

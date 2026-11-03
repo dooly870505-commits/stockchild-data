@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>오늘의 차트 퀴즈</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#0F1A2E;--bg2:#15233D;--fg:#F3F4F8;--muted:#8E9AB5;--line:#2A3A5C;--brand:#FFE94D;--brand-ink:#2B2500;--up:#F04452;--down:#3182F6;--gold:#F5B400;--display:'Jua','Noto Sans KR',system-ui,sans-serif;--body:'Noto Sans KR',system-ui,-apple-system,sans-serif;color-scheme:dark}
+[hidden]{display:none!important}*{box-sizing:border-box}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;-webkit-user-select:none;user-select:none;padding:0 max(0px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(0px,env(safe-area-inset-left))}
+.app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 6px}
+.top h1{font-family:var(--display);font-weight:400;font-size:20px;margin:0}.top .d{font-size:12px;color:var(--muted)}
+.dots{display:flex;gap:6px;padding:0 16px 8px}.dots i{flex:1;height:6px;border-radius:999px;background:#223252}.dots i.ok{background:var(--up)}.dots i.no{background:var(--down)}.dots i.cur{background:var(--brand)}
+.chart-wrap{position:relative;margin:0 12px;height:46vh;min-height:260px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0B1426}
+canvas{display:block;width:100%;height:100%}
+.tag{position:absolute;left:10px;top:8px;font:700 11px var(--body);color:var(--muted);background:rgba(15,26,46,.8);padding:3px 8px;border-radius:6px}
+.q{padding:12px 16px 4px;text-align:center}.q .t{font-family:var(--display);font-size:20px}.q .s{font-size:12px;color:var(--muted);margin-top:2px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 16px}
+.btn{font:700 17px var(--body);border:0;border-radius:14px;padding:16px 8px;cursor:pointer;color:#fff;background:var(--bg2);border:1px solid var(--line)}
+.btn.up{background:var(--up)}.btn.down{background:var(--down)}.btn.brand{background:var(--brand);color:var(--brand-ink)}.btn:disabled{opacity:.4}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 16px}.opts .btn{font-size:14px;padding:12px 6px}.opts .btn.right{background:var(--up)}.opts .btn.wrong{background:var(--down);opacity:.6}
+.result{padding:10px 16px;text-align:center;font-family:var(--display);font-size:22px;min-height:34px}.result.up{color:#FF7A85}.result.down{color:#6FA8FF}
+.card{margin:8px 16px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.card .big{font-family:var(--display);font-size:40px;line-height:1;color:var(--brand)}.card .grid{font-size:26px;letter-spacing:4px;margin:8px 0}.card p{margin:4px 0;color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:8px 16px 20px}
+.note{font-size:11px;color:var(--muted);text-align:center;padding:4px 16px 16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 16px}.stats div{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px}.stats .k{font-size:10px;color:var(--muted)}.stats .v{font-family:var(--display);font-size:18px}
+</style></head><body>
+<div class="app">
+  <div class="top"><div><h1>오늘의 차트 퀴즈</h1><div class="d" id="date"></div></div><div class="d" id="score">0점</div></div>
+  <div class="dots" id="dots"></div>
+  <div class="chart-wrap"><canvas id="c"></canvas><div class="tag" id="tag">종목 ??? · 40일</div></div>
+  <div class="q"><div class="t" id="qt">5거래일 뒤, 오를까 내릴까?</div><div class="s" id="qs">종목명과 날짜는 가려져 있어요</div></div>
+  <div class="btns" id="ud"><button class="btn up" id="upBtn">🔺 오른다</button><button class="btn down" id="downBtn">🔻 내린다</button></div>
+  <div class="opts" id="opts" hidden></div>
+  <div class="result" id="res"></div>
+  <div class="btns" id="nextWrap" hidden><button class="btn brand" id="nextBtn" style="grid-column:1/-1">다음 문제 ▶</button></div>
+  <div id="final" hidden>
+    <div class="card"><div class="big" id="fScore">0</div><p>오늘의 점수</p><div class="grid" id="fGrid"></div><p id="fSub"></p></div>
+    <div class="stats"><div><div class="k">연속 참여</div><div class="v" id="streak">0일</div></div><div><div class="k">누적 정답률</div><div class="v" id="acc">-</div></div><div><div class="k">최고 점수</div><div class="v" id="best">0</div></div></div>
+    <div class="row"><button class="btn brand" id="shareBtn">결과 복사</button><button class="btn" id="practiceBtn">연습 모드 (무작위)</button></div>
+    <div class="note" id="shareMsg">내일 다시 오면 새 문제 5개가 나와요.</div>
+  </div>
+  <div class="note" id="src"></div>
+</div>
+<script>
+(function(){
+'use strict';
+const KEY='ant_chartquiz_v1', N=5, VIEW=40, AHEAD=5;
+const $=id=>document.getElementById(id);const cv=$('c'),ctx=cv.getContext('2d');
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');const pct=(x,d=2)=>(x>0?'+':'')+(x*100).toFixed(d)+'%';
+let DATA=null,S=null,save={days:{},streak:0,lastDay:null,best:0,total:0,correct:0};
+try{Object.assign(save,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}}
+function kstDay(){const d=new Date(Date.now()+9*3600*1000);return d.toISOString().slice(0,10)}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function pickSet(seedStr){const r=rng(hash(seedStr));const segs=DATA.segments;const used=new Set(),out=[];while(out.length<N){const i=Math.floor(r()*segs.length);if(used.has(i))continue;used.add(i);const seg=segs[i];const off=10+Math.floor(r()*(seg.d.length-VIEW-AHEAD-10));
+  const names=segs.filter(s=>s.market===seg.market&&s.name!==seg.name).map(s=>s.name);const opts=[seg.name];while(opts.length<4){const n=names[Math.floor(r()*names.length)];if(opts.indexOf(n)<0)opts.push(n)}for(let k=opts.length-1;k>0;k--){const j=Math.floor(r()*(k+1));[opts[k],opts[j]]=[opts[j],opts[k]]}
+  out.push({seg,off,opts})}return out}
+function start(day,practice){const seedStr=practice?'practice-'+Date.now():day;S={day,practice,qs:pickSet(seedStr),i:0,score:0,res:[],phase:'ud',revealN:0};$('date').textContent=practice?'연습 모드':day.replace(/-/g,'.')+' 데일리';$('final').hidden=true;show()}
+function cur(){return S.qs[S.i]}
+function show(){const q=cur();S.phase='ud';S.revealN=0;$('tag').textContent=`문제 ${S.i+1} · ${q.seg.market==='KOSPI'?'코스피':'코스닥'} · 40일`;$('qt').textContent='5거래일 뒤, 오를까 내릴까?';$('qs').textContent='종목명과 날짜는 가려져 있어요';
+  $('ud').hidden=false;$('opts').hidden=true;$('nextWrap').hidden=true;$('res').textContent='';$('res').className='result';dots();draw();$('score').textContent=S.score+'점'}
+function dots(){$('dots').innerHTML=Array.from({length:N},(_,k)=>`<i class="${k<S.res.length?(S.res[k].ok?'ok':'no'):k===S.i?'cur':''}"></i>`).join('')}
+function answer(up){if(S.phase!=='ud')return;const q=cur();const base=q.seg.d[q.off+VIEW-1][3],after=q.seg.d[q.off+VIEW+AHEAD-1][3];const move=after/base-1;const ok=(move>=0)===up;
+  const pts=ok?100+Math.min(100,Math.round(Math.abs(move)*1000)):0;S.score+=pts;S.res.push({ok,move,pts,nameOk:null});
+  $('ud').hidden=true;S.phase='reveal';let k=0;const tick=()=>{S.revealN=++k;draw();if(k<AHEAD)setTimeout(tick,220);else{$('res').textContent=(ok?'정답! ':'땡. ')+'5일 뒤 '+pct(move)+(ok?' · +'+pts+'점':'');$('res').className='result '+(move>=0?'up':'down');askName()}};tick()}
+function askName(){S.phase='name';const q=cur();$('qt').textContent='보너스: 이 종목은?';$('qs').textContent='맞히면 +50점';$('opts').innerHTML=q.opts.map(n=>`<button class="btn" data-n="${n.replace(/"/g,'')}">${n}</button>`).join('');$('opts').hidden=false}
+function pickName(btn){if(S.phase!=='name')return;const q=cur();const ok=btn.dataset.n===q.seg.name;S.res[S.i].nameOk=ok;if(ok)S.score+=50;document.querySelectorAll('#opts .btn').forEach(b=>{b.disabled=true;if(b.dataset.n===q.seg.name)b.classList.add('right');else if(b===btn)b.classList.add('wrong')});
+  $('qt').textContent=(ok?'정답! +50점 · ':'아쉽네요 · ')+q.seg.name;$('qs').textContent=`${q.seg.start.slice(0,7).replace('-','.')} 무렵 ${q.seg.market==='KOSPI'?'코스피':'코스닥'}`;$('tag').textContent=q.seg.name;$('score').textContent=S.score+'점';$('nextWrap').hidden=false;S.phase='next';$('nextBtn').textContent=S.i+1<N?'다음 문제 ▶':'결과 보기';dots()}
+function next(){if(S.i+1<N){S.i++;show()}else finish()}
+function finish(){const grid=S.res.map(r=>r.ok?'🔺':'🔻').join('');const correct=S.res.filter(r=>r.ok).length;
+  if(!S.practice){if(!save.days[S.day]){const y=new Date(new Date(S.day).getTime()-86400000).toISOString().slice(0,10);save.streak=(save.lastDay===y)?save.streak+1:1;save.lastDay=S.day;save.total+=N;save.correct+=correct;save.best=Math.max(save.best,S.score);save.days[S.day]={score:S.score,grid,correct};persist()}}
+  $('fScore').textContent=S.score;$('fGrid').textContent=grid;$('fSub').textContent=`${correct}/${N} 정답 · 종목 맞히기 ${S.res.filter(r=>r.nameOk).length}개`;$('streak').textContent=save.streak+'일';$('acc').textContent=save.total?Math.round(save.correct/save.total*100)+'%':'-';$('best').textContent=save.best;
+  $('ud').hidden=true;$('opts').hidden=true;$('nextWrap').hidden=true;$('res').textContent='';$('final').hidden=false;$('qt').textContent=S.practice?'연습 끝':'오늘 퀴즈 끝';$('qs').textContent='';$('shareMsg').textContent=S.practice?'연습 점수는 기록에 남지 않아요.':'내일 다시 오면 새 문제 5개가 나와요.';
+  S.share=`주소남 차트 퀴즈 ${S.day.slice(5).replace('-','/')}\n${grid} ${S.score}점${save.streak>1&&!S.practice?' 🔥'+save.streak+'일 연속':''}\n#차트퀴즈 #주소남`}
+function draw(){const q=cur();const W=cv.width/(cv._d||1),H=cv.height/(cv._d||1);ctx.clearRect(0,0,W,H);const d=q.seg.d.slice(q.off,q.off+VIEW+S.revealN);const total=VIEW+AHEAD;const padR=56,padT=14,volH=Math.round(H*0.15),padB=volH+10,cw=(W-padR-8)/total;
+  let lo=Infinity,hi=-Infinity,vmax=0;d.forEach(x=>{lo=Math.min(lo,x[2]);hi=Math.max(hi,x[1]);vmax=Math.max(vmax,x[4])});const span=hi-lo||1;lo-=span*.05;hi+=span*.05;const y=p=>padT+(hi-p)/(hi-lo)*(H-padT-padB),x=i=>8+i*cw+cw/2;
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.fillStyle='#8E9AB5';ctx.font='10px "Noto Sans KR",sans-serif';for(let k=0;k<=4;k++){const p=lo+(hi-lo)*k/4;ctx.beginPath();ctx.moveTo(8,y(p));ctx.lineTo(W-padR,y(p));ctx.stroke();ctx.fillText(fmt(p),W-padR+4,y(p)+3)}
+  const bx=8+VIEW*cw;ctx.strokeStyle='rgba(255,233,77,.4)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(bx,padT);ctx.lineTo(bx,H-padB);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,233,77,.8)';ctx.fillText('5일 뒤?',bx+3,padT+10);
+  const bw=Math.max(2,cw*.66);d.forEach((c,i)=>{const [o,h,l,cl,v]=c;const col=cl>=o?'#F04452':'#3182F6';ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x(i),y(h));ctx.lineTo(x(i),y(l));ctx.stroke();ctx.fillRect(x(i)-bw/2,Math.min(y(o),y(cl)),bw,Math.max(1,Math.abs(y(cl)-y(o))));ctx.globalAlpha=.5;ctx.fillRect(x(i)-bw/2,H-10-(v/vmax)*volH,bw,(v/vmax)*volH);ctx.globalAlpha=1});
+  const base=d[VIEW-1][3];ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(8,y(base));ctx.lineTo(W-padR,y(base));ctx.stroke();ctx.setLineDash([])}
+function fit(){const r=cv.parentElement.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.width=r.width*d;cv.height=r.height*d;cv._d=d;ctx.setTransform(d,0,0,d,0,0)}
+$('upBtn').addEventListener('click',()=>answer(true));$('downBtn').addEventListener('click',()=>answer(false));$('opts').addEventListener('click',e=>{const b=e.target.closest('button[data-n]');if(b)pickName(b)});$('nextBtn').addEventListener('click',next);
+$('practiceBtn').addEventListener('click',()=>start(kstDay(),true));
+$('shareBtn').addEventListener('click',()=>{const t=S.share;const ok=()=>$('shareMsg').textContent='복사했어요. 커뮤니티나 단톡방에 붙여 넣으세요.';if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>$('shareMsg').textContent=t);else $('shareMsg').textContent=t});
+window.addEventListener('resize',()=>{fit();if(S)draw()});fit();
+fetch('chart-game.json',{cache:'force-cache'}).then(r=>r.json()).then(j=>{DATA=j;$('src').textContent='출처: '+j.meta.source;const day=kstDay();
+  if(save.days[day]){const r=save.days[day];S={day,practice:false,res:[],score:r.score,share:`주소남 차트 퀴즈 ${day.slice(5).replace('-','/')}\n${r.grid} ${r.score}점${save.streak>1?' 🔥'+save.streak+'일 연속':''}\n#차트퀴즈 #주소남`};
+    $('fScore').textContent=r.score;$('fGrid').textContent=r.grid;$('fSub').textContent=`오늘은 이미 풀었어요 · ${r.correct}/${N} 정답`;$('streak').textContent=save.streak+'일';$('acc').textContent=save.total?Math.round(save.correct/save.total*100)+'%':'-';$('best').textContent=save.best;$('ud').hidden=true;$('final').hidden=false;$('qt').textContent='오늘 퀴즈는 끝';$('qs').textContent='';$('date').textContent=day.replace(/-/g,'.')+' 데일리';$('tag').textContent='';$('dots').innerHTML=''}
+  else start(day,false)}).catch(()=>{$('qt').textContent='차트 데이터를 불러오지 못했어요';$('qs').textContent='새로고침해 주세요'});
+})();
+</script></body></html>
