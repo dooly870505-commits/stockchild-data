@@ -1,13 +1,18 @@
-/* stockchild.com 투자도구 모음 목록 (sc-tools-manifest) v1.2 (2026-10-15)
+/* stockchild.com 투자도구 모음 목록 (sc-tools-manifest) v1.3 (2026-11-03)
    새 도구를 만들 때마다 tools 배열에 한 줄을 추가합니다.
    status: ready = 랜딩 오른쪽 칸에서 바로 실행 / link = 기존 페이지로 이동 / soon = 준비 중
    js: ready 도구가 필요로 하는 파일 (sc-ui.js는 자동으로 먼저 불러옴), page: 개별 발행 글 주소
    v1.1: 기존 발행 페이지 62개를 link로 등록, g18~g20 분류 추가(분류 목록 맨 위), 149선과 정확히 겹치는 번호는 link 카드가 흡수
-   v1.2: 공모주 수익 계산기(149선 No.4, 36, 101, 104 통합)를 ready로 등록 */
+   v1.2: 공모주 수익 계산기(149선 No.4, 36, 101, 104 통합)를 ready로 등록
+   v1.3: 분류 g21 테마주 추가(맨 위), 테마주 검색기 ready 등록, 시가총액 순위 전광판을 v2 위젯(ready)으로 전환 */
 window.SC_MANIFEST = {
  "base": "https://dooly870505-commits.github.io/stockchild-data/js/",
- "updated": "2026-10-15",
+ "updated": "2026-11-03",
  "groups": [
+  [
+   "g21",
+   "테마주"
+  ],
   [
    "g18",
    "공시·기업 이력"
@@ -90,6 +95,18 @@ window.SC_MANIFEST = {
   ]
  ],
  "tools": [
+  {
+   "id": "theme-ledger",
+   "no": 0,
+   "name": "테마주 검색기",
+   "desc": "종목명·종목코드로 속한 테마와 편입 이유를 찾고, 테마 200여 개를 분류별로 둘러보기",
+   "g": "g21",
+   "status": "ready",
+   "page": "https://stockchild.com/%ed%85%8c%eb%a7%88%ec%a3%bc-%ea%b2%80%ec%83%89%ea%b8%b0-%eb%82%b4-%ec%a2%85%eb%aa%a9-%eb%ac%b4%ec%8a%a8-%ed%85%8c%eb%a7%88/",
+   "js": [
+    "sc-tool-themes.js"
+   ]
+  },
   {
    "id": "dividend-date",
    "nos": [
@@ -593,10 +610,13 @@ window.SC_MANIFEST = {
    "id": "mcap-board",
    "no": 0,
    "name": "시가총액 순위 전광판",
-   "desc": "코스피·코스닥 시가총액 TOP 30 전광판",
+   "desc": "코스피·코스닥 시가총액 상위 50, 전일 대비 순위 변동과 시가총액 쏠림 막대",
    "g": "g20",
-   "status": "link",
-   "page": "https://stockchild.com/%ec%8b%9c%ea%b0%80%ec%b4%9d%ec%95%a1-%ec%88%9c%ec%9c%84-%ec%a0%84%ea%b4%91%ed%8c%90-%ec%bd%94%ec%8a%a4%ed%94%bc%c2%b7%ec%bd%94%ec%8a%a4%eb%8b%a5-top-30/"
+   "status": "ready",
+   "page": "https://stockchild.com/%ec%8b%9c%ea%b0%80%ec%b4%9d%ec%95%a1-%ec%88%9c%ec%9c%84-%ec%a0%84%ea%b4%91%ed%8c%90-%ec%bd%94%ec%8a%a4%ed%94%bc%c2%b7%ec%bd%94%ec%8a%a4%eb%8b%a5-top-30/",
+   "js": [
+    "sc-tool-mcap-board.js"
+   ]
   },
   {
    "id": "single-stock-etf",
