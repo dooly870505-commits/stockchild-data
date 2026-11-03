@@ -1,4 +1,5 @@
-/* stockchild.com 테마주 검색기 (sc-tool-themes) v1.0 (2026-11-03)
+/* stockchild.com 테마주 검색기 (sc-tool-themes) v1.1 (2026-11-03)
+   v1.1: 검색창 지우기 버튼이 두 개로 보이던 것 정리, 종목만 찾아지고 테마가 0개면 테마 칸 숨김
    id: theme-ledger   (예전 "테마 종목 원장"의 v2)
    필요 파일: sc-ui.js
    데이터: PC 테마 수집기(theme_builder.py)가 블로그 관련주 글에서 뽑아 GitHub에 올리는 파일
@@ -58,7 +59,8 @@
     '.th-search{display:flex;align-items:center;height:50px;padding:0 14px;border:1px solid var(--line2);border-radius:var(--r-sm);background:#fff}',
     '.th-search:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,24,29,.08)}',
     '.th-search .ic{color:var(--muted);margin-right:8px}',
-    '.th-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink)}',
+    '.th-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);-webkit-appearance:none;appearance:none}',
+    '.th-search input::-webkit-search-cancel-button,.th-search input::-webkit-search-decoration{-webkit-appearance:none;display:none}',
     '.th-x{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px}',
     '.th-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}',
     '.th-chips .sc-chip .n{color:var(--muted);margin-left:4px;font-weight:500}',
@@ -161,7 +163,7 @@
         h += '<div class="th-h"><b>종목 ' + stocks.length + (stocks.length === 12 ? '+' : '') + '</b><span>누르면 이 종목이 속한 테마가 나와요</span></div>';
         h += stocks.map(stockRow).join('');
       }
-      h += '<div class="th-h"><b>' + (st.cat ? U.esc(st.cat) + ' ' : '') + '테마 ' + themes.length + '개</b><span>' + (st.q ? '"' + U.esc(st.q) + '" 검색 · ' : '') + '최근 수정순' + '</span></div>';
+      if (themes.length || !stocks.length) h += '<div class="th-h"><b>' + (st.cat ? U.esc(st.cat) + ' ' : '') + '테마 ' + themes.length + '개</b><span>' + (st.q ? '"' + U.esc(st.q) + '" 검색 · ' : '') + '최근 수정순' + '</span></div>';
       if (!themes.length && !stocks.length) {
         h += '<div class="th-empty">찾는 테마나 종목이 없어요. 다른 이름이나 6자리 종목코드로 검색해 보세요.</div>';
       } else if (themes.length) {
