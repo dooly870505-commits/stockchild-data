@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>스팩 합병 시한 계산기</title><meta name="robots" content="noindex">
+<style>:root{color-scheme:light}html,body{margin:0;background:#fff}.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}</style>
+</head><body><div class="app-wrap"><div class="entry-content"><div data-sc-tool="spac-deadline"></div></div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/sc-ui.js?v=1.0"></script>
+<script>
+/* stockchild.com 스팩 합병 시한 계산기 (sc-tool-spac-deadline) v1.0 (2026-11-03)
+   스팩 상장일·공모가·현재가·예치이율을 넣으면 합병 기한(상장 36개월) D-day, 관리종목 지정 시점(30개월 내 예비심사 미청구), 청산 시 돌려받는 금액과 현재가 대비 수익률을 계산.
+   규칙: 상장 후 36개월 내 합병 미완료 시 상장폐지·예치금(공모금의 90% 이상, 보통 100%)에 이자 포함 반환. 36개월 전 6개월(=30개월)까지 합병 예비심사 청구가 없으면 관리종목 */
+(function () {
+  'use strict';
+  if (!window.SCTools) return;
+  var CSS = ['.dd{font-size:34px;font-weight:800;letter-spacing:-0.02em}', '.tl{display:grid;gap:6px;margin-top:8px}', '.tl .it{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:var(--soft);font-size:13.5px}', '.tl .it.past{opacity:.55}', '.tl .it b{white-space:nowrap}'].join('');
+  function addMonths(d, m) { var x = new Date(d.getTime()); var day = x.getDate(); x.setMonth(x.getMonth() + m); if (x.getDate() !== day) x.setDate(0); return x; }
+  function fmt(d) { return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0'); }
+  function days(a, b) { return Math.round((b - a) / 86400000); }
+  function render(wrap, U) {
+    wrap.innerHTML = '<div class="sc-card">' +
+      U.header('공모주·IPO', '스팩 합병 시한 계산기', '이 스팩이 언제까지 합병해야 하는지, 못 하면 청산 때 얼마를 돌려받는지, 지금 가격에 사면 청산 수익률이 얼마인지 계산해요.') +
+      '<div class="sc-sec"><div class="sc-grid">' +
+      '<div class="sc-field"><label for="listed">상장일</label><div class="sc-input"><input id="listed" type="date" value="2024-03-15" style="text-align:left"></div></div>' +
+      U.field('ipo', '공모가', '원', '2,000') + U.field('now', '현재가', '원', '2,080') + U.field('rate', '예치금 이자율 (연)', '%', '2.5', '증권신고서의 예치이율. 보통 1~3.5%') +
+      U.field('dep', '예치 비율', '%', '100', '공모금 중 예치 비율. 보통 100%') + '</div></div>' +
+      '<div class="sc-sec" id="out"></div>' +
+      '<div class="sc-sec"><div class="sc-note"><b>규칙 요약</b>: 스팩은 상장 후 36개월 안에 합병을 끝내야 하고, 못 하면 상장폐지 후 예치금과 이자를 주주에게 돌려줍니다. 36개월 만료 6개월 전까지(=상장 30개월째) 합병 예비심사를 청구하지 않으면 관리종목이 돼요. 합병이 발표되면 주가가 공모가를 크게 웃돌 수 있지만, 합병 실패 시 다시 예치금 수준으로 돌아옵니다.</div></div>' +
+      U.foot('실제 반환 금액은 예치 기간·이율·세금(이자소득세 15.4%)에 따라 달라집니다. 청산 반환금은 배당소득으로 과세될 수 있어요. 투자 참고용입니다.') + '</div>';
+    var $ = function (id) { return wrap.querySelector('#' + id); };
+    function calc() {
+      var ls = $('listed').value, ipo = U.val(wrap, 'ipo'), now = U.val(wrap, 'now'), r = U.val(wrap, 'rate') / 100, dep = U.val(wrap, 'dep') / 100;
+      var d0 = ls ? new Date(ls + 'T00:00:00') : null;
+      if (!d0 || isNaN(d0.getTime()) || !(ipo > 0) || !(now > 0)) { $('out').innerHTML = '<div class="sc-note">상장일, 공모가, 현재가를 입력해 주세요.</div>'; return; }
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var dl = addMonths(d0, 36), warn = addMonths(d0, 30), left = days(today, dl), leftWarn = days(today, warn), elapsed = days(d0, today);
+      var yearsToDl = Math.max(0, days(d0, dl) / 365.25), refund = ipo * dep * Math.pow(1 + r, yearsToDl), refundNet = ipo * dep + (refund - ipo * dep) * (1 - 0.154);
+      var ret = refundNet / now - 1, yrsLeft = Math.max(1 / 365, left / 365.25), ann = Math.pow(1 + Math.max(-0.99, ret), 1 / yrsLeft) - 1;
+      var prem = now / ipo - 1;
+      var tl = [[d0, '상장'], [addMonths(d0, 12), '상장 1년'], [addMonths(d0, 24), '상장 2년'], [warn, '예비심사 청구 기한 (30개월) · 미청구 시 관리종목'], [dl, '합병 기한 (36개월) · 미완료 시 상장폐지·청산']];
+      $('out').innerHTML = '<div class="sc-kpis">' +
+        U.kpi('합병 기한까지', '<span class="dd ' + (left < 0 ? 'down' : left < 180 ? 'up' : '') + '">' + (left < 0 ? '기한 경과' : 'D-' + U.int(left)) + '</span>', fmt(dl) + ' · 상장 ' + U.int(elapsed) + '일째', true) +
+        U.kpi('청산 시 받는 돈 (주당, 세후)', U.won(refundNet) + '<small>원</small>', '예치 ' + U.pct(dep, 0) + ' × 연 ' + U.pct(r, 2) + ' 복리') +
+        U.kpi('지금 사서 청산까지 들고 가면', '<span class="' + U.tone(ret) + '">' + U.pct(ret, 2, true) + '</span>', '연환산 ' + U.pct(ann, 2, true)) + '</div>' +
+        '<div class="sc-sec"><div class="sc-rows">' + U.row('현재가의 공모가 대비 프리미엄', '<span class="' + U.tone(prem) + '">' + U.pct(prem, 2, true) + '</span>') +
+        U.row('예비심사 청구 기한', fmt(warn) + (leftWarn < 0 ? ' (지남 · 청구 여부 확인)' : ' (D-' + U.int(leftWarn) + ')')) +
+        U.row('청산 반환금이 현재가와 같아지는 이율', U.pct(Math.pow(now / (ipo * dep), 1 / Math.max(0.01, yearsToDl)) - 1, 2) + ' (세전 기준)') + '</div></div>' +
+        '<div class="sc-sec"><div class="sc-sec-t">일정</div><div class="tl">' + tl.map(function (x) { var past = x[0] < today; return '<div class="it' + (past ? ' past' : '') + '"><span>' + x[1] + '</span><b>' + fmt(x[0]) + (past ? '' : ' · D-' + U.int(days(today, x[0]))) + '</b></div>'; }).join('') + '</div></div>';
+    }
+    U.bindInputs(wrap, ['ipo', 'now', 'rate', 'dep'], calc);
+    $('listed').addEventListener('input', calc); $('listed').addEventListener('change', calc);
+    calc();
+  }
+  function reg() { window.SCTools.register({ id: 'spac-deadline', css: CSS, render: render }); }
+  if (window.SCTools) reg(); else document.addEventListener('DOMContentLoaded', function () { if (window.SCTools) reg(); });
+})();
+
+</script></body></html>

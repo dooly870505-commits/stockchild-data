@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>서킷브레이커·사이드카 아카이브</title><meta name="robots" content="noindex">
+<style>:root{color-scheme:light}html,body{margin:0;background:#fff}.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}</style>
+</head><body><div class="app-wrap"><div class="entry-content"><div data-sc-tool="circuit-breaker"></div></div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/sc-ui.js?v=1.0"></script>
+<script>
+/* stockchild.com 서킷브레이커·사이드카 아카이브 (sc-tool-circuit-breaker) v1.0 (2026-11-03)
+   1) 발동 조건 설명  2) 지금 지수를 넣으면 1·2·3단계 발동 지수와 사이드카 선물 가격 계산  3) 역대 발동 기록
+   기록은 아래 내장 목록을 쓰고, 저장소에 data/circuit-breaker.json 이 있으면 그걸 우선 사용 (형식: {updated, events:[{date,market,kind,stage,drop,cause,src}]})
+   ※ 내장 기록 중 2026년 항목은 언론 보도 기준으로 모은 것이라 발행 전 거래소 자료와 대조 필요 */
+(function () {
+  'use strict';
+  if (!window.SCTools) return;
+  var DATA_URL = 'https://dooly870505-commits.github.io/stockchild-data/data/circuit-breaker.json';
+  var EVENTS = [
+    { date: '2000-04-17', market: '코스피', kind: 'CB', stage: 1, drop: -11.63, cause: '미국 나스닥 급락 여파, 제도 도입 후 첫 발동', src: 'ok' },
+    { date: '2000-09-18', market: '코스피', kind: 'CB', stage: 1, drop: -8.06, cause: '유가 급등·포드의 대우차 인수 포기', src: 'ok' },
+    { date: '2001-09-12', market: '코스피', kind: 'CB', stage: 1, drop: -12.02, cause: '9·11 테러 다음 날', src: 'ok' },
+    { date: '2006-01-23', market: '코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: '코스닥 첫 발동, 급등 뒤 차익실현', src: 'ok' },
+    { date: '2007-08-16', market: '코스닥', kind: 'CB', stage: 1, drop: -10.15, cause: '미국 서브프라임 모기지 사태', src: 'ok' },
+    { date: '2008-10-23', market: '코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: '글로벌 금융위기', src: 'ok' },
+    { date: '2008-10-24', market: '코스닥', kind: 'CB', stage: 1, drop: -10.57, cause: '글로벌 금융위기, 이틀 연속', src: 'ok' },
+    { date: '2011-08-08', market: '코스닥', kind: 'CB', stage: 1, drop: -6.63, cause: '미국 신용등급 강등', src: 'ok' },
+    { date: '2011-08-09', market: '코스닥', kind: 'CB', stage: 1, drop: -6.0, cause: '미국 신용등급 강등, 이틀 연속', src: 'ok' },
+    { date: '2016-02-12', market: '코스닥', kind: 'CB', stage: 1, drop: -6.06, cause: '글로벌 경기 둔화 우려·개성공단 중단', src: 'ok' },
+    { date: '2020-03-13', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: '코로나19 팬데믹, 첫 동시 발동', src: 'ok' },
+    { date: '2020-03-19', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: '코로나19 팬데믹, 두 번째 동시 발동', src: 'ok' },
+    { date: '2024-08-05', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -8.77, cause: '미국 경기침체 공포·엔캐리 청산 (검은 월요일), 종가 코스피 −8.77%·코스닥 −11.30%', src: 'ok' },
+    { date: '2026-03-04', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -12.06, cause: '미국·이란 전쟁 발발, 종가 코스피 −12.06%', src: 'news' },
+    { date: '2026-03-09', market: '코스피', kind: 'CB', stage: 1, drop: -8.11, cause: '국제유가 하루 25% 급등', src: 'news' },
+    { date: '2026-06-26', market: '코스피', kind: 'CB', stage: 1, drop: -8.0, cause: '외국인 대량 매도·반도체 대형주 급락 (올해 5번째 보도)', src: 'news' },
+    { date: '2026-07-13', market: '코스피', kind: 'CB', stage: 1, drop: -8.95, cause: '종가 −8.95% (올해 7번째 보도)', src: 'news' },
+    { date: '2026-07-28', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: 'SK하이닉스 실적 실망, 이틀 연속 발동 첫날', src: 'news' },
+    { date: '2026-07-29', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: '이틀 연속 발동, 사상 처음', src: 'news' },
+    { date: '2026-10-15', market: '코스피·코스닥', kind: 'CB', stage: 1, drop: -8.0, cause: '동반 발동 (올해 5번째 동반 보도)', src: 'news' }
+  ];
+  var CSS = [
+    '.lv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.lv .b{border-radius:12px;padding:12px;background:var(--soft)}.lv .b .k{font-size:12px;color:var(--sub)}.lv .b .v{font-size:20px;font-weight:800;margin-top:2px}.lv .b .s{font-size:11.5px;color:var(--sub);margin-top:2px}',
+    '.lv .b.l1{background:#FFF4D6}.lv .b.l2{background:#FFE3D6}.lv .b.l3{background:#FDD}',
+    '@media(max-width:480px){.lv{grid-template-columns:1fr}}',
+    '.flt{margin:12px 0 8px}',
+    '.ev{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:13.5px}.ev .d{font-weight:700;white-space:nowrap}.ev .m{font-size:12px;color:var(--sub)}.ev .c{color:var(--sub);font-size:12.5px;margin-top:2px}.ev .r{font-weight:700;white-space:nowrap}',
+    '.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:5px;background:var(--warn-bg);color:var(--warn-tx);margin-left:6px;vertical-align:middle}',
+    '.mk{margin-top:12px}'
+  ].join('');
+  function render(wrap, U) {
+    var S = { mk: 'kospi', filter: 'all', events: EVENTS.slice(), updated: null };
+    wrap.innerHTML = '<div class="sc-card">' +
+      U.header('데이터 분석', '서킷브레이커·사이드카 아카이브', '폭락장에서 시장이 멈추는 조건과, 지금 지수에서 몇 % 빠지면 멈추는지, 그리고 역대 발동 기록을 한곳에 모았어요.') +
+      '<div class="sc-sec"><div class="sc-sec-t">지금 지수로 계산</div><div class="sc-chips mk" id="mk"><button class="sc-chip on" data-m="kospi">코스피</button><button class="sc-chip" data-m="kosdaq">코스닥</button></div>' +
+      '<div class="sc-grid" style="margin-top:12px">' + U.field('idx', '전일 종가 (지수)', 'p', '5,200') + U.field('nowIdx', '현재 지수', 'p', '5,000', '비워도 돼요', true) + U.field('fut', '선물 전일 종가', 'p', '690', '코스피200 / 코스닥150 선물. 사이드카 계산용', true) + '</div><div id="calc"></div></div>' +
+      '<div class="sc-sec"><div class="sc-sec-t">발동 조건</div>' +
+      U.table(['장치', '조건', '효과'], [
+        ['서킷브레이커 1단계', '전일 대비 <b>8%</b> 이상 하락이 1분 지속', '모든 매매 20분 중단, 이후 10분 단일가'],
+        ['서킷브레이커 2단계', '<b>15%</b> 이상 하락 + 1단계 대비 1%p 추가 하락, 1분 지속', '모든 매매 20분 중단, 이후 10분 단일가'],
+        ['서킷브레이커 3단계', '<b>20%</b> 이상 하락 + 2단계 대비 1%p 추가 하락, 1분 지속', '당일 매매 종료'],
+        ['사이드카 (매도)', '코스피200선물 <b>5%</b> / 코스닥150선물 <b>6%</b> 이상 하락이 1분 지속', '프로그램매매 매도호가 5분 정지'],
+        ['사이드카 (매수)', '선물 5% / 6% 이상 상승이 1분 지속', '프로그램매매 매수호가 5분 정지']]) +
+      '<div class="sc-note" style="margin-top:10px">서킷브레이커 1·2단계는 하루 한 번씩, 장 마감 40분 전(14:50) 이후에는 발동하지 않아요. 3단계는 마감 전까지 언제든 발동할 수 있습니다. 사이드카도 하루 한 번, 14:50 이후 미발동. 지수는 전일 종가 기준 하락률로 봅니다.</div></div>' +
+      '<div class="sc-sec"><div class="sc-sec-t">역대 서킷브레이커 발동 기록 <span class="badge" id="updated">내장 기록</span></div>' +
+      '<div class="sc-chips flt" id="flt"><button class="sc-chip on" data-f="all">전체</button><button class="sc-chip" data-f="코스피">코스피</button><button class="sc-chip" data-f="코스닥">코스닥</button><button class="sc-chip" data-f="2026">2026년</button></div><div id="list"></div>' +
+      '<div class="sc-note warn" style="margin-top:10px">2026년 항목은 언론 보도를 모은 것이라 발동 시각·하락률이 기사마다 달라요. 거래소 공지와 대조 후 <b>data/circuit-breaker.json</b>으로 교체하면 이 화면이 자동으로 그 파일을 읽습니다.</div></div>' +
+      U.foot('발동 조건은 한국거래소 유가증권·코스닥시장 업무규정 기준(2015년 6월 가격제한폭 30% 확대 이후 체계). 과거 기록은 당시 조건(2015년 이전 10% 단일 단계)으로 발동된 것입니다.') + '</div>';
+    var $ = function (id) { return wrap.querySelector('#' + id); };
+    function calc() {
+      var base = U.val(wrap, 'idx'), now = U.val(wrap, 'nowIdx'), fut = U.val(wrap, 'fut'), sc = S.mk === 'kospi' ? 0.05 : 0.06;
+      if (!(base > 0)) { $('calc').innerHTML = '<div class="sc-note" style="margin-top:12px">전일 종가를 입력해 주세요.</div>'; return; }
+      var l1 = base * 0.92, l2 = base * 0.85, l3 = base * 0.80, cur = now > 0 ? now / base - 1 : null;
+      var h = '<div class="lv"><div class="b l1"><div class="k">1단계 (−8%)</div><div class="v">' + l1.toFixed(2) + '</div><div class="s">' + (cur !== null ? '현재에서 ' + U.pct(l1 / now - 1, 2, true) : '20분 중단') + '</div></div>' +
+        '<div class="b l2"><div class="k">2단계 (−15%)</div><div class="v">' + l2.toFixed(2) + '</div><div class="s">' + (cur !== null ? '현재에서 ' + U.pct(l2 / now - 1, 2, true) : '20분 중단') + '</div></div>' +
+        '<div class="b l3"><div class="k">3단계 (−20%)</div><div class="v">' + l3.toFixed(2) + '</div><div class="s">' + (cur !== null ? '현재에서 ' + U.pct(l3 / now - 1, 2, true) : '당일 종료') + '</div></div></div>';
+      h += '<div class="sc-rows" style="margin-top:10px">' + (cur !== null ? U.row('현재 등락률', '<span class="' + U.tone(cur) + '">' + U.pct(cur, 2, true) + '</span>' + (cur <= -0.08 ? ' · 1단계 구간' : cur <= -0.05 ? ' · 1단계까지 ' + U.pct(-0.08 - cur, 2) + ' 남음' : '')) : '') +
+        (fut > 0 ? U.row('사이드카 (매도) 발동 선물가', (fut * (1 - sc)).toFixed(2) + ' (' + U.pct(-sc, 0) + ')') + U.row('사이드카 (매수) 발동 선물가', (fut * (1 + sc)).toFixed(2) + ' (+' + U.pct(sc, 0) + ')') : U.row('사이드카', '선물 전일 종가를 넣으면 발동 가격을 계산해요')) + '</div>';
+      $('calc').innerHTML = h;
+    }
+    function list() {
+      var ev = S.events.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).filter(function (e) { return S.filter === 'all' || (S.filter === '2026' ? e.date.indexOf('2026') === 0 : e.market.indexOf(S.filter) >= 0); });
+      var kospi = S.events.filter(function (e) { return e.market.indexOf('코스피') >= 0; }).length, kosdaq = S.events.filter(function (e) { return e.market.indexOf('코스닥') >= 0; }).length;
+      $('list').innerHTML = '<div class="sc-kpis" style="margin-bottom:10px">' + U.kpi('코스피 발동', kospi + '<small>회</small>', '2000년 도입 이후', true) + U.kpi('코스닥 발동', kosdaq + '<small>회</small>', '2001년 도입 이후') + U.kpi('동시 발동', S.events.filter(function (e) { return e.market.indexOf('·') >= 0; }).length + '<small>회</small>', '두 시장 같은 날') + '</div>' +
+        (ev.length ? ev.map(function (e) { return '<div class="ev"><div><div class="d">' + e.date.replace(/-/g, '.') + ' <span class="m">' + U.esc(e.market) + (e.src === 'news' ? '<span class="badge">검수 필요</span>' : '') + '</span></div><div class="c">' + U.esc(e.cause || '') + '</div></div><div class="r down">' + (e.drop ? U.pct(e.drop / 100, 2, true) : '') + '</div></div>'; }).join('') : '<div class="sc-note">해당 기록이 없어요.</div>');
+    }
+    U.bindInputs(wrap, ['idx', 'nowIdx', 'fut'], calc);
+    $('mk').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (!b) return; S.mk = b.getAttribute('data-m'); wrap.querySelectorAll('#mk .sc-chip').forEach(function (c) { c.classList.toggle('on', c === b); }); U.set(wrap, 'idx', S.mk === 'kospi' ? 5200 : 1100); U.set(wrap, 'fut', S.mk === 'kospi' ? 690 : 1650); calc(); });
+    $('flt').addEventListener('click', function (e) { var b = e.target.closest('[data-f]'); if (!b) return; S.filter = b.getAttribute('data-f'); wrap.querySelectorAll('#flt .sc-chip').forEach(function (c) { c.classList.toggle('on', c === b); }); list(); });
+    calc(); list();
+    try { fetch(DATA_URL, { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && Array.isArray(j.events) && j.events.length) { S.events = j.events; $('updated').textContent = '갱신 ' + (j.updated || ''); list(); } }).catch(function () {}); } catch (e) {}
+  }
+  function reg() { window.SCTools.register({ id: 'circuit-breaker', css: CSS, render: render }); }
+  if (window.SCTools) reg(); else document.addEventListener('DOMContentLoaded', function () { if (window.SCTools) reg(); });
+})();
+
+</script></body></html>

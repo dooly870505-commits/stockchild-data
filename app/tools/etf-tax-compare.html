@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>국내상장 해외ETF vs 해외직투 세금 비교</title><meta name="robots" content="noindex">
+<style>:root{color-scheme:light}html,body{margin:0;background:#fff}.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}</style>
+</head><body><div class="app-wrap"><div class="entry-content"><div data-sc-tool="etf-tax-compare"></div></div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/sc-ui.js?v=1.0"></script>
+<script>
+/* stockchild.com 국내상장 해외ETF vs 해외직접투자 세금 비교 (sc-tool-etf-tax-compare) v1.0 (2026-11-03)
+   같은 매매차익에 대해: 국내상장 해외ETF = 배당소득세 15.4%(금융소득 2,000만 초과분은 종합과세 한계세율) / 해외주식·ETF 직접투자 = 양도세 22%(연 250만 공제, 손익통산)
+   세율·공제·기준은 입력칸으로 열어 둠 */
+(function () {
+  'use strict';
+  if (!window.SCTools) return;
+  var CSS = ['.vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}', '.vs .sc-kpi.win{outline:2px solid var(--ok);outline-offset:-2px}', '.tag{display:inline-block;font-size:11px;font-weight:700;background:var(--ok-bg);color:var(--ok-tx);padding:2px 8px;border-radius:999px;margin-left:6px}', '@media(max-width:480px){.vs{grid-template-columns:1fr}}'].join('');
+  function render(wrap, U) {
+    wrap.innerHTML = '<div class="sc-card">' +
+      U.header('세금', '국내상장 해외ETF vs 해외직투 세금 비교', '같은 수익을 냈을 때 어느 쪽 세금이 적은지 계산해요. 금융소득이 많으면 답이 뒤집힙니다.') +
+      '<div class="sc-sec"><div class="sc-grid">' + U.field('gain', '올해 매매차익 (손익 통산 후)', '만원', '1,000') + U.field('other', '다른 금융소득 (이자·배당)', '만원', '500', '국내상장 ETF 분배금, 예금 이자 등', true) +
+      U.field('marginal', '종합과세 한계세율 (지방세 포함)', '%', '26.4', '과세표준 5천만~8.8천만 구간 26.4%. 1.4억 초과 38.5%, 3억 초과 41.8%') +
+      U.field('divTax', '배당소득세율', '%', '15.4') + U.field('cgTax', '해외주식 양도세율', '%', '22') + U.field('cgDeduct', '양도세 기본공제', '만원', '250') + U.field('thr', '금융소득종합과세 기준', '만원', '2,000') + '</div></div>' +
+      '<div class="sc-sec" id="out"></div>' +
+      '<div class="sc-sec"><div class="sc-note"><b>국내상장 해외ETF</b>: 매매차익과 분배금 모두 배당소득. 연 금융소득 합계가 2,000만 원을 넘으면 초과분이 다른 소득과 합산돼 누진세율이 적용돼요. 손실이 나도 다른 ETF 이익과 통산되지 않고(보유기간 과세는 매도 시점 기준), 건보료 산정에도 잡힐 수 있습니다.<br><b>해외 직접투자</b>: 양도소득으로 분류과세. 연 250만 원 공제 후 22%, 같은 해 해외주식 손익끼리 통산, 다음 해 5월 신고. 환율은 매매일 기준 원화로 환산.</div></div>' +
+      U.foot('연금저축·IRP·ISA 계좌 안에서는 두 경우 모두 계산이 달라집니다(과세이연·비과세). 세무 상담을 대체하지 않습니다.') + '</div>';
+    var $ = function (id) { return wrap.querySelector('#' + id); };
+    function calc() {
+      var g = U.val(wrap, 'gain') * 1e4, o = U.val(wrap, 'other') * 1e4 || 0, m = U.val(wrap, 'marginal') / 100, dt = U.val(wrap, 'divTax') / 100, ct = U.val(wrap, 'cgTax') / 100, dd = U.val(wrap, 'cgDeduct') * 1e4, thr = U.val(wrap, 'thr') * 1e4;
+      if (!(g >= 0) || !isFinite(m) || !isFinite(dt) || !isFinite(ct)) { $('out').innerHTML = '<div class="sc-note">매매차익을 입력해 주세요.</div>'; return; }
+      // 국내상장 해외ETF: 전체 금융소득 = o + g. 기준 이하 15.4%, 초과분은 max(15.4%, 한계세율)
+      var fin = o + g, overAll = Math.max(0, fin - thr), overG = Math.min(g, overAll), baseG = g - overG;
+      var taxEtf = baseG * dt + overG * Math.max(dt, m);
+      var taxDirect = Math.max(0, g - dd) * ct;
+      var win = taxEtf === taxDirect ? '' : taxEtf < taxDirect ? 'etf' : 'direct';
+      // 손익분기: 세금이 같아지는 매매차익 (단순 탐색)
+      var be = null, x; for (x = 0; x <= 5e8; x += 1e5) { var f2 = o + x, ov = Math.min(x, Math.max(0, f2 - thr)); var te = (x - ov) * dt + ov * Math.max(dt, m), td = Math.max(0, x - dd) * ct; if (be === null && x > 0 && (te > td) !== (taxEtf > taxDirect)) { be = x; break; } }
+      var rows = [300, 500, 1000, 2000, 3000, 5000, 10000].map(function (w) { var x = w * 1e4, f2 = o + x, ov = Math.min(x, Math.max(0, f2 - thr)); var te = (x - ov) * dt + ov * Math.max(dt, m), td = Math.max(0, x - dd) * ct;
+        return [U.int(w) + '만원', U.won(te) + '원', U.won(td) + '원', te < td ? '국내상장 ETF' : te > td ? '해외 직투' : '같음']; });
+      $('out').innerHTML = '<div class="vs">' +
+        '<div class="sc-kpi' + (win === 'etf' ? ' win' : '') + '"><div class="k">국내상장 해외ETF' + (win === 'etf' ? '<span class="tag">유리</span>' : '') + '</div><div class="v">' + U.won(taxEtf) + '<small>원</small></div><div class="s">실효세율 ' + (g ? U.pct(taxEtf / g, 1) : '-') + (overG > 0 ? ' · 종합과세분 ' + U.won(overG) + '원' : '') + '</div></div>' +
+        '<div class="sc-kpi' + (win === 'direct' ? ' win' : '') + '"><div class="k">해외 직접투자' + (win === 'direct' ? '<span class="tag">유리</span>' : '') + '</div><div class="v">' + U.won(taxDirect) + '<small>원</small></div><div class="s">실효세율 ' + (g ? U.pct(taxDirect / g, 1) : '-') + ' · 공제 후 ' + U.won(Math.max(0, g - dd)) + '원 과세</div></div></div>' +
+        '<div class="sc-sec"><div class="sc-rows">' + U.row('세금 차이', '<b>' + U.won(Math.abs(taxEtf - taxDirect)) + '원</b> ' + (win === 'etf' ? '국내상장 ETF가 적음' : win === 'direct' ? '해외 직투가 적음' : '같음')) +
+        U.row('유불리가 바뀌는 매매차익', be === null ? '이 조건에서는 안 바뀜' : '약 ' + U.won(be / 1e4) + '만원') + '</div></div>' +
+        '<div class="sc-sec"><div class="sc-sec-t">매매차익에 따라 (다른 금융소득 ' + U.won(o / 1e4) + '만원 기준)</div>' + U.table(['매매차익', '국내상장 ETF', '해외 직투', '유리한 쪽'], rows) + '</div>';
+    }
+    U.bindInputs(wrap, ['gain', 'other', 'marginal', 'divTax', 'cgTax', 'cgDeduct', 'thr'], calc);
+    calc();
+  }
+  function reg() { window.SCTools.register({ id: 'etf-tax-compare', css: CSS, render: render }); }
+  if (window.SCTools) reg(); else document.addEventListener('DOMContentLoaded', function () { if (window.SCTools) reg(); });
+})();
+
+</script></body></html>

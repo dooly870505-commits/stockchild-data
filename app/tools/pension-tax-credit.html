@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>연금저축·IRP 세액공제 계산기</title><meta name="robots" content="noindex">
+<style>:root{color-scheme:light}html,body{margin:0;background:#fff}.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}</style>
+</head><body><div class="app-wrap"><div class="entry-content"><div data-sc-tool="pension-tax-credit"></div></div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/sc-ui.js?v=1.0"></script>
+<script>
+/* stockchild.com 연금저축·IRP 세액공제 계산기 (sc-tool-pension-tax-credit) v1.0 (2026-11-03)
+   공제 한도: 연금저축 600만, IRP 합산 900만. 공제율: 총급여 5,500만(종합소득 4,500만) 이하 16.5%, 초과 13.2% (지방소득세 포함).
+   ISA 만기자금 연금계좌 전환분은 전환액의 10%, 300만 한도 추가 공제. 숫자는 전부 입력칸으로 열어 둠 */
+(function () {
+  'use strict';
+  if (!window.SCTools) return;
+  var CSS = ['.big{font-size:34px;font-weight:800;letter-spacing:-0.02em}', '.income{margin-top:12px}'].join('');
+  function render(wrap, U) {
+    var S = { type: 'salary' };
+    wrap.innerHTML = '<div class="sc-card">' +
+      U.header('세금', '연금저축·IRP 세액공제 계산기', '올해 넣은 돈으로 연말정산 때 얼마를 돌려받는지, 한도까지 더 넣으면 얼마가 늘어나는지 계산해요.') +
+      '<div class="sc-sec"><div class="sc-chips income" id="inc"><button class="sc-chip on" data-t="salary">근로소득자 (총급여)</button><button class="sc-chip" data-t="business">종합소득자</button></div>' +
+      '<div class="sc-grid" style="margin-top:12px">' + U.field('income', '총급여', '만원', '5,000', '종합소득자는 종합소득금액') +
+      U.field('ps', '연금저축 납입액', '만원', '400') + U.field('irp', 'IRP 납입액', '만원', '200') + U.field('isa', 'ISA 만기자금 전환액', '만원', '0', '전환액의 10%, 300만 한도 추가 공제', true) +
+      U.field('limPs', '연금저축 한도', '만원', '600') + U.field('limAll', '합산 한도', '만원', '900') + U.field('thr', '공제율 기준 소득', '만원', '5,500', '근로 5,500 · 종합 4,500') +
+      U.field('rHigh', '기준 이하 공제율', '%', '16.5') + U.field('rLow', '기준 초과 공제율', '%', '13.2') + '</div></div>' +
+      '<div class="sc-sec" id="out"></div>' +
+      '<div class="sc-sec"><div class="sc-note">세액공제는 낸 세금에서 빼 주는 방식이라 <b>결정세액이 공제액보다 적으면 그만큼만</b> 돌려받아요. 연금저축은 누구나, IRP는 소득이 있는 사람만 가입할 수 있고, 55세 이전에 중도 해지하면 공제받은 금액에 16.5% 기타소득세가 붙습니다.</div></div>' +
+      U.foot('2026년 기준 소득세법. 실제 환급액은 다른 공제 항목과 결정세액에 따라 달라집니다.') + '</div>';
+    var $ = function (id) { return wrap.querySelector('#' + id); };
+    function calc() {
+      var inc = U.val(wrap, 'income'), ps = U.val(wrap, 'ps') || 0, irp = U.val(wrap, 'irp') || 0, isa = U.val(wrap, 'isa') || 0;
+      var limPs = U.val(wrap, 'limPs'), limAll = U.val(wrap, 'limAll'), thr = U.val(wrap, 'thr'), rH = U.val(wrap, 'rHigh') / 100, rL = U.val(wrap, 'rLow') / 100;
+      if (!(inc >= 0) || !(limPs > 0 && limAll > 0)) { $('out').innerHTML = '<div class="sc-note">소득과 납입액을 입력해 주세요.</div>'; return; }
+      var rate = inc <= thr ? rH : rL;
+      var elPs = Math.min(ps, limPs), elAll = Math.min(elPs + irp, limAll), isaEl = Math.min(isa * 0.1, 300);
+      var credit = (elAll + isaEl) * rate * 1e4, room = Math.max(0, limAll - elAll), extra = room * rate * 1e4;
+      var paid = ps + irp, over = Math.max(0, paid - elAll);
+      var rows = [300, 600, 900].map(function (w) { var e = Math.min(w, limAll); return [U.int(w) + '만원', U.won(e * rate * 1e4) + '원', U.pct(rate, 1)]; });
+      $('out').innerHTML = '<div class="sc-kpis">' +
+        U.kpi('돌려받는 세금', '<span class="big">' + U.won(credit) + '</span><small>원</small>', '공제율 ' + U.pct(rate, 1) + ' · 공제 대상 ' + U.won(elAll + isaEl) + '만원', true) +
+        U.kpi('한도까지 남은 금액', U.won(room) + '<small>만원</small>', room > 0 ? '더 넣으면 +' + U.won(extra) + '원' : '한도를 다 채웠어요') +
+        U.kpi('실질 수익률', U.pct(rate, 1), '넣자마자 ' + U.pct(rate, 1) + ' 번 셈 (해지 안 할 때)') + '</div>' +
+        '<div class="sc-sec"><div class="sc-rows">' + U.row('연금저축 공제 대상', U.won(elPs) + '만원 (한도 ' + U.won(limPs) + '만원)') + U.row('IRP 공제 대상', U.won(elAll - elPs) + '만원') +
+        (isa > 0 ? U.row('ISA 전환 추가 공제 대상', U.won(isaEl) + '만원') : '') + (over > 0 ? U.row('한도 초과 납입', U.won(over) + '만원 (공제 없음, 연금 수령 시 비과세 원금)') : '') + '</div></div>' +
+        '<div class="sc-sec"><div class="sc-sec-t">납입액별 환급액 (내 공제율 ' + U.pct(rate, 1) + ')</div>' + U.table(['연 납입액', '환급액', '공제율'], rows) + '</div>';
+    }
+    U.bindInputs(wrap, ['income', 'ps', 'irp', 'isa', 'limPs', 'limAll', 'thr', 'rHigh', 'rLow'], calc);
+    $('inc').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (!b) return; S.type = b.getAttribute('data-t');
+      wrap.querySelectorAll('#inc .sc-chip').forEach(function (c) { c.classList.toggle('on', c === b); }); $('thr').value = S.type === 'salary' ? '5,500' : '4,500'; calc(); });
+    calc();
+  }
+  function reg() { window.SCTools.register({ id: 'pension-tax-credit', css: CSS, render: render }); }
+  if (window.SCTools) reg(); else document.addEventListener('DOMContentLoaded', function () { if (window.SCTools) reg(); });
+})();
+
+</script></body></html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>투자 성향 테스트 · 주식 MBTI</title><meta name="robots" content="noindex">
+<style>:root{color-scheme:light}html,body{margin:0;background:#fff}.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}</style>
+</head><body><div class="app-wrap"><div class="entry-content"><div data-sc-tool="invest-mbti"></div></div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/sc-ui.js?v=1.0"></script>
+<script>
+/* stockchild.com 투자 성향 테스트 · 주식 MBTI (sc-tool-invest-mbti) v1.0 (2026-11-03)
+   12문항, 4축: 기간 L(장기)/S(단기) · 근거 A(분석)/F(감) · 포트 C(집중)/D(분산) · 태도 R(공격)/P(방어) → 16유형. 결과 카드 이미지 생성, 공유 문구 복사 */
+(function () {
+  'use strict';
+  if (!window.SCTools) return;
+  var Q = [
+    { q: '주식을 사면 보통 얼마나 들고 있나요?', a: ['몇 달에서 몇 년은 기본', '며칠, 길어야 몇 주'], ax: 'LS' },
+    { q: '종목을 고를 때 먼저 보는 것은?', a: ['재무제표, 실적, 밸류에이션', '차트 모양과 분위기, 느낌'], ax: 'AF' },
+    { q: '계좌에 종목이 보통 몇 개인가요?', a: ['1~3개에 집중', '5개 이상 골고루'], ax: 'CD' },
+    { q: '10% 떨어졌을 때 나는?', a: ['더 산다, 싸졌으니까', '일단 판다, 더 떨어질 수 있으니까'], ax: 'RP' },
+    { q: '장중에 주가를 얼마나 확인하나요?', a: ['하루 한 번이거나 안 봄', '수시로 켜 본다'], ax: 'LS' },
+    { q: '좋은 소식 기사를 보면?', a: ['이미 반영됐는지 숫자부터 따져 본다', '바로 사야 할 것 같다'], ax: 'AF' },
+    { q: '확신이 드는 종목이 생기면?', a: ['비중을 크게 싣는다', '그래도 한 종목에 20%는 안 넘긴다'], ax: 'CD' },
+    { q: '레버리지·신용·곱버스는?', a: ['기회라면 쓴다', '원금 지키는 게 먼저'], ax: 'RP' },
+    { q: '목표 수익률을 정한다면?', a: ['연 10~20%면 충분', '한 번에 30% 이상 노린다'], ax: 'LS' },
+    { q: '매수 전에 하는 일은?', a: ['공시·리포트를 읽고 메모한다', '지인 추천이나 커뮤니티 반응을 본다'], ax: 'AF' },
+    { q: '새 테마가 뜨면?', a: ['관련주 대장 하나만 고른다', '관련주 여러 개를 조금씩 산다'], ax: 'CD' },
+    { q: '급락장이 오면?', a: ['현금 들고 있다가 줍는다', '손실이 커지기 전에 비운다'], ax: 'RP' }
+  ];
+  var TYPES = {
+    LACR: ['가치 사냥꾼 🦁', '숫자로 확신이 서면 크게 베팅하는 장기 집중형. 워런 버핏 과입니다.', ['종목 F score 계산기', '물타기 계산기', '대주주 판정기']],
+    LACP: ['안전 금고 🐢', '분석해서 고른 소수 종목을 오래, 그러나 잃지 않게 들고 가는 타입.', ['배당 재투자 시뮬레이터', '배당락일 계산기', '리밸런싱 계산기']],
+    LADR: ['포트폴리오 설계자 🦉', '분석 기반으로 여러 종목에 나눠 담고 길게 가는 교과서형.', ['리밸런싱 계산기', 'ETF 세금 비교', '복리 계산기']],
+    LADP: ['연금 수호자 🐘', '분산과 안전을 최우선으로 하는 장기 투자자. 인덱스와 배당이 잘 맞아요.', ['연금 세액공제 계산기', 'ISA 절세 계산기', '파이어족 계산기']],
+    LFCR: ['믿음의 존버러 🐻', '감이 오면 한 종목에 길게. 맞으면 크지만 틀리면 오래 아픕니다.', ['존버 지수 계산기', '본전 센터', '포지션 사이징']],
+    LFCP: ['느긋한 수집가 🐨', '마음에 드는 회사를 천천히 모으는 타입. 급락엔 약해요.', ['분할매수 플래너', '배당 재투자 시뮬레이터', '보호예수 해제 리스트']],
+    LFDR: ['테마 서퍼 🐬', '흐름을 타고 여러 테마에 올라타 길게 가져가는 타입.', ['테마주 검색기', '매매동향 히트맵', '공시 레이더']],
+    LFDP: ['마음 편한 적립러 🐑', '감으로 고르지만 분산하고 방어적. 적립식과 궁합이 좋아요.', ['복리 계산기', 'ISA 절세 계산기', '주식 챌린지 시뮬레이터']],
+    SACR: ['저격수 🦅', '분석한 뒤 짧게 크게 치는 단기 집중형. 손절 규칙이 생명입니다.', ['포지션 사이징', '호가단위·가격제한폭 계산기', '익절 손절 계산기']],
+    SACP: ['스캘핑 장인 🐿️', '짧게 자주, 그러나 잃지 않게. 수수료 관리가 수익을 좌우해요.', ['매매 손익 계산기', '호가단위·가격제한폭 계산기', '매매일지']],
+    SADR: ['이벤트 트레이더 🦊', '공시·실적 이벤트를 분석해 여러 종목에 짧게 들어가는 타입.', ['공시 레이더', '기재정정 랭킹', '무상증자 캘린더']],
+    SADP: ['신중한 스윙어 🦆', '분석하고 분산하고 짧게. 큰돈은 못 벌어도 크게 안 잃습니다.', ['매매 손익 계산기', '리밸런싱 계산기', '매매일지']],
+    SFCR: ['불나방 🔥', '감으로 한 종목에 올인하는 단타형. 재미는 최고, 계좌는 롤러코스터.', ['뇌동매매 자가진단', '반대매매 계산기', '포지션 사이징']],
+    SFCP: ['눈치 빠른 토끼 🐇', '감으로 들어가되 손절은 빠른 타입. 승률보다 손익비를 챙기세요.', ['익절 손절 계산기', '매매일지', '호가단위·가격제한폭 계산기']],
+    SFDR: ['테마 메뚜기 🦗', '뜨는 테마마다 조금씩 올라타는 단타형. 수수료와 세금을 꼭 계산하세요.', ['테마주 검색기', '매매 손익 계산기', '주식 손실 치킨 환산']],
+    SFDP: ['소심한 단타러 🐭', '짧게, 여러 개, 작게. 손실은 작지만 수익도 작아요.', ['주식 중독 자가진단', '매매일지', '복리 계산기']]
+  };
+  var AX = { LS: ['L', 'S'], AF: ['A', 'F'], CD: ['C', 'D'], RP: ['R', 'P'] };
+  var LBL = { L: '장기', S: '단기', A: '분석', F: '직감', C: '집중', D: '분산', R: '공격', P: '방어' };
+  var CSS = [
+    '.prog{height:8px;border-radius:999px;background:#E3E6EA;overflow:hidden;margin:14px 0 6px}.prog i{display:block;height:100%;background:var(--brand);transition:width .2s}',
+    '.qn{font-size:12px;color:var(--sub)}.qt{font-size:19px;font-weight:700;line-height:1.4;margin:6px 0 14px}',
+    '.opts{display:grid;gap:8px}.opt{text-align:left;font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:#fff;border:1px solid var(--line2);border-radius:14px;padding:16px;cursor:pointer}.opt:hover{border-color:var(--ink)}',
+    '.res{text-align:center}.res .tp{font-size:30px;font-weight:800;letter-spacing:-0.02em;line-height:1.2}.res .code{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.12em;background:var(--ink);color:#fff;padding:4px 10px;border-radius:999px;margin-top:8px}',
+    '.res .ds{font-size:15px;color:var(--sub);margin-top:10px;line-height:1.6}',
+    '.axes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.ax{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:13px;text-align:left}.ax b{display:block;font-size:15px}',
+    '.card{display:block;max-width:100%;border-radius:16px;margin:16px auto 0;border:1px solid var(--line)}',
+    '.rec{margin-top:16px;text-align:left}.rec .sc-chips{margin-top:8px}',
+    '.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}',
+    '.start{text-align:center;padding:10px 0}.start .em{font-size:52px}.start p{color:var(--sub);font-size:14px;line-height:1.6;margin:10px 0 16px}'
+  ].join('');
+  function render(wrap, U) {
+    var S = { i: 0, ans: [] };
+    wrap.innerHTML = '<div class="sc-card">' + U.header('유입·재미', '투자 성향 테스트 · 주식 MBTI', '12개 질문으로 내 투자 유형 16가지 중 하나를 알려드려요. 결과 카드는 저장해서 공유할 수 있어요.') + '<div class="sc-sec" id="body"></div>' + U.foot('재미로 보는 테스트이며 투자 조언이 아닙니다.') + '</div>';
+    var body = wrap.querySelector('#body');
+    function start() { S.i = 0; S.ans = []; body.innerHTML = '<div class="start"><div class="em">🐜</div><div style="font-size:20px;font-weight:800">나는 어떤 개미일까?</div><p>장기냐 단기냐, 분석이냐 감이냐, 집중이냐 분산이냐, 공격이냐 방어냐.<br>12문항, 1분이면 끝나요.</p><button class="sc-btn" id="go">테스트 시작</button></div>'; body.querySelector('#go').addEventListener('click', ask); }
+    function ask() {
+      var q = Q[S.i];
+      body.innerHTML = '<div class="prog"><i style="width:' + Math.round(S.i / Q.length * 100) + '%"></i></div><div class="qn">' + (S.i + 1) + ' / ' + Q.length + '</div><div class="qt">' + q.q + '</div>' +
+        '<div class="opts"><button class="opt" data-c="0">' + q.a[0] + '</button><button class="opt" data-c="1">' + q.a[1] + '</button></div>';
+      body.querySelectorAll('.opt').forEach(function (b) { b.addEventListener('click', function () { S.ans.push(AX[q.ax][+b.getAttribute('data-c')]); S.i++; if (S.i < Q.length) ask(); else result(); }); });
+    }
+    function result() {
+      var cnt = {}; S.ans.forEach(function (c) { cnt[c] = (cnt[c] || 0) + 1; });
+      var code = ['LS', 'AF', 'CD', 'RP'].map(function (ax) { var a = AX[ax][0], b = AX[ax][1]; return (cnt[a] || 0) >= (cnt[b] || 0) ? a : b; }).join('');
+      var T = TYPES[code], share = '나의 주식 MBTI는 ' + code + ' "' + T[0] + '"! ' + T[1] + ' #주식MBTI #주소남';
+      body.innerHTML = '<div class="res"><div class="qn">당신의 투자 유형</div><div class="tp">' + T[0] + '</div><span class="code">' + code + '</span><div class="ds">' + T[1] + '</div>' +
+        '<div class="axes">' + ['LS', 'AF', 'CD', 'RP'].map(function (ax) { var a = AX[ax][0], b = AX[ax][1], ca = cnt[a] || 0, cb = cnt[b] || 0, w = ca >= cb ? a : b; return '<div class="ax"><b>' + LBL[w] + '</b>' + LBL[a] + ' ' + ca + ' : ' + cb + ' ' + LBL[b] + '</div>'; }).join('') + '</div>' +
+        '<canvas id="cardcv" class="card" width="720" height="900" style="width:min(100%,360px)"></canvas>' +
+        '<div class="rec"><div class="sc-sec-t">이 유형에게 잘 맞는 도구</div><div class="sc-chips">' + T[2].map(function (n) { return '<span class="sc-chip">' + n + '</span>'; }).join('') + '</div></div>' +
+        '<div class="btns"><button class="sc-btn" id="copy">결과 문구 복사</button><button class="sc-btn ghost" id="again">다시 하기</button></div><div class="sc-help" id="msg">카드 이미지를 길게 누르면 저장할 수 있어요.</div></div>';
+      drawCard(body.querySelector('#cardcv'), code, T);
+      body.querySelector('#again').addEventListener('click', start);
+      body.querySelector('#copy').addEventListener('click', function () { var m = body.querySelector('#msg'); var ok = function () { m.textContent = '복사했어요. SNS에 붙여 넣으세요.'; };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(share).then(ok, function () { m.textContent = share; }); else m.textContent = share; });
+    }
+    function drawCard(cv, code, T) {
+      var c = cv.getContext('2d'), W = cv.width, H = cv.height;
+      var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#FFF3B0'); g.addColorStop(1, '#FFE94D'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#222'; c.font = '600 28px "Pretendard Variable",Pretendard,sans-serif'; c.textAlign = 'center'; c.fillText('나의 주식 MBTI', W / 2, 90);
+      c.font = '900 150px sans-serif'; c.fillText(T[0].split(' ').pop(), W / 2, 330);
+      c.font = '800 60px "Pretendard Variable",Pretendard,sans-serif'; c.fillText(T[0].replace(/\s\S+$/, ''), W / 2, 440);
+      c.fillStyle = '#222'; roundRect(c, W / 2 - 120, 480, 240, 64, 32); c.fill(); c.fillStyle = '#FFE94D'; c.font = '800 40px sans-serif'; c.fillText(code, W / 2, 526);
+      c.fillStyle = '#444'; c.font = '500 30px "Pretendard Variable",Pretendard,sans-serif'; wrapText(c, T[1], W / 2, 620, W - 120, 46);
+      c.fillStyle = '#666'; c.font = '600 26px sans-serif'; c.fillText('stockchild.com · 주소남 투자도구', W / 2, H - 50);
+      function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+      function wrapText(ctx, text, x, y, maxW, lh) { var words = text.split(' '), line = '', lines = []; words.forEach(function (w) { var t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }); if (line) lines.push(line); lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lh); }); }
+    }
+    start();
+  }
+  function reg() { window.SCTools.register({ id: 'invest-mbti', css: CSS, render: render }); }
+  if (window.SCTools) reg(); else document.addEventListener('DOMContentLoaded', function () { if (window.SCTools) reg(); });
+})();
+
+</script></body></html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ISA 절세 계산기</title><meta name="robots" content="noindex">
+<style>:root{color-scheme:light}html,body{margin:0;background:#fff}.app-wrap{max-width:820px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}</style>
+</head><body><div class="app-wrap"><div class="entry-content"><div data-sc-tool="isa-tax"></div></div></div>
+<script src="https://dooly870505-commits.github.io/stockchild-data/js/sc-ui.js?v=1.0"></script>
+<script>
+/* stockchild.com ISA 절세 계산기 (sc-tool-isa-tax) v1.0 (2026-11-03)
+   ISA 안에서 난 과세대상 수익(배당·이자·국내상장 해외ETF 차익 등)은 손익통산 후 일반형 200만·서민형 400만 비과세, 초과분 9.9% 분리과세.
+   일반계좌라면 같은 수익에 15.4%(손익통산 없음). 한도·세율은 입력칸으로 열어 둠 */
+(function () {
+  'use strict';
+  if (!window.SCTools) return;
+  var CSS = ['.big{font-size:34px;font-weight:800;letter-spacing:-0.02em}', '.types{margin-top:12px}'].join('');
+  function render(wrap, U) {
+    wrap.innerHTML = '<div class="sc-card">' +
+      U.header('세금', 'ISA 절세 계산기', 'ISA 계좌에서 난 수익에 세금이 얼마 붙는지, 일반계좌였다면 얼마였을지 비교해 절세액을 보여드려요.') +
+      '<div class="sc-sec"><div class="sc-chips types" id="types"><button class="sc-chip on" data-x="200">일반형 (비과세 200만)</button><button class="sc-chip" data-x="400">서민형·농어민형 (400만)</button></div>' +
+      '<div class="sc-grid" style="margin-top:12px">' + U.field('gain', '과세대상 수익 합계', '만원', '800', '배당·이자·국내상장 해외ETF 매매차익. 국내주식 차익은 원래 비과세') +
+      U.field('loss', '손실 합계', '만원', '100', 'ISA는 손익통산 돼요', true) + U.field('exempt', '비과세 한도', '만원', '200') + U.field('sep', '초과분 세율 (분리과세)', '%', '9.9') + U.field('normal', '일반계좌 세율', '%', '15.4') + '</div></div>' +
+      '<div class="sc-sec" id="out"></div>' +
+      '<div class="sc-sec"><div class="sc-note"><b>조건</b>: 의무가입 3년, 납입 한도 연 2,000만(총 1억), 당해 미납분은 다음 해로 이월. 비과세 한도는 계좌 만기까지 누적 수익에 한 번 적용되므로, 3년간 수익이 한도를 넘지 않게 중간에 해지 후 재가입하는 방법도 있어요. 금융소득종합과세 대상자는 가입할 수 없고, 만기 자금을 연금계좌로 옮기면 세액공제를 추가로 받을 수 있습니다.</div></div>' +
+      U.foot('2026년 기준. 비과세 한도 상향 등 개정이 논의 중이라 한도는 입력칸에서 바꿔 보세요.') + '</div>';
+    var $ = function (id) { return wrap.querySelector('#' + id); };
+    function calc() {
+      var g = U.val(wrap, 'gain') * 1e4, l = (U.val(wrap, 'loss') || 0) * 1e4, ex = U.val(wrap, 'exempt') * 1e4, sr = U.val(wrap, 'sep') / 100, nr = U.val(wrap, 'normal') / 100;
+      if (!(g >= 0) || !(ex >= 0)) { $('out').innerHTML = '<div class="sc-note">수익을 입력해 주세요.</div>'; return; }
+      var net = Math.max(0, g - l), taxable = Math.max(0, net - ex), taxIsa = taxable * sr, taxNormal = g * nr, save = taxNormal - taxIsa;
+      var rows = [100, 200, 400, 800, 1500, 3000].map(function (w) { var x = w * 1e4, n2 = Math.max(0, x - l), ti = Math.max(0, n2 - ex) * sr, tn = x * nr; return [U.int(w) + '만원', U.won(ti) + '원', U.won(tn) + '원', '<span class="' + U.tone(tn - ti) + '">' + U.won(tn - ti) + '원</span>']; });
+      $('out').innerHTML = '<div class="sc-kpis">' +
+        U.kpi('ISA 절세액', '<span class="big ' + U.tone(save) + '">' + U.won(save) + '</span><small>원</small>', '일반계좌 ' + U.won(taxNormal) + '원 → ISA ' + U.won(taxIsa) + '원', true) +
+        U.kpi('ISA 세금', U.won(taxIsa) + '<small>원</small>', '실효세율 ' + (g ? U.pct(taxIsa / g, 1) : '-')) +
+        U.kpi('비과세로 처리된 수익', U.won(Math.min(net, ex)) + '<small>원</small>', '한도 ' + U.won(ex) + '원 중') + '</div>' +
+        '<div class="sc-sec"><div class="sc-rows">' + U.row('손익통산 후 순수익', U.won(net) + '원' + (l > 0 ? ' (손실 ' + U.won(l) + '원 차감)' : '')) + U.row('9.9% 과세 대상', U.won(taxable) + '원') +
+        U.row('일반계좌였다면', U.won(taxNormal) + '원 (손실 통산 없이 수익 전체에 ' + U.pct(nr, 1) + ')') + '</div></div>' +
+        '<div class="sc-sec"><div class="sc-sec-t">수익 규모별 비교 (손실 ' + U.won(l / 1e4) + '만원, 한도 ' + U.won(ex / 1e4) + '만원)</div>' + U.table(['과세대상 수익', 'ISA 세금', '일반계좌 세금', '절세액'], rows) + '</div>';
+    }
+    U.bindInputs(wrap, ['gain', 'loss', 'exempt', 'sep', 'normal'], calc);
+    $('types').addEventListener('click', function (e) { var b = e.target.closest('[data-x]'); if (!b) return; wrap.querySelectorAll('#types .sc-chip').forEach(function (c) { c.classList.toggle('on', c === b); }); $('exempt').value = b.getAttribute('data-x'); calc(); });
+    calc();
+  }
+  function reg() { window.SCTools.register({ id: 'isa-tax', css: CSS, render: render }); }
+  if (window.SCTools) reg(); else document.addEventListener('DOMContentLoaded', function () { if (window.SCTools) reg(); });
+})();
+
+</script></body></html>
